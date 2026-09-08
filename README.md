@@ -4,7 +4,7 @@ Hands-on networking labs built in Cisco Modeling Labs (CML). Each lab includes t
 topology export, device configurations, and a writeup covering the design, the
 verification steps, and the problems I hit along the way.
 
-CCNA certified. Currently working toward 
+CCNA certified.
 
 ## Why this repo exists
 
