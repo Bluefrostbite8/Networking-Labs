@@ -4,12 +4,15 @@
 ![Node](https://img.shields.io/badge/Switch-IOSvL2%2015.2-005073)
 ![Layer](https://img.shields.io/badge/OSI-Layer%202-blueviolet)
 ![STP](https://img.shields.io/badge/Loop%20Prevention-PVST-orange)
+![Root](https://img.shields.io/badge/STP%20Root-Per--VLAN%20Load%20Balanced-9b59b6)
 ![Security](https://img.shields.io/badge/Access%20Ports-PortFast%20%2B%20BPDU%20Guard-success)
 
 A four-switch, two-host Layer 2 lab built in Cisco Modeling Labs (CML). Two access
 switches dual-home into a distribution pair, deliberately creating physical loops
-that Per-VLAN Spanning Tree (PVST) resolves. The lab demonstrates VLAN
-segmentation, 802.1Q trunking, native-VLAN hardening, and edge-port protection.
+that Per-VLAN Spanning Tree (PVST) resolves. Root-bridge priorities are tuned so
+the two VLANs load-balance across the distribution switches. The lab demonstrates
+VLAN segmentation, 802.1Q trunking, native-VLAN hardening, deterministic STP root
+selection, and edge-port protection.
 
 ---
 
@@ -29,29 +32,9 @@ Design and verify a resilient switched access layer where:
 
 ## Topology
 
-```mermaid
-graph TB
-    subgraph DIST["Distribution / Core"]
-        S3["S3<br/>IOSvL2"]
-        S4["S4<br/>IOSvL2"]
-    end
-    subgraph ACC["Access"]
-        S1["S1<br/>IOSvL2"]
-        S2["S2<br/>IOSvL2"]
-    end
-    subgraph HOSTS["Hosts"]
-        D1["M-D1<br/>Desktop"]
-        D2["M-D2<br/>Desktop"]
-    end
-
-    S3 ===|"Gi0/2 — Gi0/2 · trunk"| S4
-    S1 ===|"Gi0/1 — Gi0/0 · trunk"| S3
-    S1 ===|"Gi0/2 — Gi0/1 · trunk"| S4
-    S2 ===|"Gi0/1 — Gi0/0 · trunk"| S4
-    S2 ===|"Gi0/2 — Gi0/1 · trunk"| S3
-    S1 ---|"Gi0/0 · access VLAN 10"| D1
-    S2 ---|"Gi0/0 · access VLAN 10"| D2
-```
+<p align="center">
+  <img src="topology.svg" alt="L2 Lab topology: access switches S1/S2 dual-homed to distribution switches S3/S4, hosts M-D1/M-D2 on VLAN 10" width="820">
+</p>
 
 *Thick lines are 802.1Q trunks; thin lines are host-facing access ports. The
 five inter-switch trunks form loops that PVST breaks by blocking redundant paths.*
@@ -128,6 +111,31 @@ With five trunks between four switches, the topology contains physical loops. Ev
 switch runs `spanning-tree mode pvst`, so a spanning tree is computed per VLAN and
 redundant links are placed into a blocking state until needed.
 
+### Deterministic root bridges with per-VLAN load balancing
+Rather than leaving root election to the default lowest-MAC tiebreak, the two
+distribution switches are given explicit priorities so each VLAN roots on a
+different switch. This puts both distribution switches and their uplinks to work
+instead of parking one in standby:
+
+| Switch | VLAN 10 priority | VLAN 20 priority | Role                              |
+|--------|------------------|------------------|-----------------------------------|
+| **S4** | `24576` (root)   | `28672` (backup) | Root for VLAN 10, backup for VLAN 20 |
+| **S3** | `28672` (backup) | `24576` (root)   | Root for VLAN 20, backup for VLAN 10 |
+
+```text
+! S4
+spanning-tree vlan 10 priority 24576
+spanning-tree vlan 20 priority 28672
+! S3
+spanning-tree vlan 10 priority 28672
+spanning-tree vlan 20 priority 24576
+```
+
+The default bridge priority is `32768`; `24576` is equivalent to `root primary`
+and `28672` to `root secondary`. VLAN 10 traffic therefore converges on **S4** and
+VLAN 20 on **S3**, and each distribution switch is the ready backup for the other's
+VLAN if a root fails.
+
 ### Edge-port protection
 Host-facing access ports converge immediately and reject unexpected switches:
 
@@ -153,11 +161,16 @@ interface GigabitEthernet0/0
 4. Suggested verification commands:
 
 ```text
-show spanning-tree vlan 10
+show spanning-tree vlan 10        ! confirm S4 is root for VLAN 10
+show spanning-tree vlan 20        ! confirm S3 is root for VLAN 20
+show spanning-tree root           ! root bridge + root port per VLAN, at a glance
 show interfaces trunk
 show vlan brief
 show interfaces status
 ```
+
+On S4, `show spanning-tree vlan 10` should report *"This bridge is the root"*; on S3
+the same holds for VLAN 20 — verifying the priorities took effect.
 
 Ping between **M-D1** and **M-D2** to confirm intra-VLAN reachability across the
 switched core, then shut a trunk (e.g. `interface Gi0/1 → shutdown` on S1) and
@@ -171,24 +184,9 @@ confirm connectivity survives via the redundant path.
 - 802.1Q trunk configuration with explicit allowed-VLAN pruning
 - Native-VLAN hardening against VLAN hopping
 - Spanning Tree (PVST) in a loop-redundant topology
+- Deterministic root-bridge selection with per-VLAN load balancing across the distribution pair
 - Edge-port security with PortFast + BPDU Guard
 - Building and documenting labs in Cisco Modeling Labs
-
----
-
-## Possible Extensions
-
-Ideas to grow this lab into a fuller portfolio piece:
-
-- **Set the STP root deterministically** — assign `spanning-tree vlan 10,20 root
-  primary` on a distribution switch (S3) and `root secondary` on S4 instead of
-  relying on the default lowest-MAC election.
-- **Add VLAN 20 hosts** and a **router-on-a-stick or L3 switch** for inter-VLAN
-  routing.
-- **EtherChannel** the S3–S4 interconnect (or bundle access uplinks) for more
-  bandwidth and faster failover.
-- **Management** — add SVIs, enable/vty passwords, and SSH-only access.
-- **DHCP snooping / port security** on access ports.
 
 ---
 
@@ -197,4 +195,5 @@ Ideas to grow this lab into a fuller portfolio piece:
 | File          | Description                                   |
 |---------------|-----------------------------------------------|
 | `L2_Lab.yaml` | CML topology export (nodes, links, configs)   |
+| `topology.svg`| Topology diagram embedded above                |
 | `README.md`   | This document                                 |

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <!-- card background (readable on light & dark GitHub themes) -->
+  <rect x="8" y="8" width="884" height="584" rx="14" fill="#ffffff" stroke="#d0d7de" stroke-width="1.5"/>
+
+  <!-- title -->
+  <text x="36" y="46" font-size="22" font-weight="700" fill="#1f2328">L2 Lab — Redundant Switched Campus</text>
+  <text x="36" y="70" font-size="13.5" fill="#57606a">Cisco Modeling Labs · PVST with per-VLAN root load balancing</text>
+
+  <!-- ================= LINKS (drawn first, under the nodes) ================= -->
+  <!-- Trunks (orange, thick) -->
+  <g stroke="#e07b39" stroke-width="3.4" stroke-linecap="round">
+    <line x1="340" y1="151" x2="560" y2="151"/>   <!-- S3 - S4 -->
+    <line x1="255" y1="184" x2="255" y2="288"/>   <!-- S3 - S1 -->
+    <line x1="645" y1="184" x2="645" y2="288"/>   <!-- S4 - S2 -->
+    <line x1="300" y1="184" x2="600" y2="288"/>   <!-- S3 - S2 (diagonal) -->
+    <line x1="600" y1="184" x2="300" y2="288"/>   <!-- S4 - S1 (diagonal) -->
+  </g>
+  <!-- Access links (green) -->
+  <g stroke="#3f9950" stroke-width="2.6" stroke-linecap="round">
+    <line x1="255" y1="354" x2="255" y2="440"/>   <!-- S1 - D1 -->
+    <line x1="645" y1="354" x2="645" y2="440"/>   <!-- S2 - D2 -->
+  </g>
+
+  <!-- port labels -->
+  <g font-size="10.5" fill="#8a929b">
+    <!-- S3-S4 -->
+    <text x="346" y="144">Gi0/2</text>
+    <text x="554" y="144" text-anchor="end">Gi0/2</text>
+    <!-- S3-S1 -->
+    <text x="262" y="204">Gi0/0</text>
+    <text x="262" y="276">Gi0/1</text>
+    <!-- S4-S2 -->
+    <text x="638" y="204" text-anchor="end">Gi0/0</text>
+    <text x="638" y="276" text-anchor="end">Gi0/1</text>
+    <!-- S3-S2 diagonal -->
+    <text x="310" y="198">Gi0/1</text>
+    <text x="590" y="282" text-anchor="end">Gi0/2</text>
+    <!-- S4-S1 diagonal -->
+    <text x="590" y="198" text-anchor="end">Gi0/1</text>
+    <text x="310" y="282">Gi0/2</text>
+    <!-- access -->
+    <text x="262" y="374">Gi0/0</text>
+    <text x="262" y="430">eth0</text>
+    <text x="638" y="374" text-anchor="end">Gi0/0</text>
+    <text x="638" y="430" text-anchor="end">eth0</text>
+  </g>
+  <!-- VLAN tags on access links -->
+  <g font-size="10.5" font-weight="600" fill="#3f9950">
+    <text x="200" y="401" text-anchor="end">VLAN 10</text>
+    <text x="700" y="401">VLAN 10</text>
+  </g>
+
+  <!-- ================= ROOT PILLS ================= -->
+  <g font-size="11" font-weight="700">
+    <rect x="188" y="86" width="134" height="22" rx="11" fill="#f6d365" stroke="#d9a441"/>
+    <text x="255" y="101" text-anchor="middle" fill="#5c4708">★ Root · VLAN 20</text>
+    <rect x="578" y="86" width="134" height="22" rx="11" fill="#f6d365" stroke="#d9a441"/>
+    <text x="645" y="101" text-anchor="middle" fill="#5c4708">★ Root · VLAN 10</text>
+  </g>
+
+  <!-- ================= NODES ================= -->
+  <!-- Distribution switches -->
+  <g>
+    <rect x="170" y="118" width="170" height="66" rx="9" fill="#0d5c75"/>
+    <text x="255" y="147" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">S3</text>
+    <text x="255" y="168" text-anchor="middle" font-size="11" fill="#bfe3ee">Distribution · IOSvL2</text>
+
+    <rect x="560" y="118" width="170" height="66" rx="9" fill="#0d5c75"/>
+    <text x="645" y="147" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">S4</text>
+    <text x="645" y="168" text-anchor="middle" font-size="11" fill="#bfe3ee">Distribution · IOSvL2</text>
+  </g>
+  <!-- Access switches -->
+  <g>
+    <rect x="170" y="288" width="170" height="66" rx="9" fill="#2b8a9e"/>
+    <text x="255" y="317" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">S1</text>
+    <text x="255" y="338" text-anchor="middle" font-size="11" fill="#d8f0f6">Access · IOSvL2</text>
+
+    <rect x="560" y="288" width="170" height="66" rx="9" fill="#2b8a9e"/>
+    <text x="645" y="317" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">S2</text>
+    <text x="645" y="338" text-anchor="middle" font-size="11" fill="#d8f0f6">Access · IOSvL2</text>
+  </g>
+  <!-- Hosts -->
+  <g>
+    <rect x="185" y="440" width="140" height="58" rx="9" fill="#eef1f4" stroke="#c4ccd4"/>
+    <text x="255" y="466" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2328">M-D1</text>
+    <text x="255" y="485" text-anchor="middle" font-size="11" fill="#57606a">Host · VLAN 10</text>
+
+    <rect x="575" y="440" width="140" height="58" rx="9" fill="#eef1f4" stroke="#c4ccd4"/>
+    <text x="645" y="466" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2328">M-D2</text>
+    <text x="645" y="485" text-anchor="middle" font-size="11" fill="#57606a">Host · VLAN 10</text>
+  </g>
+
+  <!-- ================= LEGEND ================= -->
+  <g font-size="12" fill="#57606a">
+    <line x1="40" y1="540" x2="72" y2="540" stroke="#e07b39" stroke-width="3.4" stroke-linecap="round"/>
+    <text x="80" y="544">802.1Q trunk (VLANs 10, 20 · native 99)</text>
+
+    <line x1="380" y1="540" x2="412" y2="540" stroke="#3f9950" stroke-width="2.6" stroke-linecap="round"/>
+    <text x="420" y="544">Access port · VLAN 10</text>
+
+    <rect x="612" y="531" width="16" height="16" rx="8" fill="#f6d365" stroke="#d9a441"/>
+    <text x="636" y="544">★  STP root bridge (per-VLAN)</text>
+  </g>
+</svg>
