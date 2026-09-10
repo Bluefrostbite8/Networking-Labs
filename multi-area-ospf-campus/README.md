@@ -98,7 +98,7 @@ The four distribution switches also run OSPF: DC-S1/DC-S2 advertise their SVI an
 | 20 | `10.1.20.0/24` — DC-S2 `.1` | `10.2.20.0/24` — DC-S4 `.1` | A-S2 / A-S4 Gi0/2 → HR-D2 / HR-D4 |
 | 99 | native/unused VLAN on all trunks | native/unused VLAN on all trunks | — |
 
-*CML exports drop the `vlan` name-definition stanzas, so VLANs 10/20/99 are referenced by trunk, SVI and access commands but are not separately named in the file.*
+*CML exports drop the `vlan` name-definition stanzas, so the VLAN names are not in the file, but `show vlan brief` on the switches confirms them: VLAN 10 = `USERS`, VLAN 20 = `HR`, VLAN 99 = `NATIVE`.*
 
 ### DHCP (server = the `DHCP` router)
 
@@ -160,7 +160,6 @@ interface GigabitEthernet0/0
  ip address 10.2.100.1 255.255.255.0
 interface Vlan10
  ip address 10.2.10.1 255.255.255.0
- ip helper-address 10.3.10.5
  ip helper-address 10.3.10.2
 router ospf 1
  network 10.2.10.0 0.0.0.255 area 2
@@ -253,6 +252,102 @@ router ospf 1
 | NAT translation | ASBR1: `show ip nat translations` | Entries for site hosts overloaded to E0/2 |
 | Internet egress | U-D1 → ping the upstream / `8.8.8.8` | Success (translated), assuming the bridged upstream is reachable |
 
+### Captured verification (CML)
+
+The following was captured from the running lab. Hosts leased `.11` in each subnet: U-D1 `10.1.10.11`, HR-D2 `10.1.20.11`, U-D3 `10.2.10.11`, HR-D4 `10.2.20.11`.
+
+**OSPF backbone is up through the DHCP transit.** The DHCP router sees both ASBRs FULL, one on each backbone link:
+
+```text
+DHCP# show ip ospf neighbor
+Neighbor ID   Pri  State      Dead Time  Address     Interface
+1.1.1.1         1  FULL/DR    00:00:39   10.4.10.1   Ethernet0/1
+3.3.3.3         1  FULL/BDR   00:00:35   10.3.10.1   Ethernet0/0
+```
+
+**ABR1 is a real ABR and has the full picture.** It is FULL with ASBR1 (area 0) and both Office distribution switches (area 1), and its table carries the inter-area routes to the Warehouse (`O IA`) plus the external default from ASBR1 (`O*E2`):
+
+```text
+ABR1# show ip ospf | include It is an|Area
+ It is an area border router
+    Area BACKBONE(0)
+    Area 1
+
+ABR1# show ip route ospf
+Gateway of last resort is 10.1.1.1 to network 0.0.0.0
+
+O*E2  0.0.0.0/0     [110/1]  via 10.1.1.1, Ethernet0/2
+O     10.1.10.0/24  [110/11] via 10.1.100.1, Ethernet0/0
+O     10.1.20.0/24  [110/11] via 10.1.200.1, Ethernet0/1
+O     10.2.1.0/24   [110/40] via 10.1.1.1, Ethernet0/2
+O IA  10.2.10.0/24  [110/51] via 10.1.1.1, Ethernet0/2
+O IA  10.2.20.0/24  [110/51] via 10.1.1.1, Ethernet0/2
+O IA  10.2.100.0/24 [110/50] via 10.1.1.1, Ethernet0/2
+O IA  10.2.200.0/24 [110/50] via 10.1.1.1, Ethernet0/2
+O     10.3.10.0/24  [110/30] via 10.1.1.1, Ethernet0/2
+O     10.4.10.0/24  [110/20] via 10.1.1.1, Ethernet0/2
+```
+
+**Centralized DHCP served all four site VLANs.** One binding per host, across all four pools:
+
+```text
+DHCP# show ip dhcp binding
+IP address    Hardware address   Lease expiration       Type       State
+10.1.10.11    0152.5400.3585.1e  Sep 10 2026 10:51 PM   Automatic  Active
+10.1.20.11    0152.5400.d827.f2  Sep 10 2026 10:51 PM   Automatic  Active
+10.2.10.11    0152.5400.4949.0c  Sep 11 2026 01:18 AM   Automatic  Active
+10.2.20.11    0152.5400.ef67.8a  Sep 11 2026 01:31 AM   Automatic  Active
+```
+
+**PAT edge translated site traffic to the Internet.** Office hosts overloaded to ASBR1's DHCP-learned WAN address `192.168.8.137` out E0/2:
+
+```text
+ASBR1# show ip nat translations
+Pro  Inside global        Inside local      Outside local      Outside global
+icmp 192.168.8.137:1024   10.1.10.11:40442  192.168.8.1:40442  192.168.8.1:1024
+icmp 192.168.8.137:1025   10.1.20.11:37309  192.168.8.1:37309  192.168.8.1:1025
+
+ASBR1# show ip nat statistics
+Total active translations: 2 (0 static, 2 dynamic; 2 extended)
+Outside interfaces: Ethernet0/2
+Inside interfaces:  Ethernet0/0, Ethernet0/1
+[Id: 1] access-list 10 interface Ethernet0/2 refcount 2
+```
+
+**Trunks carry the native VLAN 99, and STP blocks the redundant uplink.** A-S1 trunks 10,20,99 with native VLAN 99, and spanning tree forwards one uplink while blocking the second (`Altn BLK`); the host port is an edge port:
+
+```text
+A-S1# show interfaces trunk
+Port   Mode  Encapsulation  Status    Native vlan
+Gi0/0  on    802.1q         trunking  99
+Gi0/1  on    802.1q         trunking  99
+Port   Vlans allowed on trunk
+Gi0/0  10,20,99
+Gi0/1  10,20,99
+
+A-S1# show spanning-tree vlan 10
+Interface  Role Sts Cost  Prio.Nbr Type
+Gi0/0      Root FWD 4     128.1    P2p
+Gi0/1      Altn BLK 4     128.2    P2p        <-- redundant uplink blocked by STP
+Gi0/2      Desg FWD 4     128.3    P2p Edge
+```
+
+**End-to-end, cross-site, through the Area 0 transit.** A traceroute from an Office VLAN 10 host to a Warehouse VLAN 20 host walks every tier of the design in order — site SVI, ABR1, ASBR1, the DHCP router as the backbone transit, ASBR2, ABR2, the far distribution switch, then the host:
+
+```text
+U-D1:~$ traceroute 10.2.20.11
+ 1  10.1.10.1     4.631 ms   2.067 ms   2.162 ms     # DC-S1  VLAN10 SVI (gateway)
+ 2  10.1.100.2    2.276 ms   2.770 ms   1.963 ms     # ABR1   E0/0 (area 1)
+ 3  10.1.1.1      2.830 ms   3.420 ms   5.819 ms     # ASBR1  E0/0 (area 0)
+ 4  10.4.10.2     3.966 ms   3.804 ms   3.304 ms     # DHCP   E0/1 (area 0 transit)
+ 5  10.3.10.1     4.160 ms   3.039 ms   3.165 ms     # ASBR2  E0/1 (area 0)
+ 6  10.2.1.2      3.316 ms   4.343 ms   3.837 ms     # ABR2   E0/2 (area 0)
+ 7  10.2.200.1    6.168 ms   4.380 ms   3.946 ms     # DC-S4  Gi0/0 (area 2)
+ 8  10.2.20.11   12.106 ms   7.325 ms   7.088 ms     # HR-D4  (destination)
+```
+
+And the shorter reachability checks all succeed: inter-VLAN within the Office (U-D1 → HR-D2 `10.1.20.11`), cross-site (U-D3 → U-D1 `10.1.10.11`), and Internet egress (U-D3 → `192.168.8.1`), each 0% loss.
+
 ## Skills Demonstrated
 
 - Multilayer (L3) switching: per-VLAN SVIs as gateways, routed uplinks, and distribution switches participating in OSPF.
@@ -262,6 +357,7 @@ router ospf 1
 - Centralized DHCP with cross-subnet relay and per-area pools/exclusions.
 - Redundant NAT / PAT Internet edge with a DHCP-learned WAN and `default-information originate` to advertise the exit into OSPF.
 - Iterative build discipline: extending a working Office design into a symmetric Warehouse and edge, and fixing a prior addressing bug (SVI vs. DHCP gateway).
+- Verification and troubleshooting: confirmed the build end-to-end with OSPF neighbor/route output, NAT translations, DHCP bindings, STP state, and a cross-site traceroute through the Area 0 transit (see Verification).
 
 ## Possible Extensions
 
