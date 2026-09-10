@@ -1,189 +1,186 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680" font-family="Segoe UI, Helvetica, Arial, sans-serif">
-<rect x="10" y="10" width="980" height="660" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
-<text x="34" y="44" font-size="20" font-weight="700" fill="#0f172a">L3 Lab &#8212; Multi-Area OSPF Enterprise Network</text>
-<text x="34" y="63" font-size="11.5" fill="#64748b">As-built: Office (Area 1) and the Area 0 path to the DHCP server are live; Warehouse (Area 2), ABR2, ASBR2 and the redundant backbone are cabled but unconfigured.</text>
-<rect x="292" y="104" width="412" height="200" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="1.2" stroke-dasharray="4 4"/>
-<rect x="56" y="282" width="240" height="346" rx="14" fill="#fef2f2" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 4"/>
-<rect x="700" y="282" width="240" height="346" rx="14" fill="#eff6ff" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 4"/>
-<text x="498" y="150" font-size="12.5" font-weight="700" fill="#059669" letter-spacing="0.4" text-anchor="middle">AREA 0 · BACKBONE + EDGE</text>
-<text x="498" y="165" font-size="9.3" fill="#059669" text-anchor="middle">live</text>
-<text x="64" y="266" font-size="12.5" font-weight="700" fill="#dc2626" letter-spacing="0.4" text-anchor="start">AREA 1 · OFFICE</text>
-<text x="64" y="281" font-size="9.3" fill="#dc2626" text-anchor="start">VLAN 10 / 20 · live</text>
-<text x="932" y="266" font-size="12.5" font-weight="700" fill="#64748b" letter-spacing="0.4" text-anchor="end">AREA 2 · WAREHOUSE</text>
-<text x="932" y="281" font-size="9.3" fill="#64748b" text-anchor="end">cabled, not configured</text>
-<line x1="154.0" y1="398.0" x2="212.0" y2="398.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
-<line x1="112.0" y1="416.0" x2="112.0" y2="474.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
-<line x1="254.0" y1="416.0" x2="254.0" y2="474.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
-<line x1="139.2" y1="416.0" x2="226.8" y2="474.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
-<line x1="226.8" y1="416.0" x2="139.2" y2="474.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
-<line x1="254.0" y1="510.0" x2="254.0" y2="570.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
-<line x1="112.0" y1="510.0" x2="112.0" y2="570.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
-<line x1="778.0" y1="398.0" x2="836.0" y2="398.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="736.0" y1="416.0" x2="736.0" y2="474.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="878.0" y1="416.0" x2="878.0" y2="474.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="763.2" y1="416.0" x2="850.8" y2="474.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="850.8" y1="416.0" x2="763.2" y2="474.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="736.0" y1="510.0" x2="736.0" y2="570.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="878.0" y1="510.0" x2="878.0" y2="570.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="546.0" y1="114.7" x2="682.0" y2="100.4" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="797.1" y1="324.0" x2="750.9" y2="380.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="824.9" y1="324.0" x2="865.1" y2="380.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="165.1" y1="324.0" x2="124.9" y2="380.0" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round"/>
-<line x1="192.9" y1="324.0" x2="239.1" y2="380.0" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round"/>
-<line x1="219.0" y1="288.0" x2="351.0" y2="230.0" stroke="#1e3a8a" stroke-width="2.6" stroke-linecap="round"/>
-<line x1="640.6" y1="230.0" x2="771.4" y2="288.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="434.0" y1="212.0" x2="558.0" y2="212.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="412.3" y1="194.0" x2="475.7" y2="138.0" stroke="#c2410c" stroke-width="2.2" stroke-dasharray="6 4" stroke-linecap="round"/>
-<line x1="579.7" y1="194.0" x2="516.3" y2="138.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="558.0" y1="221.4" x2="220.0" y2="296.6" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="434.0" y1="221.4" x2="770.0" y2="296.6" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
-<line x1="386.0" y1="120.0" x2="446.0" y2="120.0" stroke="#c2410c" stroke-width="2.2" stroke-dasharray="6 4" stroke-linecap="round"/>
-<rect x="680" y="76" width="88" height="40" rx="7" fill="#d97706" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
-<text x="724" y="94" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.4">Internet</text>
-<text x="724" y="107" font-size="7.8" fill="#e2e8f0" text-anchor="middle" opacity="0.4">no route yet</text>
-<rect x="300" y="100" width="88" height="40" rx="7" fill="#0d9488" stroke="#0f172a" stroke-width="1"/>
-<text x="344" y="118" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">DHCP</text>
-<text x="344" y="131" font-size="7.8" fill="#e2e8f0" text-anchor="middle">RID 2.2.2.2</text>
-<rect x="444" y="100" width="104" height="40" rx="7" fill="#334155" stroke="#0f172a" stroke-width="1"/>
-<text x="496" y="118" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Redundant</text>
-<text x="496" y="131" font-size="7.8" fill="#e2e8f0" text-anchor="middle">10.3.10.0/24</text>
-<rect x="348" y="192" width="88" height="40" rx="7" fill="#b91c1c" stroke="#0f172a" stroke-width="1"/>
-<text x="392" y="210" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">ASBR1</text>
-<text x="392" y="223" font-size="7.8" fill="#e2e8f0" text-anchor="middle">RID 1.1.1.1</text>
-<rect x="556" y="192" width="88" height="40" rx="7" fill="#b91c1c" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
-<text x="600" y="210" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.4">ASBR2</text>
-<text x="600" y="223" font-size="7.8" fill="#e2e8f0" text-anchor="middle" opacity="0.4">shut / idle</text>
-<rect x="134" y="286" width="88" height="40" rx="7" fill="#7c3aed" stroke="#0f172a" stroke-width="1"/>
-<text x="178" y="304" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">ABR1</text>
-<text x="178" y="317" font-size="7.8" fill="#e2e8f0" text-anchor="middle">RID 4.4.4.4</text>
-<rect x="768" y="286" width="88" height="40" rx="7" fill="#7c3aed" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
-<text x="812" y="304" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.4">ABR2</text>
-<text x="812" y="317" font-size="7.8" fill="#e2e8f0" text-anchor="middle" opacity="0.4">not configured</text>
-<rect x="68" y="378" width="88" height="40" rx="7" fill="#1d4ed8" stroke="#0f172a" stroke-width="1"/>
-<text x="112" y="396" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">DC-S1</text>
-<text x="112" y="409" font-size="7.8" fill="#e2e8f0" text-anchor="middle">L3 · VLAN10 gw</text>
-<rect x="210" y="378" width="88" height="40" rx="7" fill="#1d4ed8" stroke="#0f172a" stroke-width="1"/>
-<text x="254" y="396" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">DC-S2</text>
-<text x="254" y="409" font-size="7.8" fill="#e2e8f0" text-anchor="middle">L3 · VLAN20 gw</text>
-<rect x="692" y="378" width="88" height="40" rx="7" fill="#1d4ed8" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
-<text x="736" y="396" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.4">DC-S3</text>
-<text x="736" y="409" font-size="7.8" fill="#e2e8f0" text-anchor="middle" opacity="0.4">default</text>
-<rect x="834" y="378" width="88" height="40" rx="7" fill="#1d4ed8" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
-<text x="878" y="396" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.4">DC-S4</text>
-<text x="878" y="409" font-size="7.8" fill="#e2e8f0" text-anchor="middle" opacity="0.4">default</text>
-<rect x="68" y="472" width="88" height="40" rx="7" fill="#059669" stroke="#0f172a" stroke-width="1"/>
-<text x="112" y="490" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">A-S1</text>
-<text x="112" y="503" font-size="7.8" fill="#e2e8f0" text-anchor="middle">acc VLAN10</text>
-<rect x="210" y="472" width="88" height="40" rx="7" fill="#059669" stroke="#0f172a" stroke-width="1"/>
-<text x="254" y="490" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">A-S2</text>
-<text x="254" y="503" font-size="7.8" fill="#e2e8f0" text-anchor="middle">acc VLAN20</text>
-<rect x="692" y="472" width="88" height="40" rx="7" fill="#059669" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
-<text x="736" y="490" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.4">A-S3</text>
-<text x="736" y="503" font-size="7.8" fill="#e2e8f0" text-anchor="middle" opacity="0.4">default</text>
-<rect x="834" y="472" width="88" height="40" rx="7" fill="#059669" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
-<text x="878" y="490" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.4">A-S4</text>
-<text x="878" y="503" font-size="7.8" fill="#e2e8f0" text-anchor="middle" opacity="0.4">default</text>
-<rect x="68" y="568" width="88" height="40" rx="7" fill="#475569" stroke="#0f172a" stroke-width="1"/>
-<text x="112" y="586" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">U-D1</text>
-<text x="112" y="599" font-size="7.8" fill="#e2e8f0" text-anchor="middle">VLAN 10</text>
-<rect x="210" y="568" width="88" height="40" rx="7" fill="#475569" stroke="#0f172a" stroke-width="1"/>
-<text x="254" y="586" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">HR-D2</text>
-<text x="254" y="599" font-size="7.8" fill="#e2e8f0" text-anchor="middle">VLAN 20</text>
-<rect x="692" y="568" width="88" height="40" rx="7" fill="#475569" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
-<text x="736" y="586" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.4">U-D3</text>
-<text x="736" y="599" font-size="7.8" fill="#e2e8f0" text-anchor="middle" opacity="0.4">idle</text>
-<rect x="834" y="568" width="88" height="40" rx="7" fill="#475569" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
-<text x="878" y="586" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.4">HR-D4</text>
-<text x="878" y="599" font-size="7.8" fill="#e2e8f0" text-anchor="middle" opacity="0.4">idle</text>
-<text x="171.4" y="401.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
-<text x="194.6" y="401.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
-<text x="112.0" y="436.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
-<text x="112.0" y="459.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
-<text x="254.0" y="436.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
-<text x="254.0" y="459.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
-<text x="164.2" y="435.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/3</text>
-<text x="201.8" y="460.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
-<text x="201.8" y="435.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/3</text>
-<text x="164.2" y="460.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
-<text x="254.0" y="531.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
-<text x="254.0" y="555.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">eth0</text>
-<text x="112.0" y="531.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
-<text x="112.0" y="555.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">eth0</text>
-<text x="795.4" y="401.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
-<text x="818.6" y="401.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
-<text x="736.0" y="436.4" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
-<text x="736.0" y="459.6" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
-<text x="878.0" y="436.4" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
-<text x="878.0" y="459.6" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
-<text x="788.2" y="435.6" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/3</text>
-<text x="825.8" y="460.4" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
-<text x="825.8" y="435.6" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/3</text>
-<text x="788.2" y="460.4" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
-<text x="736.0" y="531.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
-<text x="736.0" y="555.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">eth0</text>
-<text x="878.0" y="531.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
-<text x="878.0" y="555.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">eth0</text>
-<text x="575.8" y="114.6" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p2</text>
-<text x="652.2" y="106.6" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p</text>
-<text x="783.3" y="343.8" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
-<text x="764.7" y="366.2" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
-<text x="837.0" y="343.8" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
-<text x="853.0" y="366.2" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
-<text x="153.0" y="343.8" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
-<text x="137.0" y="366.2" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
-<text x="145.0" y="348.0" font-size="8.6" font-weight="600" fill="#2563eb" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.1.100.0/24</text>
-<text x="206.7" y="343.8" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
-<text x="225.3" y="366.2" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
-<text x="216.0" y="348.0" font-size="8.6" font-weight="600" fill="#2563eb" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.1.200.0/24</text>
-<text x="246.4" y="278.9" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
-<text x="323.6" y="245.1" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
-<text x="285.0" y="255.0" font-size="8.6" font-weight="600" fill="#1e3a8a" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.1.1.0/24 · A0</text>
-<text x="668.0" y="245.2" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
-<text x="744.0" y="278.8" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
-<text x="464.0" y="215.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
-<text x="528.0" y="215.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
-<text x="431.3" y="180.2" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
-<text x="456.7" y="157.8" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p0</text>
-<text x="444.0" y="162.0" font-size="8.6" font-weight="600" fill="#c2410c" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.3.10.0/24 · A0</text>
-<text x="560.7" y="180.2" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
-<text x="535.3" y="157.8" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p1</text>
-<text x="528.7" y="230.9" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/3</text>
-<text x="249.3" y="293.1" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/3</text>
-<text x="463.3" y="231.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/3</text>
-<text x="740.7" y="293.0" font-size="8.2" fill="#94a3b8" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/3</text>
-<text x="404.0" y="123.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
-<text x="428.0" y="123.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p3</text>
-<rect x="398" y="404" width="204" height="236" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
-<text x="410" y="424" font-size="12" font-weight="700" fill="#0f172a">LEGEND</text>
-<rect x="410" y="433" width="16" height="11" rx="2.5" fill="#b91c1c"/>
-<text x="432" y="442" font-size="9.2" fill="#1e293b">ASBR — AS boundary rtr</text>
-<rect x="410" y="448" width="16" height="11" rx="2.5" fill="#7c3aed"/>
-<text x="432" y="457" font-size="9.2" fill="#1e293b">ABR — area border rtr</text>
-<rect x="410" y="463" width="16" height="11" rx="2.5" fill="#0d9488"/>
-<text x="432" y="472" font-size="9.2" fill="#1e293b">DHCP / services rtr</text>
-<rect x="410" y="478" width="16" height="11" rx="2.5" fill="#1d4ed8"/>
-<text x="432" y="487" font-size="9.2" fill="#1e293b">L3 distribution switch</text>
-<rect x="410" y="493" width="16" height="11" rx="2.5" fill="#059669"/>
-<text x="432" y="502" font-size="9.2" fill="#1e293b">Access switch (L2)</text>
-<rect x="410" y="508" width="16" height="11" rx="2.5" fill="#334155"/>
-<text x="432" y="517" font-size="9.2" fill="#1e293b">Core L2 segment</text>
-<rect x="410" y="523" width="16" height="11" rx="2.5" fill="#475569"/>
-<text x="432" y="532" font-size="9.2" fill="#1e293b">End host</text>
-<rect x="410" y="538" width="16" height="11" rx="2.5" fill="#d97706"/>
-<text x="432" y="547" font-size="9.2" fill="#1e293b">Internet (ext-conn)</text>
-<rect x="410" y="556" width="16" height="11" rx="2.5" fill="#94a3b8" opacity="0.4" stroke="#94a3b8" stroke-dasharray="3 2"/>
-<text x="432" y="565" font-size="9.2" fill="#1e293b">Cabled, not configured</text>
-<line x1="410" y1="578" x2="428" y2="578" stroke="#1e3a8a" stroke-width="2.6"/>
-<text x="434" y="581" font-size="9.2" fill="#1e293b">Backbone · OSPF Area 0</text>
-<line x1="410" y1="593" x2="428" y2="593" stroke="#2563eb" stroke-width="2.2"/>
-<text x="434" y="596" font-size="9.2" fill="#1e293b">Routed uplink (ABR–dist)</text>
-<line x1="410" y1="608" x2="428" y2="608" stroke="#047857" stroke-width="2.6"/>
-<text x="434" y="611" font-size="9.2" fill="#1e293b">Trunk · VLAN 10,20</text>
-<line x1="410" y1="623" x2="428" y2="623" stroke="#64748b" stroke-width="1.6"/>
-<text x="434" y="626" font-size="9.2" fill="#1e293b">Access (switch–host)</text>
-<line x1="410" y1="638" x2="428" y2="638" stroke="#c2410c" stroke-width="2.2" stroke-dasharray="6 3"/>
-<text x="434" y="641" font-size="9.2" fill="#1e293b">Edge seg 10.3.10.0/24</text>
-<line x1="410" y1="653" x2="428" y2="653" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 3"/>
-<text x="434" y="656" font-size="9.2" fill="#1e293b">Idle / shut link</text>
-<text x="34" y="662" font-size="9" fill="#94a3b8">All facts read from the device configs in the export. Cabling/interfaces from the links list; addressing, areas, VLANs, DHCP and interface state from each running-config.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect x="10" y="10" width="980" height="680" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="34" y="44" font-size="20" font-weight="700" fill="#0f172a">L3 Lab — Multi-Area OSPF Enterprise Network</text>
+<text x="34" y="63" font-size="11.5" fill="#64748b">Two OSPF areas (Office / Warehouse) over an Area 0 backbone; redundant NAT edges; centralized DHCP relay; native VLAN 99 on all trunks.</text>
+<rect x="286" y="200" width="428" height="54" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="54" y="302" width="252" height="330" rx="14" fill="#fef2f2" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="694" y="302" width="252" height="330" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="292" y="194" font-size="12.5" font-weight="700" fill="#059669" letter-spacing="0.4" text-anchor="start">AREA 0 BACKBONE</text>
+<text x="60" y="288" font-size="12.5" font-weight="700" fill="#dc2626" letter-spacing="0.4" text-anchor="start">AREA 1 · OFFICE</text>
+<text x="60" y="303" font-size="9.2" fill="#dc2626" text-anchor="start">VLAN 10 / 20</text>
+<text x="940" y="288" font-size="12.5" font-weight="700" fill="#2563eb" letter-spacing="0.4" text-anchor="end">AREA 2 · WAREHOUSE</text>
+<text x="940" y="303" font-size="9.2" fill="#2563eb" text-anchor="end">VLAN 10 / 20</text>
+<line x1="153.0" y1="420.0" x2="207.0" y2="420.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="110.0" y1="438.0" x2="110.0" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="250.0" y1="438.0" x2="250.0" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="136.8" y1="438.0" x2="223.2" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="223.2" y1="438.0" x2="136.8" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="110.0" y1="532.0" x2="110.0" y2="590.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="250.0" y1="532.0" x2="250.0" y2="590.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="793.0" y1="420.0" x2="847.0" y2="420.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="750.0" y1="438.0" x2="750.0" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="890.0" y1="438.0" x2="890.0" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="776.8" y1="438.0" x2="863.2" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="863.2" y1="438.0" x2="776.8" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="750.0" y1="532.0" x2="750.0" y2="590.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="890.0" y1="532.0" x2="890.0" y2="590.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="179.9" y1="342.0" x2="126.1" y2="402.0" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="206.1" y1="342.0" x2="239.9" y2="402.0" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="793.9" y1="342.0" x2="760.1" y2="402.0" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="820.1" y1="342.0" x2="873.9" y2="402.0" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="224.3" y1="306.0" x2="321.7" y2="244.0" stroke="#1e3a8a" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="775.7" y1="306.0" x2="678.3" y2="244.0" stroke="#1e3a8a" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="393.0" y1="226.0" x2="457.0" y2="226.0" stroke="#1e3a8a" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="607.0" y1="226.0" x2="543.0" y2="226.0" stroke="#1e3a8a" stroke-width="2.6" stroke-linecap="round"/>
+<line x1="380.0" y1="208.0" x2="470.0" y2="154.0" stroke="#c2410c" stroke-width="2.4" stroke-dasharray="6 4" stroke-linecap="round"/>
+<line x1="620.0" y1="208.0" x2="530.0" y2="154.0" stroke="#c2410c" stroke-width="2.4" stroke-dasharray="6 4" stroke-linecap="round"/>
+<line x1="500.0" y1="118.0" x2="500.0" y2="96.0" stroke="#c2410c" stroke-width="2.4" stroke-dasharray="6 4" stroke-linecap="round"/>
+<line x1="607.0" y1="235.3" x2="239.0" y2="314.7" stroke="#e2e8f0" stroke-width="1.2" stroke-dasharray="2 5"/>
+<line x1="393.0" y1="235.3" x2="761.0" y2="314.7" stroke="#e2e8f0" stroke-width="1.2" stroke-dasharray="2 5"/>
+<rect x="455" y="58" width="90" height="40" rx="7" fill="#d97706" stroke="#0f172a" stroke-width="0.9"/>
+<text x="500" y="76" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Internet</text>
+<text x="500" y="89" font-size="7.6" fill="#e2e8f0" text-anchor="middle">bridge → 192.168.8.0</text>
+<rect x="441" y="116" width="118" height="40" rx="7" fill="#334155" stroke="#0f172a" stroke-width="0.9"/>
+<text x="500" y="134" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Redundant</text>
+<text x="500" y="147" font-size="7.6" fill="#e2e8f0" text-anchor="middle">WAN / outside</text>
+<rect x="305" y="206" width="90" height="40" rx="7" fill="#b91c1c" stroke="#0f172a" stroke-width="0.9"/>
+<text x="350" y="224" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">ASBR1</text>
+<text x="350" y="237" font-size="7.6" fill="#e2e8f0" text-anchor="middle">RID 1.1.1.1 · NAT+def</text>
+<rect x="455" y="206" width="90" height="40" rx="7" fill="#0d9488" stroke="#0f172a" stroke-width="0.9"/>
+<text x="500" y="224" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">DHCP</text>
+<text x="500" y="237" font-size="7.6" fill="#e2e8f0" text-anchor="middle">RID 2.2.2.2 · DHCP</text>
+<rect x="605" y="206" width="90" height="40" rx="7" fill="#b91c1c" stroke="#0f172a" stroke-width="0.9"/>
+<text x="650" y="224" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">ASBR2</text>
+<text x="650" y="237" font-size="7.6" fill="#e2e8f0" text-anchor="middle">RID 3.3.3.3 · NAT</text>
+<rect x="151" y="304" width="90" height="40" rx="7" fill="#7c3aed" stroke="#0f172a" stroke-width="0.9"/>
+<text x="196" y="322" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">ABR1</text>
+<text x="196" y="335" font-size="7.6" fill="#e2e8f0" text-anchor="middle">RID 4.4.4.4</text>
+<rect x="759" y="304" width="90" height="40" rx="7" fill="#7c3aed" stroke="#0f172a" stroke-width="0.9"/>
+<text x="804" y="322" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">ABR2</text>
+<text x="804" y="335" font-size="7.6" fill="#e2e8f0" text-anchor="middle">RID auto</text>
+<rect x="65" y="400" width="90" height="40" rx="7" fill="#1d4ed8" stroke="#0f172a" stroke-width="0.9"/>
+<text x="110" y="418" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">DC-S1</text>
+<text x="110" y="431" font-size="7.6" fill="#e2e8f0" text-anchor="middle">VLAN10 gw</text>
+<rect x="205" y="400" width="90" height="40" rx="7" fill="#1d4ed8" stroke="#0f172a" stroke-width="0.9"/>
+<text x="250" y="418" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">DC-S2</text>
+<text x="250" y="431" font-size="7.6" fill="#e2e8f0" text-anchor="middle">VLAN20 gw</text>
+<rect x="705" y="400" width="90" height="40" rx="7" fill="#1d4ed8" stroke="#0f172a" stroke-width="0.9"/>
+<text x="750" y="418" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">DC-S3</text>
+<text x="750" y="431" font-size="7.6" fill="#e2e8f0" text-anchor="middle">VLAN10 gw</text>
+<rect x="845" y="400" width="90" height="40" rx="7" fill="#1d4ed8" stroke="#0f172a" stroke-width="0.9"/>
+<text x="890" y="418" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">DC-S4</text>
+<text x="890" y="431" font-size="7.6" fill="#e2e8f0" text-anchor="middle">VLAN20 gw</text>
+<rect x="65" y="494" width="90" height="40" rx="7" fill="#059669" stroke="#0f172a" stroke-width="0.9"/>
+<text x="110" y="512" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">A-S1</text>
+<text x="110" y="525" font-size="7.6" fill="#e2e8f0" text-anchor="middle">acc v10</text>
+<rect x="205" y="494" width="90" height="40" rx="7" fill="#059669" stroke="#0f172a" stroke-width="0.9"/>
+<text x="250" y="512" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">A-S2</text>
+<text x="250" y="525" font-size="7.6" fill="#e2e8f0" text-anchor="middle">acc v20</text>
+<rect x="705" y="494" width="90" height="40" rx="7" fill="#059669" stroke="#0f172a" stroke-width="0.9"/>
+<text x="750" y="512" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">A-S3</text>
+<text x="750" y="525" font-size="7.6" fill="#e2e8f0" text-anchor="middle">acc v10</text>
+<rect x="845" y="494" width="90" height="40" rx="7" fill="#059669" stroke="#0f172a" stroke-width="0.9"/>
+<text x="890" y="512" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">A-S4</text>
+<text x="890" y="525" font-size="7.6" fill="#e2e8f0" text-anchor="middle">acc v20</text>
+<rect x="65" y="588" width="90" height="40" rx="7" fill="#475569" stroke="#0f172a" stroke-width="0.9"/>
+<text x="110" y="606" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">U-D1</text>
+<text x="110" y="619" font-size="7.6" fill="#e2e8f0" text-anchor="middle">VLAN 10</text>
+<rect x="205" y="588" width="90" height="40" rx="7" fill="#475569" stroke="#0f172a" stroke-width="0.9"/>
+<text x="250" y="606" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">HR-D2</text>
+<text x="250" y="619" font-size="7.6" fill="#e2e8f0" text-anchor="middle">VLAN 20</text>
+<rect x="705" y="588" width="90" height="40" rx="7" fill="#475569" stroke="#0f172a" stroke-width="0.9"/>
+<text x="750" y="606" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">U-D3</text>
+<text x="750" y="619" font-size="7.6" fill="#e2e8f0" text-anchor="middle">VLAN 10</text>
+<rect x="845" y="588" width="90" height="40" rx="7" fill="#475569" stroke="#0f172a" stroke-width="0.9"/>
+<text x="890" y="606" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">HR-D4</text>
+<text x="890" y="619" font-size="7.6" fill="#e2e8f0" text-anchor="middle">VLAN 20</text>
+<text x="169.2" y="423.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
+<text x="190.8" y="423.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
+<text x="110.0" y="458.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
+<text x="110.0" y="481.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
+<text x="250.0" y="458.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
+<text x="250.0" y="481.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
+<text x="161.7" y="457.7" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/3</text>
+<text x="198.3" y="482.3" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
+<text x="198.3" y="457.7" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/3</text>
+<text x="161.7" y="482.3" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
+<text x="110.0" y="552.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
+<text x="110.0" y="575.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">eth0</text>
+<text x="250.0" y="552.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
+<text x="250.0" y="575.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">eth0</text>
+<text x="809.2" y="423.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
+<text x="830.8" y="423.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
+<text x="750.0" y="458.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
+<text x="750.0" y="481.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
+<text x="890.0" y="458.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
+<text x="890.0" y="481.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
+<text x="801.7" y="457.7" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/3</text>
+<text x="838.3" y="482.3" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
+<text x="838.3" y="457.7" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/3</text>
+<text x="801.7" y="482.3" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/1</text>
+<text x="750.0" y="552.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
+<text x="750.0" y="575.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">eth0</text>
+<text x="890.0" y="552.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/2</text>
+<text x="890.0" y="575.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">eth0</text>
+<text x="163.8" y="363.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
+<text x="142.2" y="387.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
+<text x="153.0" y="368.0" font-size="8.4" font-weight="600" fill="#2563eb" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.1.100.0/24</text>
+<text x="216.2" y="363.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
+<text x="229.8" y="387.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
+<text x="223.0" y="368.0" font-size="8.4" font-weight="600" fill="#2563eb" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.1.200.0/24</text>
+<text x="783.8" y="363.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
+<text x="770.2" y="387.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
+<text x="777.0" y="368.0" font-size="8.4" font-weight="600" fill="#2563eb" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.2.100.0/24</text>
+<text x="836.2" y="363.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
+<text x="857.8" y="387.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
+<text x="847.0" y="368.0" font-size="8.4" font-weight="600" fill="#2563eb" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.2.200.0/24</text>
+<text x="249.6" y="292.9" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
+<text x="296.4" y="263.1" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
+<text x="273.0" y="271.0" font-size="8.4" font-weight="600" fill="#1e3a8a" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.1.1.0/24</text>
+<text x="750.4" y="292.9" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
+<text x="703.6" y="263.1" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
+<text x="727.0" y="271.0" font-size="8.4" font-weight="600" fill="#1e3a8a" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.2.1.0/24</text>
+<text x="412.2" y="229.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
+<text x="437.8" y="229.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
+<text x="425.0" y="222.0" font-size="8.4" font-weight="600" fill="#1e3a8a" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.4.10.0/24</text>
+<text x="587.8" y="229.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
+<text x="562.2" y="229.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
+<text x="575.0" y="222.0" font-size="8.4" font-weight="600" fill="#1e3a8a" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.3.10.0/24</text>
+<text x="405.7" y="195.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
+<text x="444.3" y="172.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p0</text>
+<text x="594.3" y="195.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
+<text x="555.7" y="172.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p1</text>
+<text x="500.0" y="114.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p2</text>
+<text x="500.0" y="105.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p</text>
+<rect x="402" y="398" width="196" height="232" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+<text x="414" y="418" font-size="12" font-weight="700" fill="#0f172a">LEGEND</text>
+<rect x="414" y="427" width="16" height="11" rx="2.5" fill="#b91c1c"/>
+<text x="436" y="436" font-size="9.1" fill="#1e293b">ASBR — NAT edge router</text>
+<rect x="414" y="442" width="16" height="11" rx="2.5" fill="#7c3aed"/>
+<text x="436" y="451" font-size="9.1" fill="#1e293b">ABR — area border rtr</text>
+<rect x="414" y="457" width="16" height="11" rx="2.5" fill="#0d9488"/>
+<text x="436" y="466" font-size="9.1" fill="#1e293b">DHCP / area-0 transit</text>
+<rect x="414" y="472" width="16" height="11" rx="2.5" fill="#1d4ed8"/>
+<text x="436" y="481" font-size="9.1" fill="#1e293b">L3 distribution switch</text>
+<rect x="414" y="487" width="16" height="11" rx="2.5" fill="#059669"/>
+<text x="436" y="496" font-size="9.1" fill="#1e293b">Access switch (L2)</text>
+<rect x="414" y="502" width="16" height="11" rx="2.5" fill="#334155"/>
+<text x="436" y="511" font-size="9.1" fill="#1e293b">WAN L2 segment</text>
+<rect x="414" y="517" width="16" height="11" rx="2.5" fill="#475569"/>
+<text x="436" y="526" font-size="9.1" fill="#1e293b">End host</text>
+<rect x="414" y="532" width="16" height="11" rx="2.5" fill="#d97706"/>
+<text x="436" y="541" font-size="9.1" fill="#1e293b">Internet (ext-conn)</text>
+<line x1="414" y1="556" x2="432" y2="556" stroke="#1e3a8a" stroke-width="2.6"/>
+<text x="438" y="559" font-size="9.1" fill="#1e293b">Backbone · OSPF Area 0</text>
+<line x1="414" y1="571" x2="432" y2="571" stroke="#2563eb" stroke-width="2.2"/>
+<text x="438" y="574" font-size="9.1" fill="#1e293b">Routed uplink (ABR–dist)</text>
+<line x1="414" y1="586" x2="432" y2="586" stroke="#047857" stroke-width="2.6"/>
+<text x="438" y="589" font-size="9.1" fill="#1e293b">Trunk · VLAN 10,20,99</text>
+<line x1="414" y1="601" x2="432" y2="601" stroke="#64748b" stroke-width="1.6"/>
+<text x="438" y="604" font-size="9.1" fill="#1e293b">Access (switch–host)</text>
+<line x1="414" y1="616" x2="432" y2="616" stroke="#c2410c" stroke-width="2.4" stroke-dasharray="6 4"/>
+<text x="438" y="619" font-size="9.1" fill="#1e293b">WAN / NAT outside (DHCP)</text>
+<line x1="414" y1="631" x2="432" y2="631" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="2 5"/>
+<text x="438" y="634" font-size="9.1" fill="#1e293b">Spare link (E0/3, shut)</text>
+<text x="34" y="682" font-size="9" fill="#94a3b8">All values read from the device running-configs. Cabling/interfaces from the links list; addressing, areas, VLANs, NAT, DHCP from each config. SVI = default gateway .1 per subnet.</text>
 </svg>

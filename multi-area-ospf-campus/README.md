@@ -5,50 +5,56 @@
 ![Routers](https://img.shields.io/badge/Routers-IOL--XE%20(17.18)-0b7285)
 ![OSPF](https://img.shields.io/badge/Routing-OSPF%20Multi--Area-4c1d95)
 ![VLANs](https://img.shields.io/badge/Segmentation-VLAN%2010%20%2F%2020-b91c1c)
+![NAT](https://img.shields.io/badge/Edge-Dual%20NAT%20%2F%20PAT-b45309)
 ![DHCP](https://img.shields.io/badge/Services-DHCP%20Relay-0d9488)
 ![STP](https://img.shields.io/badge/L2-PVST%20%2B%20PortFast%2FBPDU--Guard-047857)
 
 ## Objective
 
-This lab builds a two-site enterprise network — an **Office** site and a **Warehouse** site, each carrying two user VLANs (10 and 20) — joined by an OSPF routed core. It demonstrates a Layer-3 distribution layer (multilayer switches doing inter-VLAN routing on SVIs and running OSPF), **multi-area OSPF** (each site is its own area behind an Area Border Router riding an Area 0 backbone), **centralized DHCP with relay** across the routed core, and access-layer hardening. The end goal is that a client in an Office VLAN leases an address from a central DHCP server three routed hops away and reaches the rest of the network.
-
-**As-built state (read this first).** This export is a work in progress and the configs make the current state explicit. The **Office site (Area 1)** and the **Area 0 path to the DHCP server** are fully configured and live. The **Warehouse site (Area 2)** — switches DC-S3/DC-S4/A-S3/A-S4 — plus the Warehouse border router **ABR2**, the redundant edge router **ASBR2**, and every redundant backbone link are **cabled but still at default / shut down**. Nothing below is inferred: every value is read from a device's running-config in the export, and everything not yet configured is called out as such (and collected under *Possible Extensions* as the next build phase).
+This lab is a full two-site enterprise network. An **Office** site and a **Warehouse** site each carry two user VLANs behind a Layer-3 distribution layer, and the two sites are joined by a multi-area OSPF core with a **redundant, NAT-based Internet edge** and **centralized DHCP** delivered by relay. It proves that a client in any site VLAN can lease an address from a central server several routed hops away, reach the other site across the OSPF backbone, and reach the Internet through a translated edge. Every device in the lab is configured and forwarding.
 
 ### Changes from the previous export
 
-The topology is byte-identical to the prior export (same 19 nodes, same 27 links). What changed is that **device configurations are now present** — the earlier export shipped with empty `configuration:` blocks for every node. Configs were added to the eight switches (DC-S1/2/3/4, A-S1/2/3/4) and the five routers (ASBR1, ASBR2, ABR1, ABR2, DHCP). Of those, DC-S1, DC-S2, A-S1, A-S2, ABR1, ASBR1 and DHCP carry a working configuration; DC-S3, DC-S4, A-S3, A-S4 are at defaults; and ABR2 and ASBR2 have all interfaces shut with no routing.
+This export applies two targeted corrections on top of the fully-built previous version; the routers and all cabling are unchanged (19 nodes, 27 links). Self-signed certificates were re-minted (cosmetic).
+
+| Device(s) | What changed | Why it matters |
+|-----------|--------------|----------------|
+| DC-S1, DC-S2, A-S1, A-S2 | Office trunks moved to **native VLAN 99** (allowed `10,20,99`) | Native-VLAN hardening is now uniform across both sites |
+| DC-S1, DC-S2, DC-S3, DC-S4 | Removed the stale `ip helper-address 10.3.10.5` (a dead address from an earlier build) | Every SVI now relays cleanly to a single live DHCP interface |
+
+The remaining open items (ASBR2 default origination, ABR2 router-ID, backbone redundancy) were not part of this pass. See *Possible Extensions*.
 
 ## Topology
 
 <p align="center">
-  <img src="topology.svg" alt="L3 Lab multi-area OSPF topology" width="920">
+  <img src="topology.svg" alt="L3 Lab multi-area OSPF topology" width="940">
 </p>
 
-*Solid, coloured nodes/links are configured and live; greyed, dashed elements are cabled but unconfigured (default or shut). Line key: navy = OSPF Area 0 backbone · blue = ABR-to-distribution routed uplink · green = 802.1Q trunk (VLAN 10,20) · gray = access port to host · dashed orange = the 10.3.10.0/24 edge segment. Each endpoint is labelled with its physical interface; active routed links show their subnet.*
+*Line key: navy = OSPF Area 0 backbone · blue = ABR-to-distribution routed uplink · green = 802.1Q trunk (VLAN 10,20, plus 99 in the Warehouse) · gray = access port to host · dashed orange = WAN / NAT-outside segment (both ASBRs DHCP-learn their uplink through the Redundant switch to the Internet) · faint dashed = spare E0/3 links, cabled but shut. Each endpoint shows its interface; routed links show their subnet; SVIs are the `.1` gateway of each subnet.*
 
 ## Node Inventory
 
-| Node | Role | Type | `node_definition` | Config state |
-|------|------|------|-------------------|--------------|
-| Internet | Internet edge / outside world | External connector | `external_connector` | cabled; no L3 yet |
-| ASBR1 | Edge router on the Area 0 segment (RID 1.1.1.1) | Router | `iol-xe` | configured (E0/0, E0/2) |
-| ASBR2 | Redundant edge router | Router | `iol-xe` | all interfaces shut |
-| ABR1 | Area Border Router, Area 0 ↔ Area 1 / Office (RID 4.4.4.4) | Router | `iol-xe` | configured |
-| ABR2 | Area Border Router, Area 0 ↔ Area 2 / Warehouse | Router | `iol-xe` | all interfaces shut |
-| DHCP | Central DHCP server + Area 0 router (RID 2.2.2.2) | Router | `iol-xe` | configured |
-| Redundant | Core L2 segment (Internet / DHCP / ASBRs) | Unmanaged switch | `unmanaged_switch` | n/a (unmanaged) |
-| DC-S1 | Office L3 distribution — VLAN 10 gateway | Multilayer switch | `iosvl2` | configured |
-| DC-S2 | Office L3 distribution — VLAN 20 gateway | Multilayer switch | `iosvl2` | configured |
-| DC-S3 | Warehouse distribution | Switch | `iosvl2` | default (unconfigured) |
-| DC-S4 | Warehouse distribution | Switch | `iosvl2` | default (unconfigured) |
-| A-S1 | Office access switch (U-D1, VLAN 10) | Switch | `iosvl2` | configured |
-| A-S2 | Office access switch (HR-D2, VLAN 20) | Switch | `iosvl2` | configured |
-| A-S3 | Warehouse access switch | Switch | `iosvl2` | default (unconfigured) |
-| A-S4 | Warehouse access switch | Switch | `iosvl2` | default (unconfigured) |
-| U-D1 | Office end host (VLAN 10, on A-S1) | Desktop | `desktop` | DHCP client |
-| HR-D2 | Office end host (VLAN 20, on A-S2) | Desktop | `desktop` | DHCP client |
-| U-D3 | Warehouse end host | Desktop | `desktop` | idle |
-| HR-D4 | Warehouse end host | Desktop | `desktop` | idle |
+| Node | Role | Type | `node_definition` |
+|------|------|------|-------------------|
+| Internet | Internet edge (bridged to `192.168.8.0`) | External connector | `external_connector` |
+| Redundant | WAN / outside L2 segment (both ASBRs + Internet) | Unmanaged switch | `unmanaged_switch` |
+| ASBR1 | NAT edge router + default originator (RID 1.1.1.1) | Router | `iol-xe` |
+| ASBR2 | NAT edge router, redundant egress (RID 3.3.3.3) | Router | `iol-xe` |
+| DHCP | Central DHCP server + Area 0 transit (RID 2.2.2.2) | Router | `iol-xe` |
+| ABR1 | Area Border Router, Area 0 ↔ Area 1 / Office (RID 4.4.4.4) | Router | `iol-xe` |
+| ABR2 | Area Border Router, Area 0 ↔ Area 2 / Warehouse | Router | `iol-xe` |
+| DC-S1 | Office L3 distribution — VLAN 10 gateway | Multilayer switch | `iosvl2` |
+| DC-S2 | Office L3 distribution — VLAN 20 gateway | Multilayer switch | `iosvl2` |
+| DC-S3 | Warehouse L3 distribution — VLAN 10 gateway | Multilayer switch | `iosvl2` |
+| DC-S4 | Warehouse L3 distribution — VLAN 20 gateway | Multilayer switch | `iosvl2` |
+| A-S1 | Office access switch (U-D1, VLAN 10) | Switch | `iosvl2` |
+| A-S2 | Office access switch (HR-D2, VLAN 20) | Switch | `iosvl2` |
+| A-S3 | Warehouse access switch (U-D3, VLAN 10) | Switch | `iosvl2` |
+| A-S4 | Warehouse access switch (HR-D4, VLAN 20) | Switch | `iosvl2` |
+| U-D1 | Office end host (VLAN 10) | Desktop | `desktop` |
+| HR-D2 | Office end host (VLAN 20) | Desktop | `desktop` |
+| U-D3 | Warehouse end host (VLAN 10) | Desktop | `desktop` |
+| HR-D4 | Warehouse end host (VLAN 20) | Desktop | `desktop` |
 
 ## Addressing & Segmentation
 
@@ -56,113 +62,125 @@ All values are read from the running-configs.
 
 ### OSPF (process 1)
 
-| Router | Router-ID | Interfaces → area | Notes |
-|--------|-----------|-------------------|-------|
-| ABR1 | 4.4.4.4 | E0/2 `10.1.1.0` → area 0; E0/0 `10.1.100.0`, E0/1 `10.1.200.0` → area 1 | True ABR (Office ↔ backbone) |
-| ASBR1 | 1.1.1.1 | E0/0 `10.1.1.0` → area 0; E0/2 `10.3.10.0` → area 0 | Area 0 only today (see note) |
-| DHCP | 2.2.2.2 | E0/0 `10.3.10.0` → area 0 | `passive-interface default`, active only on E0/0 |
-| ABR2 | — | — | not configured (all interfaces shut) |
-| ASBR2 | — | — | not configured (all interfaces shut) |
+| Router | Router-ID | Interface → area | Notes |
+|--------|-----------|------------------|-------|
+| ABR1 | 4.4.4.4 | E0/2 `10.1.1.0` → a0; E0/0 `10.1.100.0`, E0/1 `10.1.200.0` → a1 | Office ABR |
+| ABR2 | *auto* | E0/2 `10.2.1.0` → a0; E0/0 `10.2.100.0`, E0/1 `10.2.200.0` → a2 | Warehouse ABR (no explicit RID) |
+| ASBR1 | 1.1.1.1 | E0/0 `10.1.1.0` → a0; E0/1 `10.4.10.0` → a0 | `default-information originate`; NAT |
+| ASBR2 | 3.3.3.3 | E0/0 `10.2.1.0` → a0; E0/1 `10.3.10.0` → a0 | NAT; does **not** originate default |
+| DHCP | 2.2.2.2 | E0/0 `10.3.10.0`, E0/1 `10.4.10.0` → a0 | `passive-interface default` except the two backbone links |
 
-DC-S1 and DC-S2 also run OSPF process 1 into **area 1**, advertising their SVI subnet and their routed uplink (DC-S1: `10.1.10.0`, `10.1.100.0`; DC-S2: `10.1.20.0`, `10.1.200.0`), and each carries a default static route toward ABR1.
+The four distribution switches also run OSPF: DC-S1/DC-S2 advertise their SVI and uplink subnets into **area 1**; DC-S3/DC-S4 into **area 2**. The Office distribution switches additionally carry a static default toward ABR1; the Warehouse switches rely on the OSPF-learned default.
 
 ### IP addressing
 
 | Subnet | Area | Endpoints |
 |--------|------|-----------|
-| `10.1.10.0/24` | 1 | VLAN 10 (Office). SVI on DC-S1 = `.2`; DHCP-assigned gateway `.1` (see extensions) |
-| `10.1.20.0/24` | 1 | VLAN 20 (Office). SVI on DC-S2 = `.2`; DHCP-assigned gateway `.1` |
-| `10.1.100.0/24` | 1 | DC-S1 Gi0/0 `.1` ↔ ABR1 E0/0 `.2` (routed uplink) |
-| `10.1.200.0/24` | 1 | DC-S2 Gi0/0 `.1` ↔ ABR1 E0/1 `.2` (routed uplink) |
-| `10.1.1.0/24` | 0 | ABR1 E0/2 `.2` ↔ ASBR1 E0/0 `.1` (backbone) |
-| `10.3.10.0/24` | 0 | Edge segment: ASBR1 E0/2 `.11`, DHCP E0/0 `.5` (ASBR2 `.x` shut, Internet uplink) |
+| `10.1.10.0/24` | 1 | Office VLAN 10 — SVI/gateway DC-S1 `.1` |
+| `10.1.20.0/24` | 1 | Office VLAN 20 — SVI/gateway DC-S2 `.1` |
+| `10.2.10.0/24` | 2 | Warehouse VLAN 10 — SVI/gateway DC-S3 `.1` |
+| `10.2.20.0/24` | 2 | Warehouse VLAN 20 — SVI/gateway DC-S4 `.1` |
+| `10.1.100.0/24` | 1 | DC-S1 `.1` ↔ ABR1 E0/0 `.2` |
+| `10.1.200.0/24` | 1 | DC-S2 `.1` ↔ ABR1 E0/1 `.2` |
+| `10.2.100.0/24` | 2 | DC-S3 `.1` ↔ ABR2 E0/0 `.2` |
+| `10.2.200.0/24` | 2 | DC-S4 `.1` ↔ ABR2 E0/1 `.2` |
+| `10.1.1.0/24` | 0 | ABR1 E0/2 `.2` ↔ ASBR1 E0/0 `.1` |
+| `10.2.1.0/24` | 0 | ABR2 E0/2 `.2` ↔ ASBR2 E0/0 `.1` |
+| `10.4.10.0/24` | 0 | ASBR1 E0/1 `.1` ↔ DHCP E0/1 `.2` |
+| `10.3.10.0/24` | 0 | ASBR2 E0/1 `.1` ↔ DHCP E0/0 `.2` |
+| WAN (Redundant switch) | — | ASBR1 E0/2 + ASBR2 E0/2 (both `ip address dhcp`, NAT outside) + Internet bridge to `192.168.8.0` |
 
 ### VLANs
 
-| VLAN | Subnet | SVI / gateway | Access ports |
-|------|--------|---------------|--------------|
-| 10 | `10.1.10.0/24` | DC-S1 `Vlan10` = 10.1.10.2 | A-S1 Gi0/2 → U-D1 |
-| 20 | `10.1.20.0/24` | DC-S2 `Vlan20` = 10.1.20.2 | A-S2 Gi0/2 → HR-D2 |
+| VLAN | Office subnet / gateway | Warehouse subnet / gateway | Host ports |
+|------|--------------------------|-----------------------------|------------|
+| 10 | `10.1.10.0/24` — DC-S1 `.1` | `10.2.10.0/24` — DC-S3 `.1` | A-S1 / A-S3 Gi0/2 → U-D1 / U-D3 |
+| 20 | `10.1.20.0/24` — DC-S2 `.1` | `10.2.20.0/24` — DC-S4 `.1` | A-S2 / A-S4 Gi0/2 → HR-D2 / HR-D4 |
+| 99 | native/unused VLAN on all trunks | native/unused VLAN on all trunks | — |
 
-*CML config exports drop the `vlan`/name-definition stanzas, so VLAN 10/20 are referenced by trunk and SVI/access commands but are not separately named in the export.* Warehouse VLAN subnets `10.2.10.0/24` and `10.2.20.0/24` appear on the canvas annotations but are **not yet configured** on any Warehouse device.
+*CML exports drop the `vlan` name-definition stanzas, so VLANs 10/20/99 are referenced by trunk, SVI and access commands but are not separately named in the file.*
 
-### DHCP (server = the `DHCP` router, 10.3.10.5)
+### DHCP (server = the `DHCP` router)
 
 | Pool | Network | default-router | Excluded |
 |------|---------|----------------|----------|
-| `AREA1V10` | 10.1.10.0/24 | 10.1.10.1 | 10.1.10.1 – 10.1.10.10 |
-| `AREA10V2` | 10.1.20.0/24 | 10.1.20.1 | 10.1.20.1 – 10.1.20.10 |
+| `AREA1V10` | 10.1.10.0/24 | 10.1.10.1 | .1 – .10 |
+| `AREA10V2` | 10.1.20.0/24 | 10.1.20.1 | .1 – .10 |
+| `AREA2V10` | 10.2.10.0/24 | 10.2.10.1 | .1 – .10 |
+| `AREA2V20` | 10.2.20.0/24 | 10.2.20.1 | .1 – .10 |
 
-Both Office SVIs relay to the server with `ip helper-address 10.3.10.5`.
+Each SVI relays to the DHCP router: the Office SVIs (DC-S1, DC-S2) point at `10.4.10.2` and the Warehouse SVIs (DC-S3, DC-S4) point at `10.3.10.2`. Every SVI now has a single live relay target, so relay works but is not yet redundant. See *Possible Extensions*.
+
+### NAT (both ASBRs)
+
+Each ASBR runs PAT: `ip nat inside source list 10 interface Ethernet0/2 overload`, with E0/2 (`ip address dhcp`) as `ip nat outside` and the internal links as `ip nat inside`. ACL 10 permits the internal ranges (`10.1.0.0/16`, `10.2.0.0/16`, `10.3.10.0/24`, `10.4.10.0/24`), so any site host is translated to the ASBR's DHCP-learned WAN address on the way out.
 
 ## Cabling / Link Map
 
-Every link from the `links` list, interfaces resolved from each node's interface table. **State** reflects the running-config (a link is *idle* when either end is shut or unconfigured).
+Every link from the `links` list, interfaces resolved from each node's interface table.
 
-| Link | A-side | B-side | Purpose | State |
-|------|--------|--------|---------|-------|
-| l0 | DC-S1 Gi0/1 | DC-S2 Gi0/1 | Office inter-distribution trunk (VLAN 10,20) | active |
-| l1 | DC-S1 Gi0/2 | A-S1 Gi0/0 | Distribution ↔ access trunk (Office) | active |
-| l4 | DC-S2 Gi0/3 | A-S1 Gi0/1 | Distribution ↔ access trunk (Office, 2nd uplink) | active |
-| l3 | DC-S1 Gi0/3 | A-S2 Gi0/1 | Distribution ↔ access trunk (Office, 2nd uplink) | active |
-| l2 | DC-S2 Gi0/2 | A-S2 Gi0/0 | Distribution ↔ access trunk (Office) | active |
-| l6 | A-S1 Gi0/2 | U-D1 eth0 | Access port, VLAN 10 (PortFast + BPDU Guard) | active |
-| l5 | A-S2 Gi0/2 | HR-D2 eth0 | Access port, VLAN 20 (PortFast + BPDU Guard) | active |
-| l17 | ABR1 E0/0 | DC-S1 Gi0/0 | Routed uplink `10.1.100.0/24` (Area 1) | active |
-| l18 | ABR1 E0/1 | DC-S2 Gi0/0 | Routed uplink `10.1.200.0/24` (Area 1) | active |
-| l19 | ABR1 E0/2 | ASBR1 E0/0 | OSPF Area 0 backbone `10.1.1.0/24` | active |
-| l22 | ASBR1 E0/2 | Redundant port0 | Edge segment `10.3.10.0/24` (Area 0) | active |
-| l26 | DHCP E0/0 | Redundant port3 | Edge segment `10.3.10.0/24` (DHCP server) | active |
-| l14 | Redundant port2 | Internet port | Uplink to outside (no L3/route configured yet) | cabled |
-| l7 | DC-S3 Gi0/1 | DC-S4 Gi0/1 | Warehouse inter-distribution trunk | idle |
-| l8 | DC-S3 Gi0/2 | A-S3 Gi0/0 | Distribution ↔ access (Warehouse) | idle |
-| l11 | DC-S4 Gi0/3 | A-S3 Gi0/1 | Distribution ↔ access (Warehouse) | idle |
-| l10 | DC-S3 Gi0/3 | A-S4 Gi0/1 | Distribution ↔ access (Warehouse) | idle |
-| l9 | DC-S4 Gi0/2 | A-S4 Gi0/0 | Distribution ↔ access (Warehouse) | idle |
-| l12 | A-S3 Gi0/2 | U-D3 eth0 | Access port to host (Warehouse) | idle |
-| l13 | A-S4 Gi0/2 | HR-D4 eth0 | Access port to host (Warehouse) | idle |
-| l15 | ABR2 E0/0 | DC-S3 Gi0/0 | Routed uplink, Warehouse ↔ ABR2 | idle (ABR2 shut) |
-| l16 | ABR2 E0/1 | DC-S4 Gi0/0 | Routed uplink, Warehouse ↔ ABR2 | idle (ABR2 shut) |
-| l20 | ASBR2 E0/0 | ABR2 E0/2 | OSPF Area 0 backbone | idle (both shut) |
-| l21 | ASBR1 E0/1 | ASBR2 E0/1 | OSPF Area 0 backbone (ASBR ↔ ASBR) | idle (both shut) |
-| l25 | ASBR1 E0/3 | ABR2 E0/3 | OSPF Area 0 backbone | idle (both shut) |
-| l24 | ASBR2 E0/3 | ABR1 E0/3 | OSPF Area 0 backbone | idle (both shut) |
-| l23 | ASBR2 E0/2 | Redundant port1 | Edge segment `10.3.10.0/24` | idle (ASBR2 shut) |
+| Link | A-side | B-side | Purpose |
+|------|--------|--------|---------|
+| l0 | DC-S1 Gi0/1 | DC-S2 Gi0/1 | Office inter-distribution trunk (VLAN 10,20) |
+| l1 | DC-S1 Gi0/2 | A-S1 Gi0/0 | Office distribution ↔ access trunk |
+| l4 | DC-S2 Gi0/3 | A-S1 Gi0/1 | Office distribution ↔ access trunk (2nd uplink) |
+| l3 | DC-S1 Gi0/3 | A-S2 Gi0/1 | Office distribution ↔ access trunk (2nd uplink) |
+| l2 | DC-S2 Gi0/2 | A-S2 Gi0/0 | Office distribution ↔ access trunk |
+| l6 | A-S1 Gi0/2 | U-D1 eth0 | Office access port, VLAN 10 (PortFast + BPDU Guard) |
+| l5 | A-S2 Gi0/2 | HR-D2 eth0 | Office access port, VLAN 20 (PortFast + BPDU Guard) |
+| l7 | DC-S3 Gi0/1 | DC-S4 Gi0/1 | Warehouse inter-distribution trunk (VLAN 10,20,99) |
+| l8 | DC-S3 Gi0/2 | A-S3 Gi0/0 | Warehouse distribution ↔ access trunk |
+| l11 | DC-S4 Gi0/3 | A-S3 Gi0/1 | Warehouse distribution ↔ access trunk (2nd uplink) |
+| l10 | DC-S3 Gi0/3 | A-S4 Gi0/1 | Warehouse distribution ↔ access trunk (2nd uplink) |
+| l9 | DC-S4 Gi0/2 | A-S4 Gi0/0 | Warehouse distribution ↔ access trunk |
+| l12 | A-S3 Gi0/2 | U-D3 eth0 | Warehouse access port, VLAN 10 (PortFast + BPDU Guard) |
+| l13 | A-S4 Gi0/2 | HR-D4 eth0 | Warehouse access port, VLAN 20 (PortFast + BPDU Guard) |
+| l17 | ABR1 E0/0 | DC-S1 Gi0/0 | Routed uplink `10.1.100.0/24` (area 1) |
+| l18 | ABR1 E0/1 | DC-S2 Gi0/0 | Routed uplink `10.1.200.0/24` (area 1) |
+| l15 | ABR2 E0/0 | DC-S3 Gi0/0 | Routed uplink `10.2.100.0/24` (area 2) |
+| l16 | ABR2 E0/1 | DC-S4 Gi0/0 | Routed uplink `10.2.200.0/24` (area 2) |
+| l19 | ABR1 E0/2 | ASBR1 E0/0 | OSPF Area 0 backbone `10.1.1.0/24` |
+| l20 | ABR2 E0/2 | ASBR2 E0/0 | OSPF Area 0 backbone `10.2.1.0/24` |
+| l26 | ASBR1 E0/1 | DHCP E0/1 | OSPF Area 0 backbone `10.4.10.0/24` |
+| l25 | ASBR2 E0/1 | DHCP E0/0 | OSPF Area 0 backbone `10.3.10.0/24` |
+| l21 | ASBR1 E0/2 | Redundant port0 | WAN / NAT-outside segment (DHCP-learned) |
+| l22 | ASBR2 E0/2 | Redundant port1 | WAN / NAT-outside segment (DHCP-learned) |
+| l14 | Redundant port2 | Internet port | Uplink to the bridged Internet (`192.168.8.0`) |
+| l23 | ASBR2 E0/3 | ABR1 E0/3 | Spare backbone cross-link — cabled, both ends shut |
+| l24 | ASBR1 E0/3 | ABR2 E0/3 | Spare backbone cross-link — cabled, both ends shut |
 
 ## Design Details
 
-Each subsection describes a feature that is configured in the export, with a minimal snippet lifted from the running-config.
-
-**Layer-3 distribution with per-VLAN SVIs.** The Office distribution switches are multilayer: each owns one VLAN's gateway SVI, a routed uplink to the ABR, and OSPF. This splits the two VLAN gateways across the two switches (VLAN 10 on DC-S1, VLAN 20 on DC-S2) rather than co-locating them.
+**Layer-3 distribution with per-VLAN SVI gateways.** Each site's two distribution switches split the VLAN gateways between them (VLAN 10 on DC-S1/DC-S3, VLAN 20 on DC-S2/DC-S4). Each holds its VLAN's SVI as the `.1` gateway, a routed uplink to the site ABR, OSPF, and DHCP relay.
 
 ```text
-! DC-S1
+! DC-S3 (Warehouse)
 interface GigabitEthernet0/0
  no switchport
- ip address 10.1.100.1 255.255.255.0
+ ip address 10.2.100.1 255.255.255.0
 interface Vlan10
- ip address 10.1.10.2 255.255.255.0
+ ip address 10.2.10.1 255.255.255.0
  ip helper-address 10.3.10.5
+ ip helper-address 10.3.10.2
 router ospf 1
- network 10.1.10.0 0.0.0.255 area 1
- network 10.1.100.0 0.0.0.255 area 1
-ip route 0.0.0.0 0.0.0.0 10.1.100.2
+ network 10.2.10.0 0.0.0.255 area 2
+ network 10.2.100.0 0.0.0.255 area 2
 ```
 
-**VLAN segmentation and 802.1Q trunking.** All inter-switch links (distribution-to-distribution and distribution-to-access) are dot1q trunks pruned to the two user VLANs, negotiation disabled.
+**VLAN segmentation, trunking, and native-VLAN hardening.** All inter-switch links are dot1q trunks pruned to the user VLANs. Every trunk on both sites uses an unused **native VLAN 99**, moving untagged traffic off the default VLAN 1 (a common hardening step against VLAN-hopping).
 
 ```text
-interface GigabitEthernet0/1
- switchport trunk allowed vlan 10,20
+! Trunk (native VLAN 99, now on all switches)
+interface GigabitEthernet0/0
+ switchport trunk allowed vlan 10,20,99
  switchport trunk encapsulation dot1q
+ switchport trunk native vlan 99
  switchport mode trunk
- switchport nonegotiate
 ```
 
-**Access-port hardening.** Host-facing ports on A-S1/A-S2 are single-VLAN access ports with PortFast for fast host convergence and BPDU Guard to shut the port if another switch is plugged in.
+**Access-port hardening.** Every host port is a single-VLAN access port with PortFast (fast host convergence) and BPDU Guard (err-disable if a switch is connected).
 
 ```text
-! A-S1
 interface GigabitEthernet0/2
  switchport access vlan 10
  switchport mode access
@@ -170,83 +188,99 @@ interface GigabitEthernet0/2
  spanning-tree bpduguard enable
 ```
 
-**Multi-area OSPF.** ABR1 is the border between Area 1 (Office) and Area 0 (backbone); its interfaces are assigned to areas per network statement, giving the Office its own LSA flooding domain that summarizes into the backbone.
+**Multi-area OSPF.** Area 1 (Office) and Area 2 (Warehouse) each hang off their own ABR, and Area 0 stitches the ABRs, ASBRs and the DHCP router together. The DHCP router is the Area 0 transit between the two edges, so it stays passive on every interface except its two backbone links.
 
 ```text
-! ABR1
-interface Ethernet0/2
- ip address 10.1.1.2 255.255.255.0
+! ABR2 (Warehouse border)
 router ospf 1
- router-id 4.4.4.4
- network 10.1.1.0 0.0.0.255 area 0
- network 10.1.100.0 0.0.0.255 area 1
- network 10.1.200.0 0.0.0.255 area 1
-```
-
-**Centralized DHCP with relay.** A single DHCP router on the Area 0 edge segment serves both Office VLANs; the SVIs relay broadcasts to it with `ip helper-address`. The server runs OSPF (passive everywhere except its edge interface) so its reply route back into the Office is learned dynamically.
-
-```text
-! DHCP (10.3.10.5)
-ip dhcp excluded-address 10.1.10.1 10.1.10.10
-ip dhcp pool AREA1V10
- network 10.1.10.0 255.255.255.0
- default-router 10.1.10.1
+ network 10.2.1.0 0.0.0.255 area 0
+ network 10.2.100.0 0.0.0.255 area 2
+ network 10.2.200.0 0.0.0.255 area 2
+! DHCP (area-0 transit)
 router ospf 1
  router-id 2.2.2.2
  passive-interface default
  no passive-interface Ethernet0/0
+ no passive-interface Ethernet0/1
  network 10.3.10.0 0.0.0.255 area 0
+ network 10.4.10.0 0.0.0.255 area 0
 ```
 
-**Spanning tree.** The switches run PVST+ (`spanning-tree mode pvst`) and the routers run Rapid-PVST. Each Office access switch dual-homes to both distribution switches (A-S1 → DC-S1 *and* DC-S2; A-S2 likewise), so STP is actively blocking one of each pair's redundant uplinks. Root-bridge priorities are left at default in this export.
+**Centralized DHCP with relay.** One DHCP router serves all four site subnets; each SVI relays to it with `ip helper-address`, and pools exclude the low addresses reserved for infrastructure.
 
-**Redundant edge and Warehouse (cabled, not yet configured).** The wiring provides a near-full backbone mesh (ABR1/ABR2/ASBR1/ASBR2) and a redundant edge segment, but today only ASBR1's E0/0 and E0/2 are up: ASBR1 E0/1 and E0/3, all of ASBR2, and all of ABR2 are shut, and the Warehouse switches are at defaults. The redundancy is designed into the topology but is a pending build step, not an active feature.
+```text
+ip dhcp excluded-address 10.2.10.1 10.2.10.10
+ip dhcp pool AREA2V10
+ network 10.2.10.0 255.255.255.0
+ default-router 10.2.10.1
+```
+
+**Redundant NAT / PAT Internet edge.** Both ASBRs translate site traffic out a DHCP-learned WAN interface toward the bridged Internet. ASBR1 also injects a default route into OSPF so the whole domain knows how to leave.
+
+```text
+! ASBR1
+interface Ethernet0/2
+ ip address dhcp
+ ip nat outside
+ip nat inside source list 10 interface Ethernet0/2 overload
+ip access-list standard 10
+ permit 10.1.0.0 0.0.255.255
+ permit 10.2.0.0 0.0.255.255
+ permit 10.3.10.0 0.0.0.255
+ permit 10.4.10.0 0.0.0.255
+router ospf 1
+ router-id 1.1.1.1
+ default-information originate
+```
+
+**Spanning tree.** Switches run PVST+, routers Rapid-PVST. Each access switch dual-homes to both of its site's distribution switches, so STP blocks one uplink per access-switch pair; root priorities are left at default.
 
 ## How to Run & Verify
 
-**Import.** In CML, *Import* → select `L3_Lab.clean.yaml` → start all nodes. Devices boot with the configs shown above (Warehouse devices come up at defaults by design).
-
-The tests below prove the parts that are configured today.
+**Import.** In CML, *Import* → select `L3_Lab.clean.yaml` → start all nodes. The Internet connector is a System Bridge, so Internet reachability depends on the host having the `192.168.8.0` upstream that the ASBRs DHCP-learn.
 
 | Test (where) | Command | Expected result |
 |--------------|---------|-----------------|
-| Office host leased an address | U-D1 / HR-D2: `ipconfig` / `ip a` | Address in `10.1.10.0/24` (U-D1) or `10.1.20.0/24` (HR-D2) |
-| DHCP bindings | DHCP: `show ip dhcp binding` | One binding per Office host that has leased |
-| Relay working | DC-S1: `show ip interface Vlan10` \| i Helper | Helper address `10.3.10.5` present |
-| Trunks / VLANs | DC-S1, A-S1: `show interfaces trunk`, `show vlan brief` | Gi0/1–Gi0/3 trunking VLAN 10,20; A-S1 Gi0/2 access VLAN 10 |
-| STP blocking a redundant uplink | A-S1: `show spanning-tree vlan 10` | Root via one distribution switch, the second uplink in BLK |
-| Inter-VLAN routing | U-D1 (VLAN 10) → ping HR-D2 (VLAN 20) | Success once host gateways are correct (see extensions) |
-| OSPF adjacencies | ABR1: `show ip ospf neighbor` | FULL with DC-S1, DC-S2 (area 1) and ASBR1 (area 0) |
-| ABR / inter-area LSAs | ABR1: `show ip ospf database` | Router flagged ABR; type-3 summaries between areas |
-| Reach the DHCP server | U-D1 → ping `10.3.10.5` | Success (proves Area 1 → Area 0 routing end-to-end) |
+| Hosts leased addresses | U-D1 / U-D3: `ip a` | Addresses in the site VLAN subnet, gateway `.1` |
+| DHCP bindings | DHCP: `show ip dhcp binding` | One binding per host, across all four pools |
+| Relay reaches server | DC-S3: `show ip interface Vlan10` \| i Helper | Helper `10.3.10.2` (live) present |
+| Trunks / native VLAN | A-S3: `show interfaces trunk` | Gi0/0–Gi0/1 trunking 10,20,99, native VLAN 99 |
+| Access-port guard | A-S1: `show spanning-tree interface Gi0/2 detail` | PortFast edge + BPDU Guard enabled |
+| Inter-VLAN routing | U-D1 (v10) → ping HR-D2 (v20) | Success via the site SVIs |
+| OSPF adjacencies | DHCP: `show ip ospf neighbor` | FULL with both ASBRs; ABRs FULL in area 0 and their site area |
+| Areas / inter-area LSAs | ABR1: `show ip ospf database` | ABR flag; type-3 summaries for the far site |
+| Cross-site path | U-D1 → traceroute a Warehouse host | Office → ABR1 → Area 0 (via DHCP transit) → ABR2 → Warehouse |
+| NAT translation | ASBR1: `show ip nat translations` | Entries for site hosts overloaded to E0/2 |
+| Internet egress | U-D1 → ping the upstream / `8.8.8.8` | Success (translated), assuming the bridged upstream is reachable |
 
 ## Skills Demonstrated
 
-- Multilayer (L3) switching: SVIs, routed uplinks, and a distribution switch participating in OSPF.
-- VLAN design with 802.1Q trunking and access-port assignment across a dual-homed access layer.
+- Multilayer (L3) switching: per-VLAN SVIs as gateways, routed uplinks, and distribution switches participating in OSPF.
+- End-to-end VLAN design: 802.1Q trunking, per-port access assignment, and native-VLAN hardening (VLAN 99).
 - Access-port hardening with PortFast and BPDU Guard.
-- Multi-area OSPF with a correctly-scoped ABR (area 0 backbone plus a per-site area) and explicit router-IDs.
-- Centralized DHCP with cross-subnet relay (`ip helper-address`) and pool/exclusion design, proven by an Office host completing its lease.
-- OSPF `passive-interface default` on a services router so it advertises only where it should.
-- Reading a CML export as the source of truth — deriving every fact from the device configs and reporting the real build state, including what is not yet done.
+- Multi-area OSPF: two site areas behind ABRs over an Area 0 backbone, deliberate router-IDs, and a transit router kept passive except on its backbone links.
+- Centralized DHCP with cross-subnet relay and per-area pools/exclusions.
+- Redundant NAT / PAT Internet edge with a DHCP-learned WAN and `default-information originate` to advertise the exit into OSPF.
+- Iterative build discipline: extending a working Office design into a symmetric Warehouse and edge, and fixing a prior addressing bug (SVI vs. DHCP gateway).
 
 ## Possible Extensions
 
-- **Build the Warehouse (Area 2).** Configure DC-S3/DC-S4 (SVIs for VLAN 10/20 in `10.2.x.0/24`, trunks, OSPF area 2) and A-S3/A-S4 (trunks + access ports), mirroring the Office.
-- **Bring up ABR2 and ASBR2.** Un-shut and address their interfaces and add OSPF so the Warehouse gets a border router and the redundant backbone/edge actually forward — the cabling is already in place (l20/l21/l23/l24/l25).
-- **Fix the host default gateway.** The pools hand out `default-router 10.1.10.1 / 10.1.20.1`, but the only SVIs are `.2`. If a first-hop-redundancy virtual IP at `.1` is the intent, it isn't configured yet — today an Office client receives a gateway address no device owns, so off-subnet traffic will fail. Either point the pool at `.2` or add HSRP/VRRP with a `.1` VIP.
-- **Add first-hop redundancy for the split gateways.** VLAN 10's gateway lives only on DC-S1 and VLAN 20's only on DC-S2; if a distribution switch fails, that VLAN loses its gateway even though the other switch is up. HSRP/VRRP across the pair (with the VIP at `.1`) closes this and matches the pool's `default-router`.
-- **Make ASBR1/ASBR2 actual ASBRs.** Neither injects an external or default route today, and the Internet link (`l14`) has no addressing or NAT — so there is no Internet path yet. Add edge addressing, a default route/NAT, and `default-information originate` into OSPF.
-- **Minor:** the second DHCP pool is named `AREA10V2` (appears to be a typo for `AREA1V20`); and OSPF root-bridge priorities are default (consider setting DC-S1/DC-S2 as primary/secondary roots per VLAN for deterministic STP).
+- **Add DHCP-relay redundancy.** Each SVI now points at a single DHCP interface. For redundancy, give every SVI a second *live* target so one DHCP interface failing does not stop leases: Office SVIs → add `10.3.10.2`, Warehouse SVIs → add `10.4.10.2`.
+- **Give ASBR2 a default route to originate.** Only ASBR1 runs `default-information originate`, so OSPF always prefers ASBR1 as the exit and ASBR2's NAT path is idle until ASBR1's route disappears. Add `default-information originate` on ASBR2 (with a higher metric, or tracked to its uplink) for real egress redundancy.
+- **Pin ABR2's router-ID.** ABR2 has no explicit `router-id`, so it auto-selects its highest interface IP and can change on reload. Set one (e.g. `5.5.5.5`) for stability and consistency with the other routers.
+- **Add backbone redundancy for the transit.** Inter-site traffic currently crosses Area 0 through the single DHCP router. The spare `E0/3` cross-links (ASBR1↔ABR2, ASBR2↔ABR1) are already cabled but shut; un-shutting and addressing them adds a second backbone path.
+- **Standardize trunk negotiation.** Native VLAN 99 is now consistent across both sites. `switchport nonegotiate` is still set only on the Office trunks; apply it on the Warehouse trunks too so no trunk relies on DTP.
+- **STP root planning.** Root priorities are default at both sites. Set each distribution switch as primary root for one VLAN and secondary for the other, per site, for predictable Layer-2 paths.
+- **Minor:** rename the `AREA10V2` pool to `AREA1V20`; and the Office switches carry both a static default and the OSPF-learned default — harmless, but the Warehouse's OSPF-only approach is cleaner and could be applied uniformly.
 
 ## Files
 
 | File | Description |
 |------|-------------|
 | `README.md` | This documentation. |
-| `topology.svg` | Hand-built topology diagram (embedded above), showing configured vs. unconfigured elements. |
-| `L3_Lab.clean.yaml` | Sanitized CML export — auto-generated Cisco banner/EULA blocks stripped from all switches; all real configuration preserved (19 nodes, 27 links, parse-verified). |
+| `topology.svg` | Hand-built topology diagram (embedded above). |
+| `L3_Lab.clean.yaml` | Sanitized CML export — Cisco banner/EULA blocks stripped from all switches; all real configuration preserved (19 nodes, 27 links, parse-verified). |
 
 ---
 
-*Documentation derived entirely from the device running-configs in the CML export `L3_Lab`. Cabling and interfaces come from the `links` list; addressing, areas, VLANs, DHCP and interface up/shut state come from each node's configuration.*
+*Documentation derived entirely from the device running-configs in the CML export `L3_Lab`. Cabling and interfaces come from the `links` list; addressing, areas, VLANs, NAT, DHCP and interface state come from each node's configuration.*
