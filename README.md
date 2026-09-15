@@ -37,3 +37,9 @@ To run a lab yourself: download `topology.yaml`, then in CML choose
 
 Roman Schroeder, Kyle, Tx
 www.linkedin.com/in/roman-schroeder-856188410/ · schroedermroman@gmail.com
+
+## License & disclaimer
+
+The lab topologies, configurations, and documentation in this repository are my own work, released under the MIT License.
+
+Cisco, IOS, IOS XE, and Cisco Modeling Labs are trademarks of Cisco Systems, Inc. This repository is not affiliated with or endorsed by Cisco. It contains no Cisco software, images, or license material. Importing and running these labs requires your own licensed Cisco Modeling Labs instance with the referenced node images installed.
