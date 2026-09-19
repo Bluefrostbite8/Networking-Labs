@@ -1,4 +1,4 @@
-# L3 Lab — Multi-Area OSPF Enterprise Network
+# Multi-Area OSPF Enterprise Campus — Two-Site Network with Redundant NAT Edge & Centralized DHCP
 
 ![Platform](https://img.shields.io/badge/Platform-Cisco%20Modeling%20Labs-1BA0D7?logo=cisco&logoColor=white)
 ![Switches](https://img.shields.io/badge/Switches-IOSv--L2%20(15.2)-005073)
@@ -236,7 +236,7 @@ router ospf 1
 
 ## How to Run & Verify
 
-**Import.** In CML, *Import* → select `L3_Lab.clean.yaml` → start all nodes. The Internet connector is a System Bridge, so Internet reachability depends on the host having the `192.168.8.0` upstream that the ASBRs DHCP-learn.
+**Import.** In CML, *Import* → select `topology.yaml` → start all nodes. The Internet connector is a System Bridge, so Internet reachability depends on the host having the `192.168.8.0` upstream that the ASBRs DHCP-learn.
 
 | Test (where) | Command | Expected result |
 |--------------|---------|-----------------|
@@ -375,7 +375,7 @@ And the shorter reachability checks all succeed: inter-VLAN within the Office (U
 |------|-------------|
 | `README.md` | This documentation. |
 | `topology.svg` | Hand-built topology diagram (embedded above). |
-| `L3_Lab.clean.yaml` | Sanitized CML export — Cisco banner/EULA blocks stripped from all switches; all real configuration preserved (19 nodes, 27 links, parse-verified). |
+| `topology.yaml` | Sanitized CML export — Cisco banner/EULA blocks stripped from all switches; all real configuration preserved (19 nodes, 27 links, parse-verified). |
 
 ---
 

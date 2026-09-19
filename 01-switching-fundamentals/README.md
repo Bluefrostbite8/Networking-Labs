@@ -1,4 +1,4 @@
-# L2 Lab — Redundant Switched Campus Network
+# Switching Fundamentals — Dual-Homed L2 Access with PVST Root Load-Balancing
 
 ![Platform](https://img.shields.io/badge/Platform-Cisco%20Modeling%20Labs-1BA0D7)
 ![Node](https://img.shields.io/badge/Switch-IOSvL2%2015.2-005073)
@@ -156,7 +156,7 @@ interface GigabitEthernet0/0
 ## How to Run
 
 1. Open Cisco Modeling Labs.
-2. **Import Lab** → select `L2_Lab.yaml`.
+2. **Import Lab** → select `topology.yaml`.
 3. Start all nodes and open a console to each switch.
 4. Suggested verification commands:
 
@@ -194,6 +194,6 @@ confirm connectivity survives via the redundant path.
 
 | File          | Description                                   |
 |---------------|-----------------------------------------------|
-| `L2_Lab.yaml` | CML topology export (nodes, links, configs)   |
+| `topology.yaml` | CML topology export (nodes, links, configs)   |
 | `topology.svg`| Topology diagram embedded above                |
 | `README.md`   | This document                                 |

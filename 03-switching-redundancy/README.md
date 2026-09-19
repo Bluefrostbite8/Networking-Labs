@@ -223,7 +223,7 @@ ip dhcp pool VLAN10
 
 ## How to Run & Verify
 
-**Import.** In CML, *Import* → select `switching.clean.yaml` → start all nodes. Give the switches a minute to elect roots and form channels before testing.
+**Import.** In CML, *Import* → select `topology.yaml` → start all nodes. Give the switches a minute to elect roots and form channels before testing.
 
 | Test (where) | Command | Expected result |
 |--------------|---------|-----------------|
@@ -271,7 +271,7 @@ ip dhcp pool VLAN10
 |------|-------------|
 | `README.md` | This documentation. |
 | `topology.svg` | Hand-built topology diagram (embedded above). |
-| `switching.clean.yaml` | Sanitized CML export — Cisco banner/EULA blocks stripped from all eight IOS devices; all real configuration preserved (12 nodes, 22 links, parse-verified). |
+| `topology.yaml` | Sanitized CML export — Cisco banner/EULA blocks stripped from all eight IOS devices; all real configuration preserved (12 nodes, 22 links, parse-verified). |
 
 ---
 
