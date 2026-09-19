@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 860" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<defs>
+<filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+ <feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="#0f172a" flood-opacity="0.28"/>
+</filter></defs>
+<style>
+ .if{font-size:9px;fill:#0f172a;paint-order:stroke;stroke:#ffffff;stroke-width:2.6px;stroke-linejoin:round;text-anchor:middle;dominant-baseline:middle;font-weight:600}
+ .ntitle{font-size:14px;font-weight:700;fill:#ffffff;text-anchor:middle}
+ .nsub{font-size:8.5px;fill:#e5e7eb;text-anchor:middle}
+ .tier{font-size:9.5px;font-weight:700;fill:#94a3b8;letter-spacing:1.2px;text-anchor:middle}
+ .polbl{font-size:9px;font-weight:700;fill:#ffffff;text-anchor:middle;dominant-baseline:middle}
+ .subnet{font-size:8.5px;font-weight:600;fill:#1e3a8a;paint-order:stroke;stroke:#fff;stroke-width:2.6px;text-anchor:middle}
+ .badge{font-size:8.5px;font-weight:700;text-anchor:middle;dominant-baseline:middle}
+ .h1{font-size:19px;font-weight:800;fill:#0f172a}
+ .h2{font-size:11px;font-weight:600;fill:#475569}
+ .lg{font-size:9.5px;fill:#334155}
+ .lgh{font-size:10px;font-weight:700;fill:#0f172a;letter-spacing:.5px}
+ .boxh{font-size:9.5px;font-weight:700;fill:#0f172a}
+ .boxt{font-size:9px;fill:#334155}
+</style>
+<rect x="18" y="18" width="1044" height="824" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+<text x="44" y="52" class="h1">Redundant Campus Access Layer</text>
+<text x="45" y="72" class="h2">Lab 2 · Switching &amp; Redundancy — Rapid-PVST · EtherChannel (LACP/PAgP/static) · HSRP · Port-Security</text>
+<text x="34" y="120" class="tier" transform="rotate(-90 34 120)">EDGE</text>
+<text x="34" y="262" class="tier" transform="rotate(-90 34 262)">CORE · L3</text>
+<text x="34" y="404" class="tier" transform="rotate(-90 34 404)">DIST · L2</text>
+<text x="34" y="548" class="tier" transform="rotate(-90 34 548)">ACCESS</text>
+<text x="34" y="690" class="tier" transform="rotate(-90 34 690)">HOSTS</text>
+<line x1="511.5" y1="147.0" x2="418.5" y2="235.0" stroke="#1e3a8a" stroke-width="2.6" stroke-linecap="round"/>
+<text x="495.8" y="152.2" class="if">Gi0/1</text>
+<text x="434.2" y="229.8" class="if">Gi1/0</text>
+<text x="465.0" y="191.0" class="subnet">192.168.1.0/30</text>
+<line x1="568.5" y1="147.0" x2="661.5" y2="235.0" stroke="#1e3a8a" stroke-width="2.6" stroke-linecap="round"/>
+<text x="574.6" y="162.4" class="if">Gi0/0</text>
+<text x="655.4" y="219.6" class="if">Gi1/0</text>
+<text x="615.0" y="191.0" class="subnet">192.168.1.4/30</text>
+<line x1="465.0" y1="264.7" x2="615.0" y2="264.7" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<line x1="465.0" y1="259.3" x2="615.0" y2="259.3" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<rect x="500.6" y="253.0" width="78.8" height="18" rx="9" fill="#0f766e"/>
+<text x="540.0" y="262.5" class="polbl">Po3 · static</text>
+<line x1="387.3" y1="289.0" x2="387.3" y2="377.0" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<line x1="392.7" y1="289.0" x2="392.7" y2="377.0" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<rect x="356.0" y="324.0" width="68.0" height="18" rx="9" fill="#0f766e"/>
+<text x="390.0" y="333.5" class="polbl">Po2 · PAgP</text>
+<line x1="687.3" y1="289.0" x2="687.3" y2="377.0" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<line x1="692.7" y1="289.0" x2="692.7" y2="377.0" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<rect x="656.0" y="324.0" width="68.0" height="18" rx="9" fill="#0f766e"/>
+<text x="690.0" y="333.5" class="polbl">Po2 · PAgP</text>
+<line x1="445.9" y1="291.4" x2="631.8" y2="379.4" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<line x1="448.2" y1="286.6" x2="634.1" y2="374.6" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<rect x="468.8" y="306.4" width="68.0" height="18" rx="9" fill="#0f766e"/>
+<text x="502.8" y="315.9" class="polbl">Po1 · LACP</text>
+<line x1="631.8" y1="286.6" x2="445.9" y2="374.6" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<line x1="634.1" y1="291.4" x2="448.2" y2="379.4" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+<rect x="543.2" y="306.4" width="68.0" height="18" rx="9" fill="#0f766e"/>
+<text x="577.2" y="315.9" class="polbl">Po1 · LACP</text>
+<line x1="276.2" y1="521.0" x2="363.8" y2="431.0" stroke="#047857" stroke-width="2.2" stroke-linecap="round"/>
+<text x="291.7" y="515.1" class="if">Gi0/1</text>
+<text x="348.3" y="436.9" class="if">Gi0/0</text>
+<line x1="325.0" y1="523.5" x2="615.0" y2="428.5" stroke="#047857" stroke-width="2.2" stroke-linecap="round"/>
+<text x="341.4" y="525.4" class="if">Gi0/2</text>
+<text x="598.6" y="426.6" class="if">Gi0/2</text>
+<line x1="511.9" y1="521.0" x2="418.1" y2="431.0" stroke="#047857" stroke-width="2.2" stroke-linecap="round"/>
+<text x="505.9" y="505.6" class="if">Gi0/1</text>
+<text x="424.1" y="446.4" class="if">Gi0/1</text>
+<line x1="568.1" y1="521.0" x2="661.9" y2="431.0" stroke="#047857" stroke-width="2.2" stroke-linecap="round"/>
+<text x="583.8" y="515.7" class="if">Gi0/2</text>
+<text x="646.2" y="436.3" class="if">Gi0/1</text>
+<line x1="820.0" y1="521.0" x2="720.0" y2="431.0" stroke="#047857" stroke-width="2.2" stroke-linecap="round"/>
+<text x="813.5" y="505.8" class="if">Gi0/1</text>
+<text x="726.5" y="446.2" class="if">Gi0/0</text>
+<line x1="775.0" y1="524.5" x2="465.0" y2="427.5" stroke="#047857" stroke-width="2.2" stroke-linecap="round"/>
+<text x="762.8" y="513.4" class="if">Gi0/2</text>
+<text x="477.2" y="438.6" class="if">Gi0/2</text>
+<line x1="240.5" y1="575.0" x2="207.7" y2="668.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
+<text x="228.9" y="586.8" class="if">Gi0/0</text>
+<text x="219.3" y="656.2" class="if">eth0</text>
+<line x1="540.0" y1="575.0" x2="540.0" y2="668.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
+<text x="533.0" y="590.0" class="if">Gi0/0</text>
+<text x="547.0" y="653.0" class="if">eth0</text>
+<line x1="840.5" y1="575.0" x2="807.7" y2="668.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
+<text x="828.9" y="586.8" class="if">Gi0/0</text>
+<text x="819.3" y="656.2" class="if">eth0</text>
+<line x1="861.8" y1="575.0" x2="902.4" y2="668.0" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/>
+<text x="861.4" y="591.5" class="if">Gi0/3</text>
+<text x="902.8" y="651.5" class="if">eth0</text>
+<rect x="465" y="93" width="150" height="54" rx="9" fill="#b91c1c" filter="url(#sh)"/>
+<text x="540" y="116" class="ntitle">R1</text>
+<text x="540" y="131" class="nsub">DHCP server · OSPF 1.1.1.1</text>
+<rect x="315" y="235" width="150" height="54" rx="9" fill="#1d4ed8" filter="url(#sh)"/>
+<text x="390" y="258" class="ntitle">Core1</text>
+<text x="390" y="273" class="nsub">L3 · OSPF 2.2.2.2</text>
+<rect x="615" y="235" width="150" height="54" rx="9" fill="#1d4ed8" filter="url(#sh)"/>
+<text x="690" y="258" class="ntitle">Core2</text>
+<text x="690" y="273" class="nsub">L3 · OSPF 3.3.3.3</text>
+<rect x="315" y="377" width="150" height="54" rx="9" fill="#334155" filter="url(#sh)"/>
+<text x="390" y="400" class="ntitle">Dist1</text>
+<text x="390" y="415" class="nsub">L2 aggregation</text>
+<rect x="615" y="377" width="150" height="54" rx="9" fill="#334155" filter="url(#sh)"/>
+<text x="690" y="400" class="ntitle">Dist2</text>
+<text x="690" y="415" class="nsub">L2 aggregation</text>
+<rect x="175" y="521" width="150" height="54" rx="9" fill="#059669" filter="url(#sh)"/>
+<text x="250" y="544" class="ntitle">A1</text>
+<text x="250" y="559" class="nsub">access</text>
+<rect x="465" y="521" width="150" height="54" rx="9" fill="#059669" filter="url(#sh)"/>
+<text x="540" y="544" class="ntitle">A2</text>
+<text x="540" y="559" class="nsub">access</text>
+<rect x="775" y="521" width="150" height="54" rx="9" fill="#059669" filter="url(#sh)"/>
+<text x="850" y="544" class="ntitle">A3</text>
+<text x="850" y="559" class="nsub">access</text>
+<rect x="148" y="668" width="104" height="44" rx="9" fill="#475569" filter="url(#sh)"/>
+<text x="200" y="687" class="ntitle" style="font-size:12px">E-1</text>
+<rect x="170" y="695" width="60" height="13" rx="6.5" fill="#7c3aed"/>
+<text x="200" y="702" class="badge" fill="#fff">VLAN 10</text>
+<rect x="488" y="668" width="104" height="44" rx="9" fill="#475569" filter="url(#sh)"/>
+<text x="540" y="687" class="ntitle" style="font-size:12px">M-1</text>
+<rect x="510" y="695" width="60" height="13" rx="6.5" fill="#0e7490"/>
+<text x="540" y="702" class="badge" fill="#fff">VLAN 20</text>
+<rect x="748" y="668" width="104" height="44" rx="9" fill="#475569" filter="url(#sh)"/>
+<text x="800" y="687" class="ntitle" style="font-size:12px">S-1</text>
+<rect x="770" y="695" width="60" height="13" rx="6.5" fill="#b91c1c"/>
+<text x="800" y="702" class="badge" fill="#fff">VLAN 30</text>
+<rect x="860" y="668" width="104" height="44" rx="9" fill="#475569" filter="url(#sh)"/>
+<text x="912" y="687" class="ntitle" style="font-size:12px">E-2</text>
+<rect x="882" y="695" width="60" height="13" rx="6.5" fill="#7c3aed"/>
+<text x="912" y="702" class="badge" fill="#fff">VLAN 10</text>
+<rect x="331.5" y="291.0" width="117.0" height="14" rx="7" fill="#1d4ed8" opacity="0.14"/>
+<text x="390.0" y="298.5" class="badge" fill="#1d4ed8">STP root · VLAN 10,30</text>
+<rect x="324.0" y="306.0" width="132.0" height="14" rx="7" fill="#047857" opacity="0.14"/>
+<text x="390.0" y="313.5" class="badge" fill="#047857">HSRP active · VLAN 10,30</text>
+<rect x="639.0" y="291.0" width="102.0" height="14" rx="7" fill="#1d4ed8" opacity="0.14"/>
+<text x="690.0" y="298.5" class="badge" fill="#1d4ed8">STP root · VLAN 20</text>
+<rect x="631.5" y="306.0" width="117.0" height="14" rx="7" fill="#047857" opacity="0.14"/>
+<text x="690.0" y="313.5" class="badge" fill="#047857">HSRP active · VLAN 20</text>
+<rect x="792" y="74" width="254" height="150" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+<text x="804" y="93" class="boxh">Addressing (from configs)</text>
+<text x="804" y="111" class="boxt" font-family="Consolas,monospace">VLAN 10  Employees  10.1.10.0/24</text>
+<text x="804" y="127" class="boxt" font-family="Consolas,monospace">VLAN 20  Management 10.1.20.0/24</text>
+<text x="804" y="143" class="boxt" font-family="Consolas,monospace">VLAN 30  Service    10.1.30.0/24</text>
+<text x="804" y="159" class="boxt" font-family="Consolas,monospace">HSRP VIP = .3   Core1 .1 / Core2 .2</text>
+<text x="804" y="175" class="boxt" font-family="Consolas,monospace">VLAN 99  native / unused (all trunks)</text>
+<text x="804" y="191" class="boxt" font-family="Consolas,monospace">Core–R1  192.168.1.0/30, .4/30 (OSPF)</text>
+<text x="804" y="207" class="boxt" font-family="Consolas,monospace">DHCP: R1 pools, relay via SVI helper</text>
+<rect x="40" y="742" width="1000" height="98" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+<text x="58" y="762" class="lgh">NODES</text>
+<rect x="58" y="771" width="16" height="10" rx="2.5" fill="#1d4ed8"/>
+<text x="80" y="779.5" class="lg">L3 core (SVI+HSRP)</text>
+<rect x="58" y="783" width="16" height="10" rx="2.5" fill="#334155"/>
+<text x="80" y="791.5" class="lg">L2 distribution</text>
+<rect x="58" y="795" width="16" height="10" rx="2.5" fill="#059669"/>
+<text x="80" y="803.5" class="lg">Access switch</text>
+<rect x="58" y="807" width="16" height="10" rx="2.5" fill="#b91c1c"/>
+<text x="80" y="815.5" class="lg">Edge/DHCP router</text>
+<rect x="58" y="819" width="16" height="10" rx="2.5" fill="#475569"/>
+<text x="80" y="827.5" class="lg">End host</text>
+<text x="300" y="762" class="lgh">LINKS</text>
+<line x1="300" y1="776" x2="334" y2="776" stroke="#0f766e" stroke-width="2.4"/><line x1="300" y1="779" x2="334" y2="779" stroke="#0f766e" stroke-width="2.4"/>
+<text x="342" y="779" class="lg">EtherChannel (2 links) · Po# + mode</text>
+<line x1="300" y1="794" x2="334" y2="794" stroke="#047857" stroke-width="2.4"/>
+<text x="342" y="797" class="lg">802.1Q trunk · access dual-homing (STP)</text>
+<line x1="300" y1="812" x2="334" y2="812" stroke="#1e3a8a" stroke-width="2.6"/>
+<text x="342" y="815" class="lg">Routed OSPF point-to-point /30</text>
+<line x1="300" y1="828" x2="334" y2="828" stroke="#64748b" stroke-width="1.6"/>
+<text x="342" y="831" class="lg">Access port to host</text>
+<text x="640" y="762" class="lgh">NOTES</text>
+<text x="640" y="778" class="lg">• Rapid-PVST: STP root = HSRP active per VLAN</text>
+<text x="640" y="790" class="lg">• EtherChannel: Po1 LACP · Po2 PAgP · Po3 static "on"</text>
+<text x="640" y="802" class="lg">• HSRP load-share: Core1 = VLAN 10/30, Core2 = VLAN 20</text>
+<text x="640" y="814" class="lg">• Access ports: port-security (sticky) + PortFast/BPDU Guard</text>
+<text x="640" y="826" class="lg">• Every access switch dual-homed to both distribution switches</text>
+</svg>
