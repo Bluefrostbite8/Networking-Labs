@@ -243,7 +243,81 @@ ip dhcp pool VLAN10
 
 ### Captured verification (CML)
 
-> Paste the real output from the running lab here, one fenced block per feature with a one-line takeaway, matching the portfolio's other labs (`show etherchannel summary`, `show standby brief`, `show spanning-tree vlan 10`, a failover ping, and `show port-security`). This section is intentionally left as a placeholder until the captures are taken — nothing here is invented.
+The following was captured from the running lab.
+
+**All three EtherChannel negotiation modes are bundled and forwarding.** Core1 runs an LACP bundle to Dist2, a PAgP bundle to Dist1, and a static channel to Core2; every member port shows `(P)` for bundled, and each channel is `SU` (in use, Layer 2). The blank protocol column on Po3 is the static `on` channel:
+
+```text
+Core1# show etherchannel summary
+Number of channel-groups in use: 3
+Number of aggregators:           3
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+-----------------------------------------------
+1      Po1(SU)         LACP      Gi0/3(P)    Gi1/1(P)
+2      Po2(SU)         PAgP      Gi0/0(P)    Gi1/2(P)
+3      Po3(SU)          -        Gi0/1(P)    Gi0/2(P)
+```
+
+**Root bridges landed exactly where they were designed, load-shared across the cores.** Core1 is root for VLAN 10 and 30 (cost 0, no root port, because it *is* the root); VLAN 20 roots on Core2 and is reached over Po3. Priorities read as the configured value plus the VLAN ID, so `4096 + 10 = 4106`:
+
+```text
+Core1# show spanning-tree root
+
+                                        Root    Hello Max Fwd
+Vlan                   Root ID          Cost    Time  Age Dly  Root Port
+---------------- -------------------- --------- ----- --- ---  ------------
+VLAN0010          4106 5254.0011.0661         0    2   20  15
+VLAN0020          4116 5254.009a.f611         3    2   20  15  Po3
+VLAN0030          4126 5254.0011.0661         0    2   20  15
+VLAN0099         32867 5254.0005.91ae         3    2   20  15  Po2
+```
+
+VLAN 99 is the visible exception and confirms a known gap: it was never given a priority, so it kept the default `32768 + 99 = 32867` and rooted by lowest MAC on a switch one EtherChannel hop away through Po2, rather than on a core. See *Possible Extensions*.
+
+**HSRP active/standby is split between the cores.** Core1 is Active for VLAN 10 and 30, Core2 for VLAN 20, and each is the standby for the other, all sharing the `.3` virtual IP:
+
+```text
+Core1# show standby brief
+Interface   Grp  Pri P State   Active          Standby         Virtual IP
+Vl10        0    255 P Active  local           10.1.10.2       10.1.10.3
+Vl20        1    1     Standby 10.1.20.2       local           10.1.20.3
+Vl30        2    255 P Active  local           10.1.30.2       10.1.30.3
+
+Core2# show standby brief
+Interface   Grp  Pri P State   Active          Standby         Virtual IP
+Vl10        0    1     Standby 10.1.10.1       local           10.1.10.3
+Vl20        1    255 P Active  local           10.1.20.1       10.1.20.3
+Vl30        2    1     Standby 10.1.30.1       local           10.1.30.3
+```
+
+**Port-security is live on the access edge.** A1's host port has learned its sticky MAC and is armed with the `Restrict` action, with no violations recorded:
+
+```text
+A1# show port-security
+Secure Port  MaxSecureAddr  CurrentAddr  SecurityViolation  Security Action
+                (Count)       (Count)          (Count)
+---------------------------------------------------------------------------
+      Gi0/0              1            1                  0         Restrict
+```
+
+**Gateway failover works, and the client never changes its configuration.** With a VLAN 10 host pinging the virtual IP, shutting Core1's `Vlan10` SVI moved the Active role to Core2 on the same `10.1.10.3` address:
+
+```text
+E-1:~$ ping 10.1.10.3
+64 bytes from 10.1.10.3: seq=0 ttl=42 time=8.896 ms
+...
+--- 10.1.10.3 ping statistics ---
+85 packets transmitted, 59 packets received, 30% packet loss
+
+Core2# show standby brief
+Interface   Grp  Pri P State   Active          Standby         Virtual IP
+Vl10        0    1     Active  local           unknown         10.1.10.3
+Vl20        1    255 P Active  local           10.1.20.1       10.1.20.3
+Vl30        2    1     Standby 10.1.30.1       local           10.1.30.3
+```
+
+Core2 reports `Standby unknown` because Core1's SVI is down, and VLAN 30 stayed on Core1, confirming the test was scoped to a single VLAN. The recovery is real but slow: roughly 26 packets were lost, a longer outage than HSRP's default 10-second hold time implies. Tuning the hello/hold timers and adding interface tracking is the documented next step. See *Possible Extensions*.
 
 ## Skills Demonstrated
 
@@ -258,9 +332,9 @@ ip dhcp pool VLAN10
 
 ## Possible Extensions
 
-- **Tune the native VLAN's root.** VLAN 99 has no explicit priority, so it roots by lowest MAC. Fold `99` into Core1's `priority 4096` line for a fully deterministic tree, even though nothing rides it.
+- **Tune the native VLAN's root.** VLAN 99 has no explicit priority, and the capture above confirms it rooted by lowest MAC away from the cores rather than following the designed tree. Fold `99` into Core1's `priority 4096` line for a fully deterministic topology, even though nothing rides it.
 - **Even out port-security limits.** A3 sets `maximum 2`; A1/A2 use the default of 1. Set an explicit `maximum` on every access port so the policy is uniform and intentional.
-- **Track HSRP to the uplinks.** Add HSRP interface tracking (or object tracking on the routed uplink) so the active core steps down if it loses its path to R1, not only if the box fails.
+- **Cut HSRP failover time and add tracking.** The measured failover dropped roughly 26 packets, well beyond the 10-second default hold time, so a user would notice the outage. Lower the timers (`standby 0 timers 1 3`) and add interface or object tracking so the active core also steps down when it loses its path to R1, not only when the box itself fails. As configured, shutting a core's uplinks alone will not trigger failover, because it keeps its SVIs up and continues exchanging hellos over Po3.
 - **Push the L3 boundary to distribution.** The gateways sit at the core today. Moving SVIs/HSRP (or a routed access model) down a tier would shrink the L2 domain — a natural "routed-access" follow-up.
 - **Give R1 an exit.** R1 originates no default and has no upstream, so there is no Internet path. Add an `external_connector` and `default-information originate` for an egress story (and a link to the Security & Services lab).
 - **Cosmetic:** the topology annotation labels the core-to-R1 links "PPP," but they are routed Ethernet `/30`s with OSPF network type `point-to-point`, not PPP encapsulation; and the `E-2` desktop still carries the default `inserthostname-here` node config.
