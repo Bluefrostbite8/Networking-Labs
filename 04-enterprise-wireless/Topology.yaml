@@ -1,0 +1,434 @@
+annotations: []
+smart_annotations: []
+nodes:
+- boot_disk_size: null
+  configuration:
+  - name: user-data
+    content: "#cloud-config\nhostname: W-AP2\nmanage_etc_hosts: True\nsystem_info:\n  default_user:\n    name: cisco\npassword: cisco\nchpasswd:\n  expire: False\nssh_pwauth: True\nwrite_files:\n  - path: /home/cisco/hostapd.conf\n    content: |\n      interface=wlan0\n      driver=nl80211\n      ssid=CORP-WiFi\n      hw_mode=g\n      channel=6\n      auth_algs=1\n      wpa=2\n      wpa_key_mgmt=WPA-PSK\n      wpa_passphrase=ROMANISLEARNING\n      rsn_pairwise=CCMP\n      beacon_int=100\n    owner: cisco:cisco\n    permissions: '0644'\nruncmd:\n  - ip link set wlan0 up\n  - hostapd -B /home/cisco/hostapd.conf"
+  cpu_limit: null
+  cpus: null
+  data_volume: null
+  hide_links: false
+  id: n0
+  image_definition: null
+  label: W-AP2
+  node_definition: wireless-ap
+  parameters: {}
+  priority: null
+  pyats:
+    username: null
+    password: null
+    enable_password: null
+  ram: null
+  tags: []
+  x: 200
+  y: 40
+  interfaces:
+  - id: i0
+    label: ens2
+    mac_address: null
+    type: physical
+    slot: 0
+  - id: i1
+    label: ens3
+    mac_address: null
+    type: physical
+    slot: 1
+- boot_disk_size: null
+  configuration:
+  - name: user-data
+    content: "#cloud-config\nhostname: W-2\nmanage_etc_hosts: True\nsystem_info:\n  default_user:\n    name: cisco\npassword: cisco\nchpasswd:\n  expire: False\nssh_pwauth: True\nwrite_files:\n  - path: /home/cisco/wpa_supplicant.conf\n    content: |\n      ctrl_interface=/var/run/wpa_supplicant\n      network={\n          ssid=\"CORP-WiFi\"\n          key_mgmt=WPA-PSK\n          psk=\"ROMANISLEARNING\"\n      }\n    owner: cisco:cisco\n    permissions: '0644'\nruncmd:\n  - ip link set wlan0 up\n  - wpa_supplicant -B -i wlan0 -c /home/cisco/wpa_supplicant.conf"
+  - name: network-config
+    content: "#network-config\nnetwork:\n  version: 2\n  ethernets:\n    ens2:\n      dhcp4: true\n      optional: true"
+  cpu_limit: null
+  cpus: null
+  data_volume: null
+  hide_links: false
+  id: n1
+  image_definition: null
+  label: W-2
+  node_definition: wireless-client
+  parameters: {}
+  priority: null
+  pyats:
+    username: null
+    password: null
+    enable_password: null
+  ram: null
+  tags: []
+  x: 200
+  y: 280
+  interfaces:
+  - id: i0
+    label: ens2
+    mac_address: null
+    type: physical
+    slot: 0
+- boot_disk_size: null
+  configuration:
+  - name: ios_config.txt
+    content: "Building configuration...\n\nCurrent configuration : 3177 bytes\n!\n! Last configuration change at 18:30:07 UTC Mon Sep 21 2026\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\nno service password-encryption\nservice compress-config\n!\nhostname A-1\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\n!\nno aaa new-model\nno process cpu extended history\nno process cpu autoprofile hog\n!\n!\n!\n!\n!\n!\n!\n!\nip cef\nno ipv6 cef\n!\n!\n!\nspanning-tree mode pvst\nspanning-tree extend system-id\n!\nno cdp run\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface GigabitEthernet0/0\n switchport access vlan 20\n switchport mode access\n negotiation auto\n no cdp enable\n spanning-tree portfast edge\n spanning-tree bpduguard enable\n!\ninterface GigabitEthernet0/1\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n no cdp enable\n!\ninterface GigabitEthernet0/2\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n no cdp enable\n!\ninterface GigabitEthernet0/3\n negotiation auto\n no cdp enable\n!\nip forward-protocol nd\n!\nip http server\nip http secure-server\n!\nip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr\nip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr\n!\n!\nno service-routing capabilities-manager\n!\n!\n!\n!\ncontrol-plane\n!\n!\nline con 0\n exec-timeout 0 0\nline aux 0\nline vty 0 4\n exec-timeout 0 0\n login\n!\n!\nend"
+  cpu_limit: null
+  cpus: null
+  data_volume: null
+  hide_links: false
+  id: n2
+  image_definition: null
+  label: A-1
+  node_definition: iosvl2
+  parameters: {}
+  priority: null
+  pyats:
+    username: null
+    password: null
+    enable_password: null
+  ram: null
+  tags: []
+  x: -160
+  y: -120
+  interfaces:
+  - id: i0
+    label: Loopback0
+    mac_address: null
+    type: loopback
+  - id: i1
+    label: GigabitEthernet0/0
+    mac_address: null
+    type: physical
+    slot: 0
+  - id: i2
+    label: GigabitEthernet0/1
+    mac_address: null
+    type: physical
+    slot: 1
+  - id: i3
+    label: GigabitEthernet0/2
+    mac_address: null
+    type: physical
+    slot: 2
+  - id: i4
+    label: GigabitEthernet0/3
+    mac_address: null
+    type: physical
+    slot: 3
+- boot_disk_size: null
+  configuration:
+  - name: ios_config.txt
+    content: "Building configuration...\n\nCurrent configuration : 3177 bytes\n!\n! Last configuration change at 18:30:07 UTC Mon Sep 21 2026\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\nno service password-encryption\nservice compress-config\n!\nhostname A-2\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\n!\nno aaa new-model\nno process cpu extended history\nno process cpu autoprofile hog\n!\n!\n!\n!\n!\n!\n!\n!\nip cef\nno ipv6 cef\n!\n!\n!\nspanning-tree mode pvst\nspanning-tree extend system-id\n!\nno cdp run\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface GigabitEthernet0/0\n switchport access vlan 20\n switchport mode access\n negotiation auto\n no cdp enable\n spanning-tree portfast edge\n spanning-tree bpduguard enable\n!\ninterface GigabitEthernet0/1\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n no cdp enable\n!\ninterface GigabitEthernet0/2\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n no cdp enable\n!\ninterface GigabitEthernet0/3\n negotiation auto\n no cdp enable\n!\nip forward-protocol nd\n!\nip http server\nip http secure-server\n!\nip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr\nip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr\n!\n!\nno service-routing capabilities-manager\n!\n!\n!\n!\ncontrol-plane\n!\n!\nline con 0\n exec-timeout 0 0\nline aux 0\nline vty 0 4\n exec-timeout 0 0\n login\n!\n!\nend"
+  cpu_limit: null
+  cpus: null
+  data_volume: null
+  hide_links: false
+  id: n3
+  image_definition: null
+  label: A-2
+  node_definition: iosvl2
+  parameters: {}
+  priority: null
+  pyats:
+    username: null
+    password: null
+    enable_password: null
+  ram: null
+  tags: []
+  x: 200
+  y: -120
+  interfaces:
+  - id: i0
+    label: Loopback0
+    mac_address: null
+    type: loopback
+  - id: i1
+    label: GigabitEthernet0/0
+    mac_address: null
+    type: physical
+    slot: 0
+  - id: i2
+    label: GigabitEthernet0/1
+    mac_address: null
+    type: physical
+    slot: 1
+  - id: i3
+    label: GigabitEthernet0/2
+    mac_address: null
+    type: physical
+    slot: 2
+  - id: i4
+    label: GigabitEthernet0/3
+    mac_address: null
+    type: physical
+    slot: 3
+- boot_disk_size: null
+  configuration:
+  - name: iosxe_config.txt
+    content: "Building configuration...\n\nCurrent configuration : 12795 bytes\n!\n! Last configuration change at 18:30:11 UTC Mon Sep 21 2026\n!\nversion 17.18\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\nplatform qfp utilization monitor load 80\nplatform sslvpn use-pd\nplatform console serial\n!\nhostname WLC\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\nno aaa new-model\nvtp mode off\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\nlogin on-success log\n!\n!\n!\n!\n!\n!\n!\nsubscriber templating\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ncrypto pki trustpoint SLA-TrustPoint\n enrollment pkcs12\n revocation-check crl\n hash sha512\n!\ncrypto pki trustpoint TP-self-signed-1160359507\n enrollment selfsigned\n subject-name cn=IOS-Self-Signed-Certificate-1160359507\n revocation-check none\n rsakeypair TP-self-signed-1160359507\n hash sha512\n!\n!\ncrypto pki certificate chain SLA-TrustPoint\n certificate ca 01\n  30820321 30820209 A0030201 02020101 300D0609 2A864886 F70D0101 0B050030\n  32310E30 0C060355 040A1305 43697363 6F312030 1E060355 04031317 43697363\n  6F204C69 63656E73 696E6720 526F6F74 20434130 1E170D31 33303533 30313934\n  3834375A 170D3338 30353330 31393438 34375A30 32310E30 0C060355 040A1305\n  43697363 6F312030 1E060355 04031317 43697363 6F204C69 63656E73 696E6720\n  526F6F74 20434130 82012230 0D06092A 864886F7 0D010101 05000382 010F0030\n  82010A02 82010100 A6BCBD96 131E05F7 145EA72C 2CD686E6 17222EA1 F1EFF64D\n  CBB4C798 212AA147 C655D8D7 9471380D 8711441E 1AAF071A 9CAE6388 8A38E520\n  1C394D78 462EF239 C659F715 B98C0A59 5BBB5CBD 0CFEBEA3 700A8BF7 D8F256EE\n  4AA4E80D DB6FD1C9 60B1FD18 FFC69C96 6FA68957 A2617DE7 104FDC5F EA2956AC\n  7390A3EB 2B5436AD C847A2C5 DAB553EB 69A9A535 58E9F3E3 C0BD23CF 58BD7188\n  68E69491 20F320E7 948E71D7 AE3BCC84 F10684C7 4BC8E00F 539BA42B 42C68BB7\n  C7479096 B4CB2D62 EA2F505D C7B062A4 6811D95B E8250FC4 5D5D5FB8 8F27D191\n  C55F0D76 61F9A4CD 3D992327 A8BB03BD 4E6D7069 7CBADF8B DF5F4368 95135E44\n  DFC7C6CF 04DD7FD1 02030100 01A34230 40300E06 03551D0F 0101FF04 04030201\n  06300F06 03551D13 0101FF04 05300301 01FF301D 0603551D 0E041604 1449DC85\n  4B3D31E5 1B3E6A17 606AF333 3D3B4C73 E8300D06 092A8648 86F70D01 010B0500\n  03820101 00507F24 D3932A66 86025D9F E838AE5C 6D4DF6B0 49631C78 240DA905\n  604EDCDE FF4FED2B 77FC460E CD636FDB DD44681E 3A5673AB 9093D3B1 6C9E3D8B\n  D98987BF E40CBD9E 1AECA0C2 2189BB5C 8FA85686 CD98B646 5575B146 8DFC66A8\n  467A3DF4 4D565700 6ADF0F0D CF835015 3C04FF7C 21E878AC 11BA9CD2 55A9232C\n  7CA7B7E6 C1AF74F6 152E99B7 B1FCF9BB E973DE7F 5BDDEB86 C71E3B49 1765308B\n  5FB0DA06 B92AFE7F 494E8A9E 07B85737 F3A58BE1 1A48A229 C37C1E69 39F08678\n  80DDCD16 D6BACECA EEBC7CF9 8428787B 35202CDC 60E4616A B623CDBD 230E3AFB\n  418616A9 4093E049 4D10AB75 27E86F73 932E35B5 8862FDAE 0275156F 719BB2F0\n  D697DF7F 28\n  \tquit\ncrypto pki certificate chain TP-self-signed-1160359507\n certificate self-signed 01\n  30820330 30820218 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n  31312F30 2D060355 04030C26 494F532D 53656C66 2D536967 6E65642D 43657274\n  69666963 6174652D 31313630 33353935 3037301E 170D3236 30393231 31373132\n  31365A17 0D333630 39323031 37313231 365A3031 312F302D 06035504 030C2649\n  4F532D53 656C662D 5369676E 65642D43 65727469 66696361 74652D31 31363033\n  35393530 37308201 22300D06 092A8648 86F70D01 01010500 0382010F 00308201\n  0A028201 0100A89D 33556689 AA0C0C50 4938E1C7 2480810C 2CCEE443 50B8CCC4\n  BC058887 8DDE2033 699DEA53 78CF92A5 48B97B1E B37F6C3F E813F116 1C0211DB\n  7847A75B 00EFA031 C301F1D5 68AF6D7E 6426EF76 54EDBE61 5EA32496 69D71ABF\n  1579519B FE05272C 0205DF98 BC89ADB6 B2A13F1A 244586FD 00863C3F 310812AC\n  59E0311F D4FCAC5D 4C5CAAA7 104C35FB 87BA4556 258851A6 1726E38B 5E165EB3\n  C641A5BA E5930C20 F134DCAC CB251953 F7B41A3E 0FE61580 679320C7 BB4123A1\n  94D9A42D 4CFA20F1 D77381E1 1EEA9670 6ACA2806 8DCF5664 3795BE5D D9E958FA\n  D69FD9C5 1A8892BF 2D9D4807 A624638A 4D94EE6C D2F936F8 5A4AA1E4 2E13C3C4\n  499ACEC9 8AE90203 010001A3 53305130 1D060355 1D0E0416 04143007 CC66F7BD\n  7A88CC7C 2E339DB3 AE5E6673 826A301F\
+      \ 0603551D 23041830 16801430 07CC66F7\n  BD7A88CC 7C2E339D B3AE5E66 73826A30 0F060355 1D130101 FF040530 030101FF\n  300D0609 2A864886 F70D0101 0D050003 82010100 8F190088 0480F9AE 083A6326\n  735CF8AD 36B79DA4 A560E3F7 F1DAF575 7835B7C2 30F3DA9A A6A2351C 0D1EA2DD\n  99F6CC88 3C9E1051 33569E8B ECA69422 2C1AB627 DC5D4F9B F11BA58C 66A3DEF1\n  1AACE23C D58FAD7F 2DD22DED 01AA1348 49DCFE75 AF351FD2 6B5341F0 92405589\n  E6B447D0 65536521 A6A85663 B3A44AFC 360FA861 65634220 3F7A9F20 10C6FC5B\n  50A6B290 3E465C2A 291C45F3 7E9ADE98 4652C542 D420D202 751008AF A31130EA\n  E440368F 9A35975B 858ACA0C F5C8EC68 C016545F 806C7788 B9018F9D 9E9936A1\n  543A8CBB CF29DAD5 B92B0EE4 D7936962 D27D9E38 109D87A1 4FC41D5F 6485748F\n  F2E68DA6 C857A0F3 039C7177 C81DB54D 1A0591F7\n  \tquit\n!\n!\n!\n!\n!\n!\n!\n!\n!\nlicense udi pid C9800-CL-K9 sn 9I7IODX2YBA\ndiagnostic bootup level minimal\nmemory free low-watermark processor 103923\n!\n!\n!\n!\nredundancy\n mode sso\n!\ncrypto engine compliance shield disable\n!\n!\n!\n!\n!\nvlan internal allocation policy ascending\n!\nvlan 10\n name WLC-MGMT\n!\nvlan 20\n name AP-MGMT\n!\nvlan 30\n name WLAN-CORP\n!\nvlan 40\n name WLAN-GUEST\n!\nvlan 99\n name INFRA-MGMT\n!\n!\nclass-map match-any AVC-Reanchor-Class\n match protocol cisco-jabber-audio\n match protocol cisco-jabber-video\n match protocol webex-media\n match protocol webex-app-sharing\n match protocol webex-control\n match protocol webex-meeting\n match protocol wifi-calling\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Port-channel1\n switchport trunk allowed vlan 10,20,30,40\n switchport mode trunk\n!\ninterface Port-channel2\n switchport trunk allowed vlan 10,20,30,40\n switchport mode trunk\n!\ninterface GigabitEthernet1\n switchport trunk allowed vlan 10,20,30,40\n switchport mode trunk\n negotiation auto\n channel-protocol lacp\n channel-group 1 mode passive\n!\ninterface GigabitEthernet2\n switchport trunk allowed vlan 10,20,30,40\n switchport mode trunk\n negotiation auto\n channel-protocol lacp\n channel-group 1 mode passive\n!\ninterface GigabitEthernet3\n switchport trunk allowed vlan 10,20,30,40\n switchport mode trunk\n negotiation auto\n channel-protocol lacp\n channel-group 2 mode passive\n!\ninterface GigabitEthernet4\n switchport trunk allowed vlan 10,20,30,40\n switchport mode trunk\n negotiation auto\n channel-protocol lacp\n channel-group 2 mode passive\n!\ninterface Vlan1\n no ip address\n!\ninterface Vlan10\n ip address 10.0.10.5 255.255.255.0\n!\nip forward-protocol nd\nno ip http server\nip http secure-server\n!\nip route 0.0.0.0 0.0.0.0 10.0.10.1\nip ssh bulk-mode 131072\n!\n!\n!\ncontrol-plane\n!\n!\n!\n!\n!\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n stopbits 1\nline vty 0 4\n exec-timeout 0 0\n activation-character 13\n login\n transport input ssh\nline vty 5 15\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n!\n!\n!\n!\nwireless aaa policy default-aaa-policy\nwireless cts-sxp profile default-sxp-profile\nwireless management interface Vlan10\nwireless profile airtime-fairness default-atf-policy 0\nwireless profile dot11be default-dot11be-profile\n description \"Default 802.11be profile\"\nwireless profile flex default-flex-profile\n description \"default flex profile\"\nwireless profile mesh default-mesh-profile\n description \"default mesh profile\"\nwireless profile multi-bssid default-multi-bssid-profile\n description \"Default multi bssid profile\"\nwireless profile radio default-radio-profile\n description \"Preconfigured default radio profile\"\nwireless profile policy CORP-POLICY\n vlan 30\n no shutdown\nwireless profile policy default-policy-profile\n description \"default policy profile\"\nwireless tag site CORP-STAG\n description \"Local-mode APs\"\nwireless tag site default-site-tag\n description \"default site tag\"\nwireless tag policy CORP-PTAG\n wlan CORP-WiFi policy CORP-POLICY\nwireless tag policy default-policy-tag\n description \"default policy-tag\"\nwireless tag rf CORP-RTAG\n 24ghz-rf-policy default-rf-profile-24ghz\n 5ghz-rf-policy default-rf-profile-5ghz\n\
+      wireless tag rf default-rf-tag\n description \"default RF tag\"\nwireless fabric control-plane default-control-plane\n description \"default control plane name\"\nwlan CORP-WiFi 1 CORP-WiFi\n security wpa psk set-key ascii 0 ROMANISLEARNING\n no security wpa akm dot1x\n security wpa akm psk\n no shutdown\nap dot11 24ghz rf-profile Low_Client_Density_rf_24gh\n coverage data rssi threshold -90\n coverage level 2\n coverage voice rssi threshold -90\n description \"pre configured Low Client Density rfprofile for 2.4gh radio\"\n high-density rx-sop threshold low\n rate RATE_12M supported\n rate RATE_24M supported\n rate RATE_6M supported\n tx-power v1 threshold -65\n no shutdown\nap dot11 24ghz rf-profile High_Client_Density_rf_24gh\n description \"pre configured High Client Density rfprofile for 2.4gh radio\"\n high-density rx-sop threshold medium\n rate RATE_11M disable\n rate RATE_12M mandatory\n rate RATE_1M disable\n rate RATE_24M supported\n rate RATE_2M disable\n rate RATE_5_5M disable\n rate RATE_6M disable\n tx-power min 7\n no shutdown\nap dot11 24ghz rf-profile Typical_Client_Density_rf_24gh\n description \"pre configured Typical Client Density rfprofile for 2.4gh radio\"\n rate RATE_11M disable\n rate RATE_12M mandatory\n rate RATE_1M disable\n rate RATE_24M supported\n rate RATE_2M disable\n rate RATE_5_5M disable\n rate RATE_6M disable\n no shutdown\nap dot11 24ghz dot11n a-mpdu tx priority 0\nap dot11 24ghz dot11n a-mpdu tx priority 1\nap dot11 24ghz dot11n a-mpdu tx priority 2\nap dot11 24ghz dot11n a-mpdu tx priority 3\nap dot11 24ghz dot11n a-mpdu tx priority 4\nap dot11 24ghz dot11n a-mpdu tx priority 5\nno ap dot11 24ghz dot11n a-mpdu tx priority 6\nno ap dot11 24ghz dot11n a-mpdu tx priority 7\nap dot11 24ghz dot11n a-msdu tx priority 0\nap dot11 24ghz dot11n a-msdu tx priority 1\nap dot11 24ghz dot11n a-msdu tx priority 2\nap dot11 24ghz dot11n a-msdu tx priority 3\nap dot11 24ghz dot11n a-msdu tx priority 4\nap dot11 24ghz dot11n a-msdu tx priority 5\nno ap dot11 24ghz dot11n a-msdu tx priority 6\nno ap dot11 24ghz dot11n a-msdu tx priority 7\nap dot11 24ghz rate RATE_12M supported\nap dot11 24ghz rate RATE_24M supported\nap dot11 24ghz rate RATE_6M supported\nap dot11 6ghz rf-profile default-rf-profile-6ghz\n description \"default rfprofile for 6GHz radio\"\n rate RATE_12M mandatory\n rate RATE_24M mandatory\n rate RATE_6M mandatory\n no shutdown\nap dot11 5ghz rf-profile Low_Client_Density_rf_5gh\n coverage data rssi threshold -90\n coverage level 2\n coverage voice rssi threshold -90\n description \"pre configured Low Client Density rfprofile for 5gh radio\"\n high-density rx-sop threshold low\n rate RATE_12M mandatory\n rate RATE_24M mandatory\n rate RATE_6M mandatory\n tx-power v1 threshold -60\n no shutdown\nap dot11 5ghz rf-profile High_Client_Density_rf_5gh\n description \"pre configured High Client Density rfprofile for 5gh radio\"\n high-density rx-sop threshold medium\n rate RATE_12M mandatory\n rate RATE_24M mandatory\n rate RATE_6M disable\n rate RATE_9M disable\n tx-power min 7\n tx-power v1 threshold -65\n no shutdown\nap dot11 5ghz rf-profile Typical_Client_Density_rf_5gh\n description \"pre configured Typical Density rfprofile for 5gh radio\"\n rate RATE_12M mandatory\n rate RATE_24M mandatory\n rate RATE_6M mandatory\n no shutdown\nap dot11 5ghz dot11n a-mpdu tx priority 0\nap dot11 5ghz dot11n a-mpdu tx priority 1\nap dot11 5ghz dot11n a-mpdu tx priority 2\nap dot11 5ghz dot11n a-mpdu tx priority 3\nap dot11 5ghz dot11n a-mpdu tx priority 4\nap dot11 5ghz dot11n a-mpdu tx priority 5\nno ap dot11 5ghz dot11n a-mpdu tx priority 6\nno ap dot11 5ghz dot11n a-mpdu tx priority 7\nap dot11 5ghz dot11n a-msdu tx priority 0\nap dot11 5ghz dot11n a-msdu tx priority 1\nap dot11 5ghz dot11n a-msdu tx priority 2\nap dot11 5ghz dot11n a-msdu tx priority 3\nap dot11 5ghz dot11n a-msdu tx priority 4\nap dot11 5ghz dot11n a-msdu tx priority 5\nno ap dot11 5ghz dot11n a-msdu tx priority 6\nno ap dot11 5ghz dot11n a-msdu tx priority 7\nap dot11 5ghz rate RATE_12M mandatory\nap dot11 5ghz rate RATE_24M\
+      \ mandatory\nap dot11 5ghz rate RATE_6M mandatory\nap dot11 6ghz a-mpdu tx priority 0\nap dot11 6ghz a-mpdu tx priority 1\nap dot11 6ghz a-mpdu tx priority 2\nap dot11 6ghz a-mpdu tx priority 3\nap dot11 6ghz a-mpdu tx priority 4\nap dot11 6ghz a-mpdu tx priority 5\nno ap dot11 6ghz a-mpdu tx priority 6\nno ap dot11 6ghz a-mpdu tx priority 7\nap dot11 6ghz a-msdu tx priority 0\nap dot11 6ghz a-msdu tx priority 1\nap dot11 6ghz a-msdu tx priority 2\nap dot11 6ghz a-msdu tx priority 3\nap dot11 6ghz a-msdu tx priority 4\nap dot11 6ghz a-msdu tx priority 5\nno ap dot11 6ghz a-msdu tx priority 6\nno ap dot11 6ghz a-msdu tx priority 7\nap dot11 6ghz rrm monitor measurement 600\nap tag-source-priority 2 source filter\nap tag-source-priority 3 source ap\nap profile default-ap-profile\n description \"default ap profile\"\nap 5254.00eb.f7dc\n policy-tag CORP-PTAG\n rf-tag CORP-RTAG\n site-tag CORP-STAG\nap 5254.00f9.d9a9\n policy-tag CORP-PTAG\n rf-tag CORP-RTAG\n site-tag CORP-STAG\nend"
+  cpu_limit: null
+  cpus: null
+  data_volume: null
+  hide_links: false
+  id: n4
+  image_definition: null
+  label: WLC
+  node_definition: cat9800
+  parameters: {}
+  priority: null
+  pyats:
+    username: null
+    password: null
+    enable_password: null
+  ram: null
+  tags: []
+  x: 40
+  y: -360
+  interfaces:
+  - id: i0
+    label: Loopback0
+    mac_address: null
+    type: loopback
+  - id: i1
+    label: GigabitEthernet1
+    mac_address: null
+    type: physical
+    slot: 0
+  - id: i2
+    label: GigabitEthernet2
+    mac_address: null
+    type: physical
+    slot: 1
+  - id: i3
+    label: GigabitEthernet3
+    mac_address: null
+    type: physical
+    slot: 2
+  - id: i4
+    label: GigabitEthernet4
+    mac_address: null
+    type: physical
+    slot: 3
+- boot_disk_size: null
+  configuration:
+  - name: ios_config.txt
+    content: "Building configuration...\n\nCurrent configuration : 4736 bytes\n!\n! Last configuration change at 18:41:59 UTC Mon Sep 21 2026\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\nno service password-encryption\nservice compress-config\n!\nhostname DC-1\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\n!\nno aaa new-model\nno process cpu extended history\nno process cpu autoprofile hog\n!\n!\n!\n!\n!\n!\nip routing\n!\nip dhcp excluded-address 10.0.10.1 10.0.10.9\nip dhcp excluded-address 10.0.20.1 10.0.20.9\nip dhcp excluded-address 10.0.30.1 10.0.30.9\n!\nip dhcp pool VLAN10\n network 10.0.10.0 255.255.255.0\n default-router 10.0.10.1\n!\nip dhcp pool VLAN20\n network 10.0.20.0 255.255.255.0\n default-router 10.0.20.1\n!\nip dhcp pool VLAN30\n network 10.0.30.0 255.255.255.0\n default-router 10.0.30.1\n!\n!\nip cef\nno ipv6 cef\n!\n!\n!\nspanning-tree mode pvst\nspanning-tree extend system-id\n!\nno cdp run\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Port-channel2\n switchport trunk allowed vlan 10,20,30,40\n switchport trunk encapsulation dot1q\n switchport mode trunk\n!\ninterface GigabitEthernet0/0\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n no cdp enable\n!\ninterface GigabitEthernet0/1\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n no cdp enable\n!\ninterface GigabitEthernet0/2\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n no cdp enable\n!\ninterface GigabitEthernet0/3\n switchport trunk allowed vlan 10,20,30,40\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n no cdp enable\n channel-protocol lacp\n channel-group 2 mode active\n!\ninterface GigabitEthernet1/0\n switchport trunk allowed vlan 10,20,30,40\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n no cdp enable\n channel-protocol lacp\n channel-group 2 mode active\n!\ninterface Vlan10\n ip address 10.0.10.2 255.255.255.0\n standby 0 ip 10.0.10.1\n standby 0 priority 255\n standby 0 preempt\n!\ninterface Vlan20\n ip address 10.0.20.2 255.255.255.0\n standby 1 ip 10.0.20.1\n standby 1 priority 1\n!\ninterface Vlan30\n ip address 10.0.30.2 255.255.255.0\n standby 0 priority 255\n standby 0 preempt\n standby 2 ip 10.0.30.1\n standby 2 priority 255\n standby 2 preempt\n!\ninterface Vlan40\n ip address 10.0.40.2 255.255.255.0\n standby 1 priority 1\n standby 3 ip 10.0.40.1\n standby 3 priority 1\n!\ninterface Vlan99\n ip address 10.0.99.2 255.255.255.0\n standby 0 priority 255\n standby 0 preempt\n standby 4 ip 10.0.99.1\n standby 4 priority 255\n standby 4 preempt\n!\nip forward-protocol nd\n!\nip http server\nip http secure-server\n!\nip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr\nip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr\n!\n!\nno service-routing capabilities-manager\n!\n!\n!\n!\ncontrol-plane\n!\n!\nline con 0\n exec-timeout 0 0\nline aux 0\nline vty 0 4\n exec-timeout 0 0\n login\n!\n!\nend"
+  cpu_limit: null
+  cpus: null
+  data_volume: null
+  hide_links: false
+  id: n5
+  image_definition: null
+  label: DC-1
+  node_definition: iosvl2
+  parameters: {}
+  priority: null
+  pyats:
+    username: null
+    password: null
+    enable_password: null
+  ram: null
+  tags: []
+  x: -320
+  y: -480
+  interfaces:
+  - id: i0
+    label: Loopback0
+    mac_address: null
+    type: loopback
+  - id: i1
+    label: GigabitEthernet0/0
+    mac_address: null
+    type: physical
+    slot: 0
+  - id: i2
+    label: GigabitEthernet0/1
+    mac_address: null
+    type: physical
+    slot: 1
+  - id: i3
+    label: GigabitEthernet0/2
+    mac_address: null
+    type: physical
+    slot: 2
+  - id: i4
+    label: GigabitEthernet0/3
+    mac_address: null
+    type: physical
+    slot: 3
+  - id: i5
+    label: GigabitEthernet1/0
+    mac_address: null
+    type: physical
+    slot: 4
+- boot_disk_size: null
+  configuration:
+  - name: ios_config.txt
+    content: "Building configuration...\n\nCurrent configuration : 4418 bytes\n!\n! Last configuration change at 18:42:00 UTC Mon Sep 21 2026\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\nno service password-encryption\nservice compress-config\n!\nhostname DC-2\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\n!\nno aaa new-model\n!\n!\n!\n!\n!\n!\nip routing\n!\nip dhcp excluded-address 10.0.10.1 10.0.10.9\nip dhcp excluded-address 10.0.20.1 10.0.20.9\nip dhcp excluded-address 10.0.30.1 10.0.30.9\n!\nip dhcp pool VLAN10\n network 10.0.10.0 255.255.255.0\n default-router 10.0.10.1\n!\nip dhcp pool VLAN20\n network 10.0.20.0 255.255.255.0\n default-router 10.0.20.1\n!\nip dhcp pool VLAN30\n network 10.0.30.0 255.255.255.0\n default-router 10.0.30.1\n!\n!\nip cef\nno ipv6 cef\n!\n!\n!\nspanning-tree mode pvst\nspanning-tree extend system-id\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Port-channel1\n switchport trunk allowed vlan 10,20,30,40\n switchport trunk encapsulation dot1q\n switchport mode trunk\n!\ninterface GigabitEthernet0/0\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n!\ninterface GigabitEthernet0/1\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n!\ninterface GigabitEthernet0/2\n switchport trunk allowed vlan 10,20,30,40,99\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n!\ninterface GigabitEthernet0/3\n switchport trunk allowed vlan 10,20,30,40\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n channel-protocol lacp\n channel-group 1 mode active\n!\ninterface GigabitEthernet1/0\n switchport trunk allowed vlan 10,20,30,40\n switchport trunk encapsulation dot1q\n switchport mode trunk\n negotiation auto\n channel-protocol lacp\n channel-group 1 mode active\n!\ninterface Vlan10\n ip address 10.0.10.3 255.255.255.0\n standby 0 ip 10.0.10.1\n standby 0 priority 1\n!\ninterface Vlan20\n ip address 10.0.20.3 255.255.255.0\n standby 1 ip 10.0.20.1\n standby 1 priority 255\n standby 1 preempt\n!\ninterface Vlan30\n ip address 10.0.30.3 255.255.255.0\n standby 2 ip 10.0.30.1\n standby 2 priority 1\n!\ninterface Vlan40\n ip address 10.0.40.3 255.255.255.0\n standby 3 ip 10.0.40.1\n standby 3 priority 255\n standby 3 preempt\n!\ninterface Vlan99\n ip address 10.0.99.3 255.255.255.0\n standby 4 ip 10.0.99.1\n standby 4 priority 1\n!\nip forward-protocol nd\n!\nip http server\nip http secure-server\n!\nip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr\nip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr\n!\n!\n!\n!\n!\n!\ncontrol-plane\n!\n!\nline con 0\n exec-timeout 0 0\nline aux 0\nline vty 0 4\n exec-timeout 0 0\n login\n!\n!\nend"
+  cpu_limit: null
+  cpus: null
+  data_volume: null
+  hide_links: false
+  id: n6
+  image_definition: null
+  label: DC-2
+  node_definition: iosvl2
+  parameters: {}
+  priority: null
+  pyats:
+    username: null
+    password: null
+    enable_password: null
+  ram: null
+  tags: []
+  x: 400
+  y: -480
+  interfaces:
+  - id: i0
+    label: Loopback0
+    mac_address: null
+    type: loopback
+  - id: i1
+    label: GigabitEthernet0/0
+    mac_address: null
+    type: physical
+    slot: 0
+  - id: i2
+    label: GigabitEthernet0/1
+    mac_address: null
+    type: physical
+    slot: 1
+  - id: i3
+    label: GigabitEthernet0/2
+    mac_address: null
+    type: physical
+    slot: 2
+  - id: i4
+    label: GigabitEthernet0/3
+    mac_address: null
+    type: physical
+    slot: 3
+  - id: i5
+    label: GigabitEthernet1/0
+    mac_address: null
+    type: physical
+    slot: 4
+- boot_disk_size: null
+  configuration: []
+  cpu_limit: null
+  cpus: null
+  data_volume: null
+  hide_links: false
+  id: n7
+  image_definition: null
+  label: DESK-1
+  node_definition: desktop
+  parameters: {}
+  priority: null
+  pyats:
+    username: null
+    password: null
+    enable_password: null
+  ram: null
+  tags: []
+  x: -160
+  y: 40
+  interfaces:
+  - id: i0
+    label: eth0
+    mac_address: null
+    type: physical
+    slot: 0
+links:
+- id: l0
+  n1: n1
+  n2: n0
+  i1: i0
+  i2: i0
+  conditioning: {}
+  label: W-1_0-ens2<->W-AP2-ens2
+- id: l1
+  n1: n0
+  n2: n3
+  i1: i1
+  i2: i1
+  conditioning: {}
+  label: W-AP2-ens3<->iosvl2-0_0-GigabitEthernet0/0
+- id: l2
+  n1: n3
+  n2: n6
+  i1: i2
+  i2: i1
+  conditioning: {}
+  label: A-2-GigabitEthernet0/1<->DC-2-GigabitEthernet0/0
+- id: l3
+  n1: n2
+  n2: n5
+  i1: i2
+  i2: i1
+  conditioning: {}
+  label: A-1-GigabitEthernet0/1<->DC-1-GigabitEthernet0/0
+- id: l4
+  n1: n5
+  n2: n3
+  i1: i2
+  i2: i3
+  conditioning: {}
+  label: DC-1-GigabitEthernet0/1<->A-2-GigabitEthernet0/2
+- id: l5
+  n1: n6
+  n2: n2
+  i1: i2
+  i2: i3
+  conditioning: {}
+  label: DC-2-GigabitEthernet0/1<->A-1-GigabitEthernet0/2
+- id: l6
+  n1: n6
+  n2: n5
+  i1: i3
+  i2: i3
+  conditioning: {}
+  label: DC-2-GigabitEthernet0/2<->DC-1-GigabitEthernet0/2
+- id: l7
+  n1: n4
+  n2: n6
+  i1: i1
+  i2: i4
+  conditioning: {}
+  label: WLC-GigabitEthernet1<->DC-2-GigabitEthernet0/3
+- id: l8
+  n1: n4
+  n2: n5
+  i1: i3
+  i2: i4
+  conditioning: {}
+  label: WLC-GigabitEthernet3<->DC-1-GigabitEthernet0/3
+- id: l9
+  n1: n4
+  n2: n6
+  i1: i2
+  i2: i5
+  conditioning: {}
+  label: WLC-GigabitEthernet2<->DC-2-GigabitEthernet1/0
+- id: l10
+  n1: n4
+  n2: n5
+  i1: i4
+  i2: i5
+  conditioning: {}
+  label: WLC-GigabitEthernet4<->DC-1-GigabitEthernet1/0
+- id: l11
+  n1: n7
+  n2: n2
+  i1: i0
+  i2: i1
+  conditioning: {}
+  label: desktop-0-eth0<->A-1-GigabitEthernet0/0
+lab:
+  description: ''
+  notes: ''
+  title: Wireless
+  node_staging:
+    enabled: false
+    start_remaining: true
+    abort_on_failure: false
+  version: 0.3.1
