@@ -1,0 +1,1173 @@
+annotations:
+  - border_color: '#808080FF'
+    border_radius: 0
+    border_style: ''
+    color: '#005EFFFF'
+    rotation: 0
+    thickness: 1
+    type: rectangle
+    x1: -240.0
+    y1: -480.0
+    x2: 480.0
+    y2: 240.0
+    z_index: 0
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: MST Region
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: -240.0
+    y1: -480.0
+    z_index: 1
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: Instance 0
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: -240.0
+    y1: -440.0
+    z_index: 2
+smart_annotations: []
+nodes:
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3333 bytes
+          !
+          ! Last configuration change at 20:47:55 UTC Sat Sep 26 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname RSTP-3
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          no process cpu extended history
+          no process cpu autoprofile hog
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode rapid-pvst
+          spanning-tree extend system-id
+          spanning-tree pathcost method long
+          !
+          no cdp run
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/1
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/2
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+           no cdp enable
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          no service-routing capabilities-manager
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n0
+    image_definition: null
+    label: RSTP-3
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -200
+    y: -120
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3572 bytes
+          !
+          ! Last configuration change at 20:47:56 UTC Sat Sep 26 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname RSTP-1
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          no process cpu extended history
+          no process cpu autoprofile hog
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip routing
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode rapid-pvst
+          spanning-tree extend system-id
+          spanning-tree pathcost method long
+          !
+          no cdp run
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/2
+           switchport access vlan 10
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport mode access
+           negotiation auto
+           no cdp enable
+           spanning-tree portfast edge
+           spanning-tree bpduguard enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+           no cdp enable
+          !
+          interface Vlan10
+           ip address 10.0.10.2 255.255.255.0
+          !
+          interface Vlan20
+           ip address 10.0.20.2 255.255.255.0
+          !
+          interface Vlan30
+           ip address 10.0.30.2 255.255.255.0
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          no service-routing capabilities-manager
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n1
+    image_definition: null
+    label: RSTP-1
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 0
+    y: 0
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3375 bytes
+          !
+          ! Last configuration change at 20:47:56 UTC Sat Sep 26 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname RSTP-2
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          no process cpu extended history
+          no process cpu autoprofile hog
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode rapid-pvst
+          spanning-tree extend system-id
+          spanning-tree pathcost method long
+          !
+          no cdp run
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/2
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+           no cdp enable
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          no service-routing capabilities-manager
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n2
+    image_definition: null
+    label: RSTP-2
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 200
+    y: -120
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3465 bytes
+          !
+          ! Last configuration change at 20:47:56 UTC Sat Sep 26 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname MST-3
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          no process cpu extended history
+          no process cpu autoprofile hog
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode mst
+          spanning-tree extend system-id
+          !
+          spanning-tree mst configuration
+           name ROMANMST
+           revision 1
+           instance 1 vlan 10, 20
+           instance 2 vlan 30
+          !
+          !
+          no cdp run
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+           spanning-tree guard root
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/2
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+           no cdp enable
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          no service-routing capabilities-manager
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n3
+    image_definition: null
+    label: MST-3
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -200
+    y: -280
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3465 bytes
+          !
+          ! Last configuration change at 20:47:55 UTC Sat Sep 26 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname MST-2
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          no process cpu extended history
+          no process cpu autoprofile hog
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode mst
+          spanning-tree extend system-id
+          !
+          spanning-tree mst configuration
+           name ROMANMST
+           revision 1
+           instance 1 vlan 10, 20
+           instance 2 vlan 30
+          !
+          !
+          no cdp run
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+           spanning-tree guard root
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/2
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+           no cdp enable
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          no service-routing capabilities-manager
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n4
+    image_definition: null
+    label: MST-2
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 200
+    y: -280
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3592 bytes
+          !
+          ! Last configuration change at 20:47:56 UTC Sat Sep 26 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname MST-1
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          no process cpu extended history
+          no process cpu autoprofile hog
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip routing
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode mst
+          spanning-tree extend system-id
+          !
+          spanning-tree mst configuration
+           name ROMANMST
+           revision 1
+           instance 1 vlan 10, 20
+           instance 2 vlan 30
+          !
+          spanning-tree mst 0-2 priority 4096
+          !
+          no cdp run
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 1,10,20,30
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/2
+           switchport access vlan 20
+           switchport mode access
+           negotiation auto
+           no cdp enable
+           spanning-tree portfast edge
+           spanning-tree bpduguard enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+           no cdp enable
+          !
+          interface Vlan10
+           ip address 10.0.10.3 255.255.255.0
+          !
+          interface Vlan20
+           ip address 10.0.20.3 255.255.255.0
+          !
+          interface Vlan30
+           ip address 10.0.30.3 255.255.255.0
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          no service-routing capabilities-manager
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n5
+    image_definition: null
+    label: MST-1
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 0
+    y: -440
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n6
+    image_definition: null
+    label: D2
+    node_definition: desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 0
+    y: 160
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n7
+    image_definition: null
+    label: D1
+    node_definition: desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 0
+    y: -600
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+links:
+  - id: l0
+    n1: n1
+    n2: n2
+    i1: i1
+    i2: i1
+    conditioning: {}
+    label: iosvl2-1-GigabitEthernet0/0<->iosvl2-2-GigabitEthernet0/0
+  - id: l1
+    n1: n1
+    n2: n0
+    i1: i2
+    i2: i1
+    conditioning: {}
+    label: iosvl2-1-GigabitEthernet0/1<->iosvl2-0-GigabitEthernet0/0
+  - id: l2
+    n1: n0
+    n2: n3
+    i1: i2
+    i2: i1
+    conditioning: {}
+    label: iosvl2-0-GigabitEthernet0/1<->iosvl2-0_0-GigabitEthernet0/0
+  - id: l3
+    n1: n2
+    n2: n4
+    i1: i2
+    i2: i1
+    conditioning: {}
+    label: iosvl2-2-GigabitEthernet0/1<->iosvl2-0_1-GigabitEthernet0/0
+  - id: l4
+    n1: n3
+    n2: n5
+    i1: i2
+    i2: i1
+    conditioning: {}
+    label: iosvl2-0_0-GigabitEthernet0/1<->iosvl2-0_2-GigabitEthernet0/0
+  - id: l5
+    n1: n4
+    n2: n5
+    i1: i2
+    i2: i2
+    conditioning: {}
+    label: iosvl2-0_1-GigabitEthernet0/1<->iosvl2-0_2-GigabitEthernet0/1
+  - id: l6
+    n1: n3
+    n2: n4
+    i1: i3
+    i2: i3
+    conditioning: {}
+    label: iosvl2-0_0-GigabitEthernet0/2<->iosvl2-0_1-GigabitEthernet0/2
+  - id: l7
+    n1: n6
+    n2: n1
+    i1: i0
+    i2: i3
+    conditioning: {}
+    label: D2-eth0<->iosvl2-1-GigabitEthernet0/2
+  - id: l8
+    n1: n7
+    n2: n5
+    i1: i0
+    i2: i3
+    conditioning: {}
+    label: D1-eth0<->iosvl2-0_2-GigabitEthernet0/2
+  - id: l9
+    n1: n0
+    n2: n2
+    i1: i3
+    i2: i3
+    conditioning: {}
+    label: RSTP-3-GigabitEthernet0/2<->RSTP-2-GigabitEthernet0/2
+lab:
+  description: ''
+  notes: ''
+  title: MST
+  node_staging:
+    enabled: false
+    start_remaining: true
+    abort_on_failure: false
+  version: 0.3.1

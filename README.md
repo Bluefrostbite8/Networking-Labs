@@ -14,6 +14,7 @@ CCNA certified (Sept 2026), CCNP ENCOR in progress.
 | 02 | [Multi-Area OSPF Campus](02-multi-area-ospf-campus/) | Two-site enterprise network with a redundant NAT edge and centralized DHCP | Multi-area OSPF, multilayer SVIs, dual NAT/PAT, DHCP relay — verified end-to-end with capture output |
 | 03 | [Redundant Campus Access Layer](03-switching-redundancy/) | Three-tier campus that survives any single link or switch failure | Rapid-PVST + root election, EtherChannel (LACP/PAgP/static), HSRP load-sharing, port-security, OSPF underlay + DHCP relay |
 | 04 | [Enterprise Campus Wireless](04-enterprise-wireless/) | Campus wireless with a Catalyst 9800-CL controller over a dual-homed, HSRP-routed core | Catalyst 9800-CL tag-based WLAN (WLAN/policy/site/RF tags), WPA2-PSK, dual LACP EtherChannel, HSRP load-sharing, `hostapd`/`wpa_supplicant` 802.11 — verified with capture output |
+| 05 | [MST ↔ PVST+ Interoperability](05-mst-pvst-interoperability/) | Three-switch MST region bordered by a Rapid PVST+ ring, and how each side sees the other | MST (802.1s) region and instance mapping, root placement enforced with root guard, PVST simulation at the boundary, long path-cost alignment, trunk and edge-port hardening — verified with `show` output and decoded BPDU captures |
 
 Each lab folder has its own README with the full topology diagram, addressing tables,
 a config walkthrough, and the verification steps.
@@ -33,7 +34,8 @@ Each lab folder follows the same layout:
 0X-lab-name/
 ├── README.md          # Objective, topology, addressing, design, verification
 ├── topology.yaml      # CML topology export — import directly into CML
-└── topology.svg       # Hand-built topology diagram
+├── topology.svg       # Hand-built topology diagram
+└── captures/          # (some labs) packet captures referenced in the README
 ```
 
 To run a lab yourself: download its `topology.yaml`, then in CML choose
