@@ -6,6 +6,8 @@ verification steps, and the problems I hit along the way.
 
 CCNA certified (Sept 2026), CCNP ENCOR in progress.
 
+**Actively maintained:** new labs and updates are added every weekend.
+
 > [!WARNING]
 > ## Importing a switching lab? Re-create the VLANs first
 >
