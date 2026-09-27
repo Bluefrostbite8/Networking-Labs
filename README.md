@@ -31,7 +31,7 @@ CCNA certified (Sept 2026), CCNP ENCOR in progress.
 
 | # | Lab | Focus | Key technologies |
 |---|-----|-------|------------------|
-| 01 | [Switching Fundamentals](01-switching-fundamentals/) | Dual-homed L2 access layer with loop-free redundancy | VLANs, 802.1Q trunking, native-VLAN hardening, PVST root load-balancing, PortFast/BPDU Guard |
+| 01 | [Switching Fundamentals](01-switching-fundamentals/) | Starter lab: my first CML build, a dual-homed L2 access layer with loop-free redundancy | VLANs, 802.1Q trunking, native-VLAN hardening, PVST root load-balancing, PortFast/BPDU Guard |
 | 02 | [Multi-Area OSPF Campus](02-multi-area-ospf-campus/) | Two-site enterprise network with a redundant NAT edge and centralized DHCP | Multi-area OSPF, multilayer SVIs, dual NAT/PAT, DHCP relay — verified end-to-end with capture output |
 | 03 | [Redundant Campus Access Layer](03-switching-redundancy/) | Three-tier campus that survives any single link or switch failure | Rapid-PVST + root election, EtherChannel (LACP/PAgP/static), HSRP load-sharing, port-security, VTP v3, OSPF underlay + DHCP relay — verified with decoded packet captures |
 | 04 | [Enterprise Campus Wireless](04-enterprise-wireless/) | Campus wireless with a Catalyst 9800-CL controller over a dual-homed, HSRP-routed core | Catalyst 9800-CL tag-based WLAN (WLAN/policy/site/RF tags), WPA2-PSK, dual LACP EtherChannel, HSRP load-sharing, `hostapd`/`wpa_supplicant` 802.11 — verified with capture output |

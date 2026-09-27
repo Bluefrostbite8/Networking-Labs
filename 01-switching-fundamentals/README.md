@@ -7,6 +7,10 @@
 ![Root](https://img.shields.io/badge/STP%20Root-Per--VLAN%20Load%20Balanced-9b59b6)
 ![Security](https://img.shields.io/badge/Access%20Ports-PortFast%20%2B%20BPDU%20Guard-success)
 
+> **Starter lab.** My first build in Cisco Modeling Labs, kept deliberately small while I
+> learned the platform. The later labs build on the same VLAN, trunking and spanning-tree
+> foundations at larger scale, with captured verification output and packet captures.
+
 A four-switch, two-host Layer 2 lab built in Cisco Modeling Labs (CML). Two access
 switches dual-home into a distribution pair, deliberately creating physical loops
 that Per-VLAN Spanning Tree (PVST) resolves. Root-bridge priorities are tuned so
@@ -33,7 +37,7 @@ Design and verify a resilient switched access layer where:
 ## Topology
 
 <p align="center">
-  <img src="topology.svg" alt="L2 Lab topology: access switches S1/S2 dual-homed to distribution switches S3/S4, hosts M-D1/M-D2 on VLAN 10" width="820">
+  <img src="topology.svg" alt="Switching Fundamentals topology: access switches S1/S2 dual-homed to distribution switches S3/S4, hosts M-D1/M-D2 on VLAN 10" width="820">
 </p>
 
 *Thick lines are 802.1Q trunks; thin lines are host-facing access ports. The

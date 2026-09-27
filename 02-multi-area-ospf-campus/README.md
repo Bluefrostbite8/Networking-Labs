@@ -27,7 +27,7 @@ The remaining open items (ASBR2 default origination, ABR2 router-ID, backbone re
 ## Topology
 
 <p align="center">
-  <img src="topology.svg" alt="L3 Lab multi-area OSPF topology" width="940">
+  <img src="topology.svg" alt="Multi-Area OSPF Enterprise Campus topology" width="940">
 </p>
 
 *Line key: navy = OSPF Area 0 backbone · blue = ABR-to-distribution routed uplink · green = 802.1Q trunk (VLAN 10,20, plus 99 in the Warehouse) · gray = access port to host · dashed orange = WAN / NAT-outside segment (both ASBRs DHCP-learn their uplink through the Redundant switch to the Internet) · faint dashed = spare E0/3 links, cabled but shut. Each endpoint shows its interface; routed links show their subnet; SVIs are the `.1` gateway of each subnet. Purple `pcap` tags mark the two links with packet captures in `captures/`, and the `DR`/`BDR` markers on `10.1.1.0/24` come from those captures.*
