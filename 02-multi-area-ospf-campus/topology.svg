@@ -1,15 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" font-family="Segoe UI, Helvetica, Arial, sans-serif">
 <rect x="10" y="10" width="980" height="680" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
 <text x="34" y="44" font-size="20" font-weight="700" fill="#0f172a">L3 Lab — Multi-Area OSPF Enterprise Network</text>
-<text x="34" y="63" font-size="11.5" fill="#64748b">Two OSPF areas (Office / Warehouse) over an Area 0 backbone; redundant NAT edges; centralized DHCP relay; native VLAN 99 on all trunks.</text>
+<text x="34" y="63" font-size="11.5" fill="#64748b">Two OSPF areas (Office / Warehouse) over an Area 0 backbone;</text>
+<text x="34" y="78" font-size="11.5" fill="#64748b">redundant NAT edges; centralized DHCP relay; native VLAN 99 on all trunks.</text>
 <rect x="286" y="200" width="428" height="54" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="1.2" stroke-dasharray="4 4"/>
 <rect x="54" y="302" width="252" height="330" rx="14" fill="#fef2f2" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 4"/>
 <rect x="694" y="302" width="252" height="330" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4 4"/>
-<text x="292" y="194" font-size="12.5" font-weight="700" fill="#059669" letter-spacing="0.4" text-anchor="start">AREA 0 BACKBONE</text>
-<text x="60" y="288" font-size="12.5" font-weight="700" fill="#dc2626" letter-spacing="0.4" text-anchor="start">AREA 1 · OFFICE</text>
-<text x="60" y="303" font-size="9.2" fill="#dc2626" text-anchor="start">VLAN 10 / 20</text>
-<text x="940" y="288" font-size="12.5" font-weight="700" fill="#2563eb" letter-spacing="0.4" text-anchor="end">AREA 2 · WAREHOUSE</text>
-<text x="940" y="303" font-size="9.2" fill="#2563eb" text-anchor="end">VLAN 10 / 20</text>
+<text x="280" y="222" font-size="11.5" font-weight="700" fill="#059669" letter-spacing="0.4" text-anchor="end">AREA 0</text>
+<text x="280" y="236" font-size="11.5" font-weight="700" fill="#059669" letter-spacing="0.4" text-anchor="end">BACKBONE</text>
+<text x="60" y="283" font-size="12.5" font-weight="700" fill="#dc2626" letter-spacing="0.4" text-anchor="start">AREA 1 · OFFICE</text>
+<text x="60" y="297" font-size="9.2" fill="#dc2626" text-anchor="start">VLAN 10 / 20</text>
+<text x="940" y="283" font-size="12.5" font-weight="700" fill="#2563eb" letter-spacing="0.4" text-anchor="end">AREA 2 · WAREHOUSE</text>
+<text x="940" y="297" font-size="9.2" fill="#2563eb" text-anchor="end">VLAN 10 / 20</text>
 <line x1="153.0" y1="420.0" x2="207.0" y2="420.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
 <line x1="110.0" y1="438.0" x2="110.0" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
 <line x1="250.0" y1="438.0" x2="250.0" y2="496.0" stroke="#047857" stroke-width="2.6" stroke-linecap="round"/>
@@ -134,8 +136,8 @@
 <text x="836.2" y="363.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/1</text>
 <text x="857.8" y="387.0" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">Gi0/0</text>
 <text x="847.0" y="368.0" font-size="8.4" font-weight="600" fill="#2563eb" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.2.200.0/24</text>
-<text x="249.6" y="292.9" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
-<text x="296.4" y="263.1" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
+<text x="249.6" y="292.9" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2<tspan dx="3" font-weight="800" fill="#7c3aed">DR</tspan></text>
+<text x="300.4" y="263.1" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0<tspan dx="3" font-weight="800" fill="#7c3aed">BDR</tspan></text>
 <text x="273.0" y="271.0" font-size="8.4" font-weight="600" fill="#1e3a8a" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="3" style="stroke-linejoin:round">10.1.1.0/24</text>
 <text x="750.4" y="292.9" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/2</text>
 <text x="703.6" y="263.1" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">E0/0</text>
@@ -152,7 +154,7 @@
 <text x="555.7" y="172.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p1</text>
 <text x="500.0" y="114.4" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p2</text>
 <text x="500.0" y="105.6" font-size="8.2" fill="#334155" text-anchor="middle" paint-order="stroke" stroke="#ffffff" stroke-width="2.6" style="stroke-linejoin:round">p</text>
-<rect x="402" y="398" width="196" height="232" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+<rect x="402" y="398" width="196" height="268" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
 <text x="414" y="418" font-size="12" font-weight="700" fill="#0f172a">LEGEND</text>
 <rect x="414" y="427" width="16" height="11" rx="2.5" fill="#b91c1c"/>
 <text x="436" y="436" font-size="9.1" fill="#1e293b">ASBR — NAT edge router</text>
@@ -183,4 +185,9 @@
 <line x1="414" y1="631" x2="432" y2="631" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="2 5"/>
 <text x="438" y="634" font-size="9.1" fill="#1e293b">Spare link (E0/3, shut)</text>
 <text x="34" y="682" font-size="9" fill="#94a3b8">All values read from the device running-configs. Cabling/interfaces from the links list; addressing, areas, VLANs, NAT, DHCP from each config. SVI = default gateway .1 per subnet.</text>
+<!-- packet-capture tags + legend entries -->
+<rect x="242" y="245" width="34" height="16" rx="8" fill="#7c3aed"/><text x="259" y="256.2" font-size="8.6" font-weight="700" fill="#ffffff" text-anchor="middle">pcap</text>
+<rect x="513" y="99" width="34" height="16" rx="8" fill="#7c3aed"/><text x="530" y="110.2" font-size="8.6" font-weight="700" fill="#ffffff" text-anchor="middle">pcap</text>
+<rect x="414" y="638" width="34" height="16" rx="8" fill="#7c3aed"/><text x="431" y="649.2" font-size="8.6" font-weight="700" fill="#ffffff" text-anchor="middle">pcap</text><text x="454" y="649" font-size="9.1" fill="#1e293b">Packet capture (captures/)</text>
+<text x="414" y="662" font-size="9.1" fill="#1e293b"><tspan font-weight="800" fill="#7c3aed">DR / BDR</tspan> on 10.1.1.0/24 (pcap)</text>
 </svg>

@@ -30,7 +30,7 @@ The remaining open items (ASBR2 default origination, ABR2 router-ID, backbone re
   <img src="topology.svg" alt="L3 Lab multi-area OSPF topology" width="940">
 </p>
 
-*Line key: navy = OSPF Area 0 backbone · blue = ABR-to-distribution routed uplink · green = 802.1Q trunk (VLAN 10,20, plus 99 in the Warehouse) · gray = access port to host · dashed orange = WAN / NAT-outside segment (both ASBRs DHCP-learn their uplink through the Redundant switch to the Internet) · faint dashed = spare E0/3 links, cabled but shut. Each endpoint shows its interface; routed links show their subnet; SVIs are the `.1` gateway of each subnet.*
+*Line key: navy = OSPF Area 0 backbone · blue = ABR-to-distribution routed uplink · green = 802.1Q trunk (VLAN 10,20, plus 99 in the Warehouse) · gray = access port to host · dashed orange = WAN / NAT-outside segment (both ASBRs DHCP-learn their uplink through the Redundant switch to the Internet) · faint dashed = spare E0/3 links, cabled but shut. Each endpoint shows its interface; routed links show their subnet; SVIs are the `.1` gateway of each subnet. Purple `pcap` tags mark the two links with packet captures in `captures/`, and the `DR`/`BDR` markers on `10.1.1.0/24` come from those captures.*
 
 ## Node Inventory
 
@@ -69,6 +69,8 @@ All values are read from the running-configs.
 | ASBR1 | 1.1.1.1 | E0/0 `10.1.1.0` → a0; E0/1 `10.4.10.0` → a0 | `default-information originate`; NAT |
 | ASBR2 | 3.3.3.3 | E0/0 `10.2.1.0` → a0; E0/1 `10.3.10.0` → a0 | NAT; does **not** originate default |
 | DHCP | 2.2.2.2 | E0/0 `10.3.10.0`, E0/1 `10.4.10.0` → a0 | `passive-interface default` except the two backbone links |
+
+All backbone links are Ethernet broadcast segments, so OSPF elects a DR and BDR on each. On `10.1.1.0/24` the capture shows **ABR1 as DR** and **ASBR1 as BDR** (both at priority 1, hello 10 s / dead 40 s).
 
 The four distribution switches also run OSPF: DC-S1/DC-S2 advertise their SVI and uplink subnets into **area 1**; DC-S3/DC-S4 into **area 2**. The Office distribution switches additionally carry a static default toward ABR1; the Warehouse switches rely on the OSPF-learned default.
 
@@ -251,6 +253,8 @@ router ospf 1
 | Cross-site path | U-D1 → traceroute a Warehouse host | Office → ABR1 → Area 0 (via DHCP transit) → ABR2 → Warehouse |
 | NAT translation | ASBR1: `show ip nat translations` | Entries for site hosts overloaded to E0/2 |
 | Internet egress | U-D1 → ping the upstream / `8.8.8.8` | Success (translated), assuming the bridged upstream is reachable |
+| DR / BDR on the backbone | ABR1: `show ip ospf interface Ethernet0/2` | Broadcast network; DR 4.4.4.4 (`10.1.1.2`), BDR 1.1.1.1 (`10.1.1.1`) |
+| Packet inspection | Open `captures/*.pcap` in Wireshark | OSPF Hello/LSU/LSAck on the backbone; CDP from both ASBRs on the WAN uplink |
 
 ### Captured verification (CML)
 
@@ -348,6 +352,54 @@ U-D1:~$ traceroute 10.2.20.11
 
 And the shorter reachability checks all succeed: inter-VLAN within the Office (U-D1 → HR-D2 `10.1.20.11`), cross-site (U-D3 → U-D1 `10.1.10.11`), and Internet egress (U-D3 → `192.168.8.1`), each 0% loss.
 
+#### Packet captures (decoded)
+
+Two links were captured in CML. They show OSPF doing its work on the wire, and they surfaced one security finding at the edge.
+
+**Area 0 backbone, ABR1 E0/2 ↔ ASBR1 E0/0** (`captures/abr1-asbr1_area0-backbone.pcap`, 29 s, 26 frames: 18 OSPF, 2 CDP, 6 Ethernet keepalives). The adjacency is already up when the capture starts, so there are no DBD or LSR packets; what it catches is the routine Hellos plus a burst of LSA flooding.
+
+*Hellos and the DR/BDR election.* Both routers send a Hello every 10 s to `224.0.0.5` with TTL 1, in area `0.0.0.0`, and each lists the other as a neighbour. They agree on the segment's roles: ABR1 (`10.1.1.2`) is DR and ASBR1 (`10.1.1.1`) is BDR, consistent with equal priority 1 and ABR1's higher router-ID:
+
+```text
+OSPFv2 Hello  4.4.4.4 → 224.0.0.5  area 0.0.0.0  mask /24  hello 10  dead 40  pri 1
+              DR 10.1.1.2  BDR 10.1.1.1  neighbor 1.1.1.1
+OSPFv2 Hello  1.1.1.1 → 224.0.0.5  area 0.0.0.0  mask /24  hello 10  dead 40  pri 1
+              DR 10.1.1.2  BDR 10.1.1.1  neighbor 4.4.4.4
+```
+
+*Router LSAs carry the role bits.* Each router's Type 1 LSA flags its job in the design: ASBR1 sets the **E** bit (it originates the external default), and ABR1 sets the **B** bit (it borders area 0 and area 1). ASBR1 floods its LSA as BDR, ABR1 re-floods it back onto the segment as DR, and both acknowledge it:
+
+```text
+LSU  Router LSA 1.1.1.1  seq 0x80000005  flags E
+       transit 10.1.1.0 (DR 10.1.1.2) cost 10 · stub 10.4.10.0/24 cost 10
+LSU  Router LSA 4.4.4.4  seq 0x80000005  flags B
+       transit 10.1.1.0 (DR 10.1.1.2) cost 10
+LSAck  Router LSA 1.1.1.1 (both routers), Router LSA 4.4.4.4 (ASBR1)
+```
+
+The low sequence numbers and one-second LSA ages show the capture began shortly after the routers came up. At that moment ASBR1 still listed `10.4.10.0/24` as a *stub* network, meaning the DHCP router had not yet formed its adjacency on that link; once it does, the link is advertised as transit, and the neighbour table above shows it FULL.
+
+*The ABR advertising area 1 into area 0.* ABR1 withdraws and immediately re-advertises its Type 3 summary LSAs for the two area-1 uplink subnets: first at MaxAge (3600 s) with the unreachable metric 16777215, then half a second later with a new sequence number and metric 10. ASBR1 acknowledges each:
+
+```text
+LSU  Summary 10.1.100.0/24  adv 4.4.4.4  seq 0x80000002  age 3600  metric 16777215   (withdraw)
+LSU  Summary 10.1.100.0/24  adv 4.4.4.4  seq 0x80000003  age 1     metric 10         (re-advertise)
+LSU  Summary 10.1.200.0/24  adv 4.4.4.4  seq 0x80000002  age 3600  metric 16777215   (withdraw)
+LSU  Summary 10.1.200.0/24  adv 4.4.4.4  seq 0x80000003  age 1     metric 10         (re-advertise)
+```
+
+This is the ABR's core job seen on the wire: area-1 prefixes enter the backbone as Type 3 summaries originated by `4.4.4.4`. ASBR1's external default LSA is not refreshed inside this 29-second window, so it does not appear, but the E bit confirms ASBR1's role.
+
+**WAN uplink, Redundant port2 ↔ Internet** (`captures/redundant-internet_wan-uplink.pcap`). This link is bridged into the real upstream LAN (`192.168.8.0/24`), so the raw 36-second capture held 18 frames, 15 of them from unrelated devices on that LAN (device-discovery broadcasts and an IGMP query from the upstream router). Those were removed before publishing; the three frames kept all come from the lab:
+
+```text
+ARP   ASBR1 192.168.8.192 → who-has 192.168.8.186
+CDP   ASBR1  Ethernet0/2  192.168.8.192  Cisco IOS XE 17.18.2 (IOL)
+CDP   ASBR2  Ethernet0/2  192.168.8.241  Cisco IOS XE 17.18.2 (IOL)
+```
+
+Both ASBRs have DHCP-learned WAN addresses (`.192` and `.241` in this run; leases change between runs, which is why the NAT capture above shows `.137`). More importantly, **CDP is enabled on the NAT-outside interfaces**, so each ASBR announces its hostname, exact software version, platform and WAN address to every device on the outside network. That is reconnaissance data an edge router should not volunteer; see *Possible Extensions*.
+
 ## Skills Demonstrated
 
 - Multilayer (L3) switching: per-VLAN SVIs as gateways, routed uplinks, and distribution switches participating in OSPF.
@@ -358,6 +410,7 @@ And the shorter reachability checks all succeed: inter-VLAN within the Office (U
 - Redundant NAT / PAT Internet edge with a DHCP-learned WAN and `default-information originate` to advertise the exit into OSPF.
 - Iterative build discipline: extending a working Office design into a symmetric Warehouse and edge, and fixing a prior addressing bug (SVI vs. DHCP gateway).
 - Verification and troubleshooting: confirmed the build end-to-end with OSPF neighbor/route output, NAT translations, DHCP bindings, STP state, and a cross-site traceroute through the Area 0 transit (see Verification).
+- Packet-level OSPF analysis: reading Hellos, the DR/BDR election, Router LSA role bits (E for ASBR, B for ABR), and an ABR's Type 3 summary withdraw/re-advertise directly from CML captures, and spotting an information leak (CDP) on the WAN edge.
 
 ## Possible Extensions
 
@@ -367,6 +420,7 @@ And the shorter reachability checks all succeed: inter-VLAN within the Office (U
 - **Add backbone redundancy for the transit.** Inter-site traffic currently crosses Area 0 through the single DHCP router. The spare `E0/3` cross-links (ASBR1↔ABR2, ASBR2↔ABR1) are already cabled but shut; un-shutting and addressing them adds a second backbone path.
 - **Standardize trunk negotiation.** Native VLAN 99 is now consistent across both sites. `switchport nonegotiate` is still set only on the Office trunks; apply it on the Warehouse trunks too so no trunk relies on DTP.
 - **STP root planning.** Root priorities are default at both sites. Set each distribution switch as primary root for one VLAN and secondary for the other, per site, for predictable Layer-2 paths.
+- **Stop CDP at the WAN edge.** The WAN capture shows both ASBRs sending CDP out E0/2 onto the outside network, advertising hostname, IOS XE version, platform and WAN address. Add `no cdp enable` on each ASBR's E0/2 (or `no cdp run` if CDP is not used elsewhere) so the edge stops volunteering reconnaissance data.
 - **Minor:** rename the `AREA10V2` pool to `AREA1V20`; and the Office switches carry both a static default and the OSPF-learned default — harmless, but the Warehouse's OSPF-only approach is cleaner and could be applied uniformly.
 
 ## Files
@@ -376,7 +430,9 @@ And the shorter reachability checks all succeed: inter-VLAN within the Office (U
 | `README.md` | This documentation. |
 | `topology.svg` | Hand-built topology diagram (embedded above). |
 | `topology.yaml` | Sanitized CML export — Cisco banner/EULA blocks stripped from all switches; all real configuration preserved (19 nodes, 27 links, parse-verified). |
+| `captures/abr1-asbr1_area0-backbone.pcap` | OSPF/CDP capture on the Area 0 backbone link ABR1 E0/2 ↔ ASBR1 E0/0 (l19). |
+| `captures/redundant-internet_wan-uplink.pcap` | Capture on the WAN uplink Redundant ↔ Internet (l14), filtered to the lab's own frames (upstream-LAN traffic removed). |
 
 ---
 
-*Documentation derived entirely from the device running-configs in the CML export `L3_Lab`. Cabling and interfaces come from the `links` list; addressing, areas, VLANs, NAT, DHCP and interface state come from each node's configuration.*
+*Documentation derived from the device running-configs in the CML export `L3_Lab` and two CML packet captures. Cabling and interfaces come from the `links` list; addressing, areas, VLANs, NAT, DHCP and interface state come from each node's configuration; the DR/BDR roles and LSA details come from the captures.*
