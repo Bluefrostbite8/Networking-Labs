@@ -151,40 +151,14 @@ annotations:
 smart_annotations: []
 nodes:
   - boot_disk_size: null
-    configuration: []
-    cpu_limit: null
-    cpus: null
-    data_volume: null
-    hide_links: false
-    id: n0
-    image_definition: null
-    label: E-1
-    node_definition: desktop
-    parameters: {}
-    priority: null
-    pyats:
-      username: null
-      password: null
-      enable_password: null
-    ram: null
-    tags: []
-    x: -80
-    y: 240
-    interfaces:
-      - id: i0
-        label: eth0
-        mac_address: null
-        type: physical
-        slot: 0
-  - boot_disk_size: null
     configuration:
       - name: ios_config.txt
         content: |-
           Building configuration...
 
-          Current configuration : 3256 bytes
+          Current configuration : 3316 bytes
           !
-          ! Last configuration change at 22:48:10 UTC Sat Sep 19 2026
+          ! Last configuration change at 21:19:43 UTC Sun Sep 27 2026
           !
           version 15.2
           service timestamps debug datetime msec
@@ -237,6 +211,161 @@ nodes:
            switchport nonegotiate
            switchport port-security violation restrict
            switchport port-security mac-address sticky
+           switchport port-security mac-address sticky 5254.007c.8f24
+           switchport port-security
+           negotiation auto
+           spanning-tree portfast edge
+           spanning-tree bpduguard enable
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 10,20,30,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+          !
+          interface GigabitEthernet0/2
+           switchport trunk allowed vlan 10,20,30,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n0
+    image_definition: null
+    label: A1
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -40
+    y: 40
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3316 bytes
+          !
+          ! Last configuration change at 21:19:43 UTC Sun Sep 27 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname A2
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode rapid-pvst
+          spanning-tree extend system-id
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport access vlan 20
+           switchport mode access
+           switchport nonegotiate
+           switchport port-security violation restrict
+           switchport port-security mac-address sticky
+           switchport port-security mac-address sticky 5254.006a.6308
            switchport port-security
            negotiation auto
            spanning-tree portfast edge
@@ -292,159 +421,6 @@ nodes:
     hide_links: false
     id: n1
     image_definition: null
-    label: A1
-    node_definition: iosvl2
-    parameters: {}
-    priority: null
-    pyats:
-      username: null
-      password: null
-      enable_password: null
-    ram: null
-    tags: []
-    x: -40
-    y: 40
-    interfaces:
-      - id: i0
-        label: Loopback0
-        mac_address: null
-        type: loopback
-      - id: i1
-        label: GigabitEthernet0/0
-        mac_address: null
-        type: physical
-        slot: 0
-      - id: i2
-        label: GigabitEthernet0/1
-        mac_address: null
-        type: physical
-        slot: 1
-      - id: i3
-        label: GigabitEthernet0/2
-        mac_address: null
-        type: physical
-        slot: 2
-      - id: i4
-        label: GigabitEthernet0/3
-        mac_address: null
-        type: physical
-        slot: 3
-  - boot_disk_size: null
-    configuration:
-      - name: ios_config.txt
-        content: |-
-          Building configuration...
-
-          Current configuration : 3256 bytes
-          !
-          ! Last configuration change at 22:48:10 UTC Sat Sep 19 2026
-          !
-          version 15.2
-          service timestamps debug datetime msec
-          service timestamps log datetime msec
-          no service password-encryption
-          service compress-config
-          !
-          hostname A2
-          !
-          boot-start-marker
-          boot-end-marker
-          !
-          !
-          no logging console
-          !
-          no aaa new-model
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          ip cef
-          no ipv6 cef
-          !
-          !
-          !
-          spanning-tree mode rapid-pvst
-          spanning-tree extend system-id
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          !
-          interface GigabitEthernet0/0
-           switchport access vlan 20
-           switchport mode access
-           switchport nonegotiate
-           switchport port-security violation restrict
-           switchport port-security mac-address sticky
-           switchport port-security
-           negotiation auto
-           spanning-tree portfast edge
-           spanning-tree bpduguard enable
-          !
-          interface GigabitEthernet0/1
-           switchport trunk allowed vlan 10,20,30,99
-           switchport trunk encapsulation dot1q
-           switchport trunk native vlan 99
-           switchport mode trunk
-           switchport nonegotiate
-           negotiation auto
-          !
-          interface GigabitEthernet0/2
-           switchport trunk allowed vlan 10,20,30,99
-           switchport trunk encapsulation dot1q
-           switchport trunk native vlan 99
-           switchport mode trunk
-           switchport nonegotiate
-           negotiation auto
-          !
-          interface GigabitEthernet0/3
-           negotiation auto
-          !
-          ip forward-protocol nd
-          !
-          ip http server
-          ip http secure-server
-          !
-          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
-          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
-          !
-          !
-          !
-          !
-          !
-          !
-          control-plane
-          !
-          !
-          line con 0
-           exec-timeout 0 0
-          line aux 0
-          line vty 0 4
-           exec-timeout 0 0
-           login
-          !
-          !
-          end
-    cpu_limit: null
-    cpus: null
-    data_volume: null
-    hide_links: false
-    id: n2
-    image_definition: null
     label: A2
     node_definition: iosvl2
     parameters: {}
@@ -488,9 +464,9 @@ nodes:
         content: |-
           Building configuration...
 
-          Current configuration : 3580 bytes
+          Current configuration : 3717 bytes
           !
-          ! Last configuration change at 22:48:10 UTC Sat Sep 19 2026
+          ! Last configuration change at 21:19:43 UTC Sun Sep 27 2026
           !
           version 15.2
           service timestamps debug datetime msec
@@ -512,10 +488,11 @@ nodes:
           !
           !
           !
+          no ip routing
           !
           !
           !
-          ip cef
+          no ip cef
           no ipv6 cef
           !
           !
@@ -544,6 +521,7 @@ nodes:
            switchport port-security maximum 2
            switchport port-security violation restrict
            switchport port-security mac-address sticky
+           switchport port-security mac-address sticky 5254.00e9.3b29
            switchport port-security
            negotiation auto
            spanning-tree portfast edge
@@ -572,6 +550,7 @@ nodes:
            switchport port-security maximum 2
            switchport port-security violation restrict
            switchport port-security mac-address sticky
+           switchport port-security mac-address sticky 5254.008a.e3ab
            switchport port-security
            negotiation auto
            spanning-tree portfast edge
@@ -606,7 +585,7 @@ nodes:
     cpus: null
     data_volume: null
     hide_links: false
-    id: n3
+    id: n2
     image_definition: null
     label: A3
     node_definition: iosvl2
@@ -651,7 +630,7 @@ nodes:
     cpus: null
     data_volume: null
     hide_links: false
-    id: n4
+    id: n3
     image_definition: null
     label: M-1
     node_definition: desktop
@@ -677,7 +656,7 @@ nodes:
     cpus: null
     data_volume: null
     hide_links: false
-    id: n5
+    id: n4
     image_definition: null
     label: S-1
     node_definition: desktop
@@ -710,7 +689,7 @@ nodes:
     cpus: null
     data_volume: null
     hide_links: false
-    id: n6
+    id: n5
     image_definition: null
     label: E-2
     node_definition: desktop
@@ -738,7 +717,7 @@ nodes:
 
           Current configuration : 3565 bytes
           !
-          ! Last configuration change at 22:48:10 UTC Sat Sep 19 2026
+          ! Last configuration change at 21:19:43 UTC Sun Sep 27 2026
           !
           version 15.9
           service timestamps debug datetime msec
@@ -873,7 +852,7 @@ nodes:
     cpus: null
     data_volume: null
     hide_links: false
-    id: n7
+    id: n6
     image_definition: null
     label: R1
     node_definition: iosv
@@ -920,7 +899,7 @@ nodes:
 
           Current configuration : 4556 bytes
           !
-          ! Last configuration change at 22:48:06 UTC Sat Sep 19 2026
+          ! Last configuration change at 21:19:42 UTC Sun Sep 27 2026
           !
           version 15.2
           service timestamps debug datetime msec
@@ -1075,7 +1054,7 @@ nodes:
     cpus: null
     data_volume: null
     hide_links: false
-    id: n8
+    id: n7
     image_definition: null
     label: Dist1
     node_definition: iosvl2
@@ -1137,7 +1116,7 @@ nodes:
 
           Current configuration : 4556 bytes
           !
-          ! Last configuration change at 22:48:07 UTC Sat Sep 19 2026
+          ! Last configuration change at 21:19:42 UTC Sun Sep 27 2026
           !
           version 15.2
           service timestamps debug datetime msec
@@ -1292,7 +1271,7 @@ nodes:
     cpus: null
     data_volume: null
     hide_links: false
-    id: n9
+    id: n8
     image_definition: null
     label: Dist2
     node_definition: iosvl2
@@ -1354,7 +1333,7 @@ nodes:
 
           Current configuration : 5384 bytes
           !
-          ! Last configuration change at 22:48:08 UTC Sat Sep 19 2026
+          ! Last configuration change at 21:19:42 UTC Sun Sep 27 2026
           !
           version 15.2
           service timestamps debug datetime msec
@@ -1543,7 +1522,7 @@ nodes:
     cpus: null
     data_volume: null
     hide_links: false
-    id: n10
+    id: n9
     image_definition: null
     label: Core2
     node_definition: iosvl2
@@ -1605,7 +1584,7 @@ nodes:
 
           Current configuration : 5433 bytes
           !
-          ! Last configuration change at 22:48:07 UTC Sat Sep 19 2026
+          ! Last configuration change at 21:19:42 UTC Sun Sep 27 2026
           !
           version 15.2
           service timestamps debug datetime msec
@@ -1797,7 +1776,7 @@ nodes:
     cpus: null
     data_volume: null
     hide_links: false
-    id: n11
+    id: n10
     image_definition: null
     label: Core1
     node_definition: iosvl2
@@ -1851,161 +1830,187 @@ nodes:
         mac_address: null
         type: physical
         slot: 6
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n11
+    image_definition: null
+    label: E-1
+    node_definition: desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -80
+    y: 240
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
 links:
   - id: l0
-    n1: n1
-    n2: n0
-    i1: i1
-    i2: i0
-    conditioning: {}
-    label: iosvl2-0-GigabitEthernet0/0<->desktop-0-eth0
-  - id: l1
-    n1: n3
-    n2: n5
-    i1: i1
-    i2: i0
-    conditioning: {}
-    label: iosvl2-2-GigabitEthernet0/0<->desktop-2-eth0
-  - id: l2
-    n1: n3
-    n2: n6
-    i1: i4
-    i2: i0
-    conditioning: {}
-    label: iosvl2-2-GigabitEthernet0/3<->desktop-0_0-eth0
-  - id: l3
     n1: n2
     n2: n4
     i1: i1
     i2: i0
     conditioning: {}
-    label: A2-GigabitEthernet0/0<->M-1-eth0
-  - id: l4
-    n1: n9
+    label: A3-GigabitEthernet0/0<->S-1-eth0
+  - id: l1
+    n1: n2
+    n2: n5
+    i1: i4
+    i2: i0
+    conditioning: {}
+    label: A3-GigabitEthernet0/3<->E-2-eth0
+  - id: l2
+    n1: n1
     n2: n3
     i1: i1
-    i2: i2
+    i2: i0
     conditioning: {}
-    label: iosvl2-1-GigabitEthernet0/0<->A3-GigabitEthernet0/1
-  - id: l5
+    label: A2-GigabitEthernet0/0<->M-1-eth0
+  - id: l3
     n1: n8
-    n2: n1
+    n2: n2
     i1: i1
     i2: i2
     conditioning: {}
-    label: iosvl2-0-GigabitEthernet0/0<->A1-GigabitEthernet0/1
+    label: Dist2-GigabitEthernet0/0<->A3-GigabitEthernet0/1
+  - id: l4
+    n1: n7
+    n2: n0
+    i1: i1
+    i2: i2
+    conditioning: {}
+    label: Dist1-GigabitEthernet0/0<->A1-GigabitEthernet0/1
+  - id: l5
+    n1: n7
+    n2: n1
+    i1: i2
+    i2: i2
+    conditioning: {}
+    label: Dist1-GigabitEthernet0/1<->A2-GigabitEthernet0/1
   - id: l6
     n1: n8
-    n2: n2
-    i1: i2
-    i2: i2
-    conditioning: {}
-    label: iosvl2-0-GigabitEthernet0/1<->A2-GigabitEthernet0/1
-  - id: l7
-    n1: n9
-    n2: n2
-    i1: i2
-    i2: i3
-    conditioning: {}
-    label: iosvl2-1-GigabitEthernet0/1<->A2-GigabitEthernet0/2
-  - id: l8
-    n1: n9
     n2: n1
-    i1: i3
+    i1: i2
     i2: i3
     conditioning: {}
-    label: iosvl2-1-GigabitEthernet0/2<->A1-GigabitEthernet0/2
-  - id: l9
+    label: Dist2-GigabitEthernet0/1<->A2-GigabitEthernet0/2
+  - id: l7
     n1: n8
-    n2: n3
+    n2: n0
     i1: i3
     i2: i3
     conditioning: {}
-    label: iosvl2-0-GigabitEthernet0/2<->A3-GigabitEthernet0/2
+    label: Dist2-GigabitEthernet0/2<->A1-GigabitEthernet0/2
+  - id: l8
+    n1: n7
+    n2: n2
+    i1: i3
+    i2: i3
+    conditioning: {}
+    label: Dist1-GigabitEthernet0/2<->A3-GigabitEthernet0/2
+  - id: l9
+    n1: n7
+    n2: n10
+    i1: i4
+    i2: i1
+    conditioning: {}
+    label: Dist1-GigabitEthernet0/3<->Core1-GigabitEthernet0/0
   - id: l10
     n1: n8
-    n2: n11
+    n2: n9
     i1: i4
     i2: i1
     conditioning: {}
-    label: iosvl2-0-GigabitEthernet0/3<->iosvl2-3-GigabitEthernet0/0
+    label: Dist2-GigabitEthernet0/3<->Core2-GigabitEthernet0/0
   - id: l11
-    n1: n9
-    n2: n10
-    i1: i4
-    i2: i1
-    conditioning: {}
-    label: iosvl2-1-GigabitEthernet0/3<->iosvl2-2-GigabitEthernet0/0
-  - id: l12
-    n1: n11
-    n2: n10
+    n1: n10
+    n2: n9
     i1: i2
     i2: i2
     conditioning: {}
-    label: iosvl2-3-GigabitEthernet0/1<->iosvl2-2-GigabitEthernet0/1
-  - id: l13
-    n1: n10
-    n2: n11
+    label: Core1-GigabitEthernet0/1<->Core2-GigabitEthernet0/1
+  - id: l12
+    n1: n9
+    n2: n10
     i1: i3
     i2: i3
     conditioning: {}
-    label: iosvl2-2-GigabitEthernet0/2<->iosvl2-3-GigabitEthernet0/2
-  - id: l14
-    n1: n11
-    n2: n9
-    i1: i4
-    i2: i5
-    conditioning: {}
-    label: iosvl2-3-GigabitEthernet0/3<->iosvl2-1-GigabitEthernet1/0
-  - id: l15
+    label: Core2-GigabitEthernet0/2<->Core1-GigabitEthernet0/2
+  - id: l13
     n1: n10
     n2: n8
     i1: i4
     i2: i5
     conditioning: {}
-    label: iosvl2-2-GigabitEthernet0/3<->iosvl2-0-GigabitEthernet1/0
-  - id: l16
-    n1: n10
+    label: Core1-GigabitEthernet0/3<->Dist2-GigabitEthernet1/0
+  - id: l14
+    n1: n9
     n2: n7
+    i1: i4
+    i2: i5
+    conditioning: {}
+    label: Core2-GigabitEthernet0/3<->Dist1-GigabitEthernet1/0
+  - id: l15
+    n1: n9
+    n2: n6
     i1: i5
     i2: i1
     conditioning: {}
-    label: iosvl2-2-GigabitEthernet1/0<->R1-GigabitEthernet0/0
-  - id: l17
-    n1: n11
-    n2: n7
+    label: Core2-GigabitEthernet1/0<->R1-GigabitEthernet0/0
+  - id: l16
+    n1: n10
+    n2: n6
     i1: i5
     i2: i2
     conditioning: {}
-    label: iosvl2-3-GigabitEthernet1/0<->R1-GigabitEthernet0/1
+    label: Core1-GigabitEthernet1/0<->R1-GigabitEthernet0/1
+  - id: l17
+    n1: n9
+    n2: n7
+    i1: i6
+    i2: i6
+    conditioning: {}
+    label: Core2-GigabitEthernet1/1<->Dist1-GigabitEthernet1/1
   - id: l18
     n1: n10
     n2: n8
     i1: i6
     i2: i6
     conditioning: {}
-    label: iosvl2-2-GigabitEthernet1/1<->iosvl2-0-GigabitEthernet1/1
+    label: Core1-GigabitEthernet1/1<->Dist2-GigabitEthernet1/1
   - id: l19
-    n1: n11
-    n2: n9
-    i1: i6
-    i2: i6
-    conditioning: {}
-    label: iosvl2-3-GigabitEthernet1/1<->iosvl2-1-GigabitEthernet1/1
-  - id: l20
-    n1: n10
-    n2: n9
-    i1: i7
-    i2: i7
-    conditioning: {}
-    label: iosvl2-2-GigabitEthernet1/2<->iosvl2-1-GigabitEthernet1/2
-  - id: l21
-    n1: n11
+    n1: n9
     n2: n8
     i1: i7
     i2: i7
     conditioning: {}
-    label: iosvl2-3-GigabitEthernet1/2<->iosvl2-0-GigabitEthernet1/2
+    label: Core2-GigabitEthernet1/2<->Dist2-GigabitEthernet1/2
+  - id: l20
+    n1: n10
+    n2: n7
+    i1: i7
+    i2: i7
+    conditioning: {}
+    label: Core1-GigabitEthernet1/2<->Dist1-GigabitEthernet1/2
+  - id: l21
+    n1: n11
+    n2: n0
+    i1: i0
+    i2: i1
+    conditioning: {}
+    label: desktop-0-eth0<->A1-GigabitEthernet0/0
 lab:
   description: ''
   notes: ''
