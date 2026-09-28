@@ -73,7 +73,7 @@ To run a lab yourself: download its `topology.yaml`, then in CML choose
 ## Contact
 
 Roman Schroeder, Kyle, TX
-www.linkedin.com/in/roman-schroeder-856188410/ · schroedermroman@gmail.com
+[linkedin.com/in/roman-schroeder101](https://www.linkedin.com/in/roman-schroeder101/) · schroedermroman@gmail.com
 
 ## License & disclaimer
 
