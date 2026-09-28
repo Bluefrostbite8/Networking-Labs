@@ -21,6 +21,12 @@ This lab builds an **enterprise campus wireless design** on Cisco Modeling Labs:
 
 *Line key: navy double line = LACP EtherChannel bundle (2 physical links), labelled with its Port-channel — the WLC's two uplinks, one bundle to each distribution switch · green = 802.1Q trunk (access-switch dual-homing and the inter-distribution link) · gray = access / wired host port · dashed cyan = the 802.11 WPA2 association between the software AP and the client (simulated `mac80211_hwsim` radios, not a cabled link). Each wired endpoint shows its interface; the distribution switches carry per-VLAN HSRP-active and DHCP badges; the WLC carries its wireless-management interface and the WLAN-to-VLAN policy mapping.*
 
+<p align="center">
+  <img src="cml-canvas.png" alt="Enterprise Campus Wireless running in Cisco Modeling Labs: DC-1/DC-2, the 9800-CL WLC, access switches A-1/A-2, DESK-1, W-AP2 and W-2" width="520">
+</p>
+
+*The same lab running in Cisco Modeling Labs, every node booted.*
+
 ## Node Inventory
 
 | Node | Role | Type | `node_definition` |
@@ -343,6 +349,7 @@ W-2:~$ ip addr show ens2
 |------|-------------|
 | `README.md` | This documentation. |
 | `topology.svg` | Hand-built topology diagram (embedded above). |
+| `cml-canvas.png` | Screenshot of the running lab in Cisco Modeling Labs (embedded above). |
 | `topology.yaml` | Sanitized CML export — Cisco banner/EULA blocks stripped from all four IOS switches; `ip routing` inserted on DC-1/DC-2 to match the confirmed running state; all other real configuration preserved (8 nodes, 12 links, parse-verified). |
 
 ---

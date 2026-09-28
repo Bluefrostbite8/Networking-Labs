@@ -51,6 +51,12 @@ This export is the lab re-imported from this repo, repaired, and re-exported. Ca
 
 *Line key: teal double line = EtherChannel bundle (2 physical links), labelled with its Port-channel and negotiation mode (Po1 LACP · Po2 PAgP · Po3 static "on") · green = 802.1Q trunk carrying the access-switch dual-homing (STP forwards one, blocks the other per VLAN) · navy = routed OSPF point-to-point /30 to the edge router · gray = access port to a host. Each non-bundled endpoint shows its interface; the cores carry STP-root and HSRP-active badges per VLAN, and Core1 a VTP v3 primary-server badge; host VLAN membership is shown as a coloured chip. Purple `pcap` tags mark the links captured in `captures/`.*
 
+<p align="center">
+  <img src="cml-canvas.png" alt="Redundant Campus Access Layer running in Cisco Modeling Labs: R1, Core1/Core2, Dist1/Dist2, access switches A1 to A3 and four hosts in VLANs 10, 20, 30" width="760">
+</p>
+
+*The same lab running in Cisco Modeling Labs, every node booted.*
+
 ## Node Inventory
 
 | Node | Role | Type | `node_definition` |
@@ -513,6 +519,7 @@ This is the repair verified end to end: host → access VLAN → trunk → Core1
 |------|-------------|
 | `README.md` | This documentation. |
 | `topology.svg` | Hand-built topology diagram (embedded above). |
+| `cml-canvas.png` | Screenshot of the running lab in Cisco Modeling Labs (embedded above). |
 | `topology.yaml` | Sanitized CML export (re-imported and repaired build) — Cisco banner/EULA blocks stripped from all eight IOS devices; all real configuration preserved (12 nodes, 22 links, parse-verified). VLANs and VTP are not in it; see the import note. |
 | `captures/core1-dist1_po2-gi1-2.pcap` | HSRP, PAgP and CDP (VTP domain) on Po2 member l20, Core1 Gi1/2 ↔ Dist1 Gi1/2. |
 | `captures/core1-dist1_po2-gi0-0.pcap` | Rapid-PVST BPDUs, HSRP, OSPF, PAgP and CDP on Po2 member l9, Core1 Gi0/0 ↔ Dist1 Gi0/3. |

@@ -43,6 +43,12 @@ Design and verify a resilient switched access layer where:
 *Thick lines are 802.1Q trunks; thin lines are host-facing access ports. The
 five inter-switch trunks form loops that PVST breaks by blocking redundant paths.*
 
+<p align="center">
+  <img src="cml-canvas.png" alt="Switching Fundamentals lab running in Cisco Modeling Labs: switches S1 to S4 and hosts M-D1, M-D2, all nodes booted" width="520">
+</p>
+
+*The same lab running in Cisco Modeling Labs, every node booted.*
+
 ---
 
 ## Node Inventory
@@ -200,4 +206,5 @@ confirm connectivity survives via the redundant path.
 |---------------|-----------------------------------------------|
 | `topology.yaml` | CML topology export (nodes, links, configs)   |
 | `topology.svg`| Topology diagram embedded above                |
+| `cml-canvas.png` | Screenshot of the running lab in CML (embedded above) |
 | `README.md`   | This document                                 |

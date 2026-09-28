@@ -58,6 +58,7 @@ Each lab folder follows the same layout:
 ├── README.md          # Objective, topology, addressing, design, verification
 ├── topology.yaml      # CML topology export — import directly into CML
 ├── topology.svg       # Hand-built topology diagram
+├── cml-canvas.png     # Screenshot of the running lab in CML
 └── captures/          # (some labs) packet captures referenced in the README
 ```
 

@@ -20,6 +20,12 @@ This lab builds a **Multiple Spanning Tree (MST) region** of three switches and 
 
 *Line key: green = 802.1Q trunk carrying VLAN 1,10,20,30 with native VLAN 99 · orange = boundary trunk between the MST region and the Rapid PVST+ domain · gray = host access link. Every endpoint shows its interface and spanning-tree role (`RP` root, `DP` designated, red bar + `BLK` alternate/blocking, `RG` root guard, `edge` PortFast host port); the roles are the same in every VLAN and MST instance. Purple `pcap` tags mark the two links with packet captures in `captures/`.*
 
+<p align="center">
+  <img src="cml-canvas.png" alt="MST and Rapid PVST+ lab running in Cisco Modeling Labs: MST region MST-1 to MST-3 above the RSTP-1 to RSTP-3 ring, hosts D1 and D2" width="440">
+</p>
+
+*The same lab running in Cisco Modeling Labs, every node booted.*
+
 ## Node Inventory
 
 | Node | Role | Type | `node_definition` |
@@ -442,6 +448,7 @@ This is PVST simulation on the wire: one CIST replicated per VLAN, with root pat
 |------|-------------|
 | `README.md` | This documentation. |
 | `topology.svg` | Hand-built topology diagram (embedded above). |
+| `cml-canvas.png` | Screenshot of the running lab in Cisco Modeling Labs (embedded above). |
 | `topology.yaml` | Sanitized CML export (`MST`): Cisco banner/EULA blocks stripped from all six IOSv-L2 switches; `ip routing` restored on MST-1 and RSTP-1 (dropped by the export); all other configuration preserved (8 nodes, 10 links, parse-verified). |
 | `captures/mst1-mst2_region-link.pcap` | BPDU/DTP capture on the MST-1 ↔ MST-2 region link (l5), first version. |
 | `captures/rstp2-mst2_boundary-link.pcap` | BPDU/DTP capture on the RSTP-2 ↔ MST-2 boundary link (l3), first version. |

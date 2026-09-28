@@ -32,6 +32,12 @@ The remaining open items (ASBR2 default origination, ABR2 router-ID, backbone re
 
 *Line key: navy = OSPF Area 0 backbone · blue = ABR-to-distribution routed uplink · green = 802.1Q trunk (VLAN 10,20, plus 99 in the Warehouse) · gray = access port to host · dashed orange = WAN / NAT-outside segment (both ASBRs DHCP-learn their uplink through the Redundant switch to the Internet) · faint dashed = spare E0/3 links, cabled but shut. Each endpoint shows its interface; routed links show their subnet; SVIs are the `.1` gateway of each subnet. Purple `pcap` tags mark the two links with packet captures in `captures/`, and the `DR`/`BDR` markers on `10.1.1.0/24` come from those captures.*
 
+<p align="center">
+  <img src="cml-canvas.png" alt="Multi-Area OSPF Enterprise Campus running in Cisco Modeling Labs, with Area 0, Area 1 (Office) and Area 2 (Warehouse) outlined" width="760">
+</p>
+
+*The same lab running in Cisco Modeling Labs, every node booted.*
+
 ## Node Inventory
 
 | Node | Role | Type | `node_definition` |
@@ -429,6 +435,7 @@ Both ASBRs have DHCP-learned WAN addresses (`.192` and `.241` in this run; lease
 |------|-------------|
 | `README.md` | This documentation. |
 | `topology.svg` | Hand-built topology diagram (embedded above). |
+| `cml-canvas.png` | Screenshot of the running lab in Cisco Modeling Labs (embedded above). |
 | `topology.yaml` | Sanitized CML export — Cisco banner/EULA blocks stripped from all switches; all real configuration preserved (19 nodes, 27 links, parse-verified). |
 | `captures/abr1-asbr1_area0-backbone.pcap` | OSPF/CDP capture on the Area 0 backbone link ABR1 E0/2 ↔ ASBR1 E0/0 (l19). |
 | `captures/redundant-internet_wan-uplink.pcap` | Capture on the WAN uplink Redundant ↔ Internet (l14), filtered to the lab's own frames (upstream-LAN traffic removed). |
