@@ -1,0 +1,872 @@
+annotations:
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: EIGRP LAB
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: 40.0
+    y1: -160.0
+    z_index: 0
+smart_annotations: []
+nodes:
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n0
+    image_definition: null
+    label: D1
+    node_definition: desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -440
+    y: 40
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n1
+    image_definition: null
+    label: D2
+    node_definition: desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 600
+    y: 40
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3648 bytes\n\
+          !\n! Last configuration change at 17:30:39 UTC Sat Oct 3 2026\n!\nversion\
+          \ 17.18\nservice timestamps debug datetime msec\nservice timestamps log\
+          \ datetime msec\n!\nhostname R2\n!\nboot-start-marker\nboot-end-marker\n\
+          !\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nkey chain R1R2\n key 1\n  key-string ROMANSKEY\nkey chain R2R4\n\
+          \ key 1\n  key-string ROMANSKEY\nkey chain R2R5\n key 1\n  key-string ROMANSKEY\n\
+          !\ncrypto pki trustpoint TP-self-signed-2039813\n enrollment selfsigned\n\
+          \ subject-name cn=IOS-Self-Signed-Certificate-2039813\n revocation-check\
+          \ none\n rsakeypair TP-self-signed-2039813\n hash sha512\n!\n!\ncrypto pki\
+          \ certificate chain TP-self-signed-2039813\n certificate self-signed 01\n\
+          \  3082032A 30820212 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n\
+          \  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967 6E65642D 43657274\n\
+          \  69666963 6174652D 32303339 38313330 1E170D32 36313030 33313635 3433305A\n\
+          \  170D3336 31303032 31363534 33305A30 2E312C30 2A060355 04030C23 494F532D\n\
+          \  53656C66 2D536967 6E65642D 43657274 69666963 6174652D 32303339 38313330\n\
+          \  82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02 82010100\n\
+          \  A9D05BA0 F049F6F4 DF3D81A1 94CB3CB0 F157E1ED 55B4E60A DBBA7901 5270AF50\n\
+          \  44F53357 F45EF1B0 DC127483 C1C6FBF2 9FD440D7 AC312E94 0C80DE9F D5089300\n\
+          \  DC97D295 987F0F39 5A7418DE 602AFAFE 9F3B84BF AED3BED2 21413D25 6BADE70F\n\
+          \  6E4673FF 8F265FB7 12F870C1 B7B52FD1 2F135463 103CA3E4 5D5C4FA1 EA3A78BA\n\
+          \  86351FD7 952424D5 65CE60AD DDAA5A4C F062F167 D2EE3E5D 8A981276 BECD682C\n\
+          \  BD7A105E 591AC77E B567B167 C5186597 D6BDC78D 66A63895 8D7DFE1D F20A897C\n\
+          \  E8BD937C 97889B50 C3B2B106 C897F79D 2BAA2AED A9FCEBA3 BD16957A 767637FA\n\
+          \  187BD352 E31B1FC1 C83EAB22 677E8CC8 639D8AFB F832753F D3EE9DDE 2E7FFF03\n\
+          \  02030100 01A35330 51301D06 03551D0E 04160414 8E35DFE5 098BB834 E7B2754D\n\
+          \  6FC08368 70907AF5 301F0603 551D2304 18301680 148E35DF E5098BB8 34E7B275\n\
+          \  4D6FC083 6870907A F5300F06 03551D13 0101FF04 05300301 01FF300D 06092A86\n\
+          \  4886F70D 01010D05 00038201 0100315D A4617438 A044EA7C 68A9A8C3 00F9A226\n\
+          \  D58B23FF EED543DB C4269B0B EFAF22C9 69DA24E8 0429F0DE BC6B1304 FF0A4785\n\
+          \  424D005C DA4BECE5 3FD971E8 53D4B5A4 E7A314AC 68E6F95F 20F1C0F2 072F73D4\n\
+          \  3162CA5B 3876D0DC 117593B2 BD27B9C6 B149A444 8E9147EF 65A00DC7 FCE73FEE\n\
+          \  C9ABE465 5B5480FD EF3988AE FBB4E8A2 2422A016 056130C0 002ACA99 A1958853\n\
+          \  3245C275 F00AAD3F 0EEAA7A5 8F4823F8 9067EB0C 95A45CB3 D35F2BC8 B398AFDB\n\
+          \  7AFE6363 A2131017 ECCF287D DABE2FCD D5BC720E F660F645 A92F013D D86F1862\n\
+          \  8A9A347C C71701E3 C3922D14 6F2F8913 93527992 3D286AB4 02B2746E B720A12F\n\
+          \  47927482 54879C35 165FCE5E C4F1\n  \tquit\n!\n!\nmemory free low-watermark\
+          \ processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Ethernet0/0\n\
+          \ ip address 172.16.12.2 255.255.255.0\n ip authentication mode eigrp 100\
+          \ md5\n ip authentication key-chain eigrp 100 R1R2\n!\ninterface Ethernet0/1\n\
+          \ ip address 172.16.24.1 255.255.255.0\n ip authentication mode eigrp 100\
+          \ md5\n ip authentication key-chain eigrp 100 R2R4\n!\ninterface Ethernet0/2\n\
+          \ ip address 172.16.25.1 255.255.255.0\n ip authentication mode eigrp 100\
+          \ md5\n ip authentication key-chain eigrp 100 R2R5\n!\ninterface Ethernet0/3\n\
+          \ no ip address\n shutdown\n!\n!\nrouter eigrp 100\n network 172.16.0.0\n\
+          !\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\n\
+          ip ssh bulk-mode 131072\nno logging btrace\n!\n!\n!\ncontrol-plane\n!\n\
+          !\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging\
+          \ synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout\
+          \ 0 0\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n\
+          !\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n2
+    image_definition: null
+    label: R2
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -80
+    y: -80
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3648 bytes\n\
+          !\n! Last configuration change at 17:30:39 UTC Sat Oct 3 2026\n!\nversion\
+          \ 17.18\nservice timestamps debug datetime msec\nservice timestamps log\
+          \ datetime msec\n!\nhostname R3\n!\nboot-start-marker\nboot-end-marker\n\
+          !\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nkey chain R1R3\n key 1\n  key-string ROMANSKEY\nkey chain R3R4\n\
+          \ key 1\n  key-string ROMANSKEY\nkey chain R3R6\n key 1\n  key-string ROMANSKEY\n\
+          !\ncrypto pki trustpoint TP-self-signed-2039814\n enrollment selfsigned\n\
+          \ subject-name cn=IOS-Self-Signed-Certificate-2039814\n revocation-check\
+          \ none\n rsakeypair TP-self-signed-2039814\n hash sha512\n!\n!\ncrypto pki\
+          \ certificate chain TP-self-signed-2039814\n certificate self-signed 01\n\
+          \  3082032A 30820212 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n\
+          \  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967 6E65642D 43657274\n\
+          \  69666963 6174652D 32303339 38313430 1E170D32 36313030 33313635 3433345A\n\
+          \  170D3336 31303032 31363534 33345A30 2E312C30 2A060355 04030C23 494F532D\n\
+          \  53656C66 2D536967 6E65642D 43657274 69666963 6174652D 32303339 38313430\n\
+          \  82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02 82010100\n\
+          \  B85B2C97 29EB2C33 EDAEDD86 15FAB008 94F73E6C 6B3C5579 D322A78D 540578C5\n\
+          \  BD42CE30 B13BF2D4 EE95B277 A0A93077 BE0EDFB8 428F0520 9026108C 55CC2AB8\n\
+          \  C28FF3C4 9E218F94 D7AA831D F129AB9C B757A941 0E129484 FDD2EC23 67391EB8\n\
+          \  302F25B2 7F500A20 287EEAB7 C8EBE5BA 36D8EB60 44393468 846482AC 4CC0CFBD\n\
+          \  0F843BF2 756EBF82 9FF4328D C53A8F3F 3353645D 22A2D072 F13976AD 936C2C99\n\
+          \  03436C08 8D52A198 F93D669C 6D1DBF24 A725BC0D 416F3336 1847EF61 25F41400\n\
+          \  22F5A89A 67134545 E3E5321C F5A74F91 D1E72483 58EEBFC5 A8FA5A50 54110244\n\
+          \  9E6252C4 10989130 9131CFA7 1C8ECD96 8A951FE3 2EBBEC5A D7E6D555 A6839213\n\
+          \  02030100 01A35330 51301D06 03551D0E 04160414 A578BE15 846BCB1D 3365AF13\n\
+          \  7BBBD6AB 3EAAA4A2 301F0603 551D2304 18301680 14A578BE 15846BCB 1D3365AF\n\
+          \  137BBBD6 AB3EAAA4 A2300F06 03551D13 0101FF04 05300301 01FF300D 06092A86\n\
+          \  4886F70D 01010D05 00038201 0100AE48 A531ABD3 AFBB974E AD74D752 CFF8AC5D\n\
+          \  A67D5A2D 09DB7BB3 0B2CA4E0 D629D53D DFCCF919 E13BCCEF E88FA4B9 6F43D1AF\n\
+          \  82B0BA25 64DA98B9 875EA649 9A9756B9 2727C2B1 45DBF85D 235280E6 93BCE770\n\
+          \  0CB1C832 A01A1A24 9CCF8D5F D353BB2D 06E8A139 89279658 F46170FA F714CB35\n\
+          \  7AA2C798 EF349336 DDE3C1CD 2CBCBAE1 70671BEA C08E5509 95132F73 6937EBBA\n\
+          \  EC69672A 119F65A0 D52C8BC4 5D89A35C 05253C0F B8DFE3AC 53F3DD32 C2B0908B\n\
+          \  AD960029 B4483CAF 8FC71344 7B15A426 10DFA8E0 3EBB6EF4 7E6C856B FA8F2CB1\n\
+          \  6D3476AD 286A56AA B20068B0 E6F66386 8E24ADED D6168E9D F5B55D25 FA3B02ED\n\
+          \  BCC0DDEA 51A5E076 DCD0E5A7 18AE\n  \tquit\n!\n!\nmemory free low-watermark\
+          \ processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Ethernet0/0\n\
+          \ ip address 172.16.13.2 255.255.255.0\n ip authentication mode eigrp 100\
+          \ md5\n ip authentication key-chain eigrp 100 R1R3\n!\ninterface Ethernet0/1\n\
+          \ ip address 172.16.34.1 255.255.255.0\n ip authentication mode eigrp 100\
+          \ md5\n ip authentication key-chain eigrp 100 R3R4\n!\ninterface Ethernet0/2\n\
+          \ ip address 172.16.36.1 255.255.255.0\n ip authentication mode eigrp 100\
+          \ md5\n ip authentication key-chain eigrp 100 R3R6\n!\ninterface Ethernet0/3\n\
+          \ no ip address\n shutdown\n!\n!\nrouter eigrp 100\n network 172.16.0.0\n\
+          !\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\n\
+          ip ssh bulk-mode 131072\nno logging btrace\n!\n!\n!\ncontrol-plane\n!\n\
+          !\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging\
+          \ synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout\
+          \ 0 0\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n\
+          !\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n3
+    image_definition: null
+    label: R3
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -80
+    y: 160
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 4413 bytes\n\
+          !\n! Last configuration change at 17:30:39 UTC Sat Oct 3 2026\n!\nversion\
+          \ 17.18\nservice timestamps debug datetime msec\nservice timestamps log\
+          \ datetime msec\n!\nhostname R4\n!\nboot-start-marker\nboot-end-marker\n\
+          !\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n\
+          !\nip dhcp excluded-address 192.168.1.1 192.168.1.10\nip dhcp excluded-address\
+          \ 192.168.2.1 192.168.2.10\n!\nip dhcp pool D1\n network 192.168.2.0 255.255.255.0\n\
+          \ default-router 192.168.2.1\n!\nip dhcp pool D2\n network 192.168.1.0 255.255.255.0\n\
+          \ default-router 192.168.1.1\n!\n!\n!\nip cef\nlogin on-success log\nno\
+          \ ipv6 cef\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\nkey chain R2R4\n key 1\n  key-string\
+          \ ROMANSKEY\nkey chain R3R4\n key 1\n  key-string ROMANSKEY\nkey chain R4R5\n\
+          \ key 1\n  key-string ROMANSKEY\nkey chain R4R6\n key 1\n  key-string ROMANSKEY\n\
+          !\ncrypto pki trustpoint TP-self-signed-2039817\n enrollment selfsigned\n\
+          \ subject-name cn=IOS-Self-Signed-Certificate-2039817\n revocation-check\
+          \ none\n rsakeypair TP-self-signed-2039817\n hash sha512\n!\n!\ncrypto pki\
+          \ certificate chain TP-self-signed-2039817\n certificate self-signed 01\n\
+          \  3082032A 30820212 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n\
+          \  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967 6E65642D 43657274\n\
+          \  69666963 6174652D 32303339 38313730 1E170D32 36313030 33313635 3434335A\n\
+          \  170D3336 31303032 31363534 34335A30 2E312C30 2A060355 04030C23 494F532D\n\
+          \  53656C66 2D536967 6E65642D 43657274 69666963 6174652D 32303339 38313730\n\
+          \  82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02 82010100\n\
+          \  982A7D15 231A8B4F AF81F8CC 191B8C78 D9A7508C ACC29BE1 C2614C54 8A2EF036\n\
+          \  0F7D2141 EE3E523E 2BADEDE5 455C6598 F19B80B7 1B95BBF8 7BDB95C4 267E9E22\n\
+          \  DCF0C254 D4C6DF50 261FEBCB 5D2F553F 742A22FB 9F6EC2A1 1D4FEFF8 EEDAEF7B\n\
+          \  A2CAF320 729B8027 9FD7FA43 EC638037 FE6C6708 262C921C 1A93FF4D 648C94AF\n\
+          \  BD0D6E74 6DF97C42 24535BB2 DDBEDE6B 0F4E13DC 6E6D590F B5C4708B C70444A2\n\
+          \  FD6E5E66 DFF1E7BE F9F53B27 F070CF3F 2C90EDC6 22CED267 48FB9728 795FA1C4\n\
+          \  01A99D5D C6BFA26D 5439EB90 1E05BC82 E8FFCE93 181098F6 6EC7C2BA 7D2B64E4\n\
+          \  411E9A8A BFCCA616 F14C11EF 4440F183 D2C9924D A492C57A FA5AD4E8 5F5FC071\n\
+          \  02030100 01A35330 51301D06 03551D0E 04160414 37375F5E 8B5D8BE2 36D099B0\n\
+          \  EA5B24C1 04813788 301F0603 551D2304 18301680 1437375F 5E8B5D8B E236D099\n\
+          \  B0EA5B24 C1048137 88300F06 03551D13 0101FF04 05300301 01FF300D 06092A86\n\
+          \  4886F70D 01010D05 00038201 01004C5E 52240A98 8F66DD75 730CD618 6D48220C\n\
+          \  F1C984CF 222D8FCF 2A70F8BF B5B43976 EEB12AB6 C2FB0996 29ED3B53 56774B93\n\
+          \  EE293D70 2E8E486F 87871A5B 58D73959 71AA1669 60653F14 ED116AB9 5C4E2411\n\
+          \  3F20B734 A9570196 B98F119F 3F7BAE38 4D1E9549 3BDB4BC9 2BFF1522 BE0AE688\n\
+          \  93AFC10F 276014FE 465B6A09 BCB75215 7E4A00C8 FD326F97 ACC5BF40 2C4CDC40\n\
+          \  645E4C82 A849BEFD 96CB4899 16BA4325 EEB92A40 82069E9C D1E3648C 31EC4139\n\
+          \  1C56B6D5 AC9B4D7D 482C35BF 25494BCB 65D3F796 519970F2 27BBD9E2 652060F6\n\
+          \  C83C9CD0 68A74A23 A3486E05 BA6CEB77 94B727EB 930E47D0 ADBE4DF3 587B752A\n\
+          \  2BFE3F9F 8F23E37E A4D2FDDD 27C2\n  \tquit\n!\n!\nmemory free low-watermark\
+          \ processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Loopback0\n\
+          \ ip address 4.4.4.4 255.255.255.255\n!\ninterface Ethernet0/0\n ip address\
+          \ 172.16.24.2 255.255.255.0\n!\ninterface Ethernet0/1\n ip address 172.16.34.2\
+          \ 255.255.255.0\n!\ninterface Ethernet0/2\n ip address 172.16.45.1 255.255.255.0\n\
+          !\ninterface Ethernet0/3\n ip address 172.16.46.1 255.255.255.0\n!\n!\n\
+          router eigrp ROMANSEIGRP\n !\n address-family ipv4 unicast autonomous-system\
+          \ 100\n  !\n  af-interface Ethernet0/0\n   authentication mode md5\n   authentication\
+          \ key-chain R2R4\n  exit-af-interface\n  !\n  af-interface Ethernet0/1\n\
+          \   authentication mode md5\n   authentication key-chain R3R4\n  exit-af-interface\n\
+          \  !\n  af-interface Ethernet0/2\n   authentication mode hmac-sha-256 ROMANSSHA\n\
+          \   authentication key-chain R4R5\n  exit-af-interface\n  !\n  af-interface\
+          \ Ethernet0/3\n   authentication mode hmac-sha-256 ROMANSSHA\n   authentication\
+          \ key-chain R4R6\n  exit-af-interface\n  !\n  topology base\n  exit-af-topology\n\
+          \  network 4.4.4.4 0.0.0.0\n  network 172.16.0.0\n exit-address-family\n\
+          !\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\n\
+          ip ssh bulk-mode 131072\nno logging btrace\n!\n!\n!\ncontrol-plane\n!\n\
+          !\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging\
+          \ synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout\
+          \ 0 0\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n\
+          !\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n4
+    image_definition: null
+    label: R4
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 80
+    y: 40
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3818 bytes\n\
+          !\n! Last configuration change at 17:30:39 UTC Sat Oct 3 2026\n!\nversion\
+          \ 17.18\nservice timestamps debug datetime msec\nservice timestamps log\
+          \ datetime msec\n!\nhostname R5\n!\nboot-start-marker\nboot-end-marker\n\
+          !\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nkey chain R2R5\n key 1\n  key-string ROMANSKEY\nkey chain R4R5\n\
+          \ key 1\n  key-string ROMANSKEY\n!\ncrypto pki trustpoint TP-self-signed-2039811\n\
+          \ enrollment selfsigned\n subject-name cn=IOS-Self-Signed-Certificate-2039811\n\
+          \ revocation-check none\n rsakeypair TP-self-signed-2039811\n hash sha512\n\
+          !\n!\ncrypto pki certificate chain TP-self-signed-2039811\n certificate\
+          \ self-signed 01\n  3082032A 30820212 A0030201 02020101 300D0609 2A864886\
+          \ F70D0101 0D050030\n  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967\
+          \ 6E65642D 43657274\n  69666963 6174652D 32303339 38313130 1E170D32 36313030\
+          \ 33313635 3433375A\n  170D3336 31303032 31363534 33375A30 2E312C30 2A060355\
+          \ 04030C23 494F532D\n  53656C66 2D536967 6E65642D 43657274 69666963 6174652D\
+          \ 32303339 38313130\n  82012230 0D06092A 864886F7 0D010101 05000382 010F0030\
+          \ 82010A02 82010100\n  9BFA637C A56BA8EE B22DC0FF A6E3B7D2 8CFD6780 7C66B8C2\
+          \ 04406274 946AFBFD\n  0FC2DB1A 6D270022 EF77AC62 621D9159 356DCEE3 A6DF8414\
+          \ 1CA41420 B1E849A5\n  E97B4142 BB461E80 CBA91D9E 8FF359B7 A152B4DA 93F84B1C\
+          \ 1DBE1802 40457E97\n  7AC10DBD B8CC1915 161D0F4D 691B64F7 EE663F36 9153AF87\
+          \ CC8ADF50 14DC9BD8\n  6D052399 711BD907 43A5E71F 74910B87 19F69AFD F774CAEF\
+          \ B163E031 44A1264C\n  C6C0FA5F 9877C7AF 85B1F6A4 A2967D8E 72DC9EA2 5CDB07AC\
+          \ 115DB696 B3CB68E5\n  54A88ED3 1BC68BAA 333C550D 4D1A3E66 E160A6CC 915A5171\
+          \ D26C22EC 0F1BC59F\n  B501EDE9 C57F4A64 1F84DADF 7810388A 23E8A012 70D4A45F\
+          \ 202AE118 92AD484B\n  02030100 01A35330 51301D06 03551D0E 04160414 410A0657\
+          \ 0FA3C876 AD6BDCDD\n  1F4D934F F2AA4C4C 301F0603 551D2304 18301680 14410A06\
+          \ 570FA3C8 76AD6BDC\n  DD1F4D93 4FF2AA4C 4C300F06 03551D13 0101FF04 05300301\
+          \ 01FF300D 06092A86\n  4886F70D 01010D05 00038201 010057AE 7D7DA1CA 0FAAC40F\
+          \ 2798AA54 2C4D71E7\n  9C9D7614 302AD462 811C065D A6858E13 904C5ECE CCDBA27B\
+          \ D37D25E5 506DC5BC\n  9F34E13B 7F9B2545 8FEF0272 8D6264B2 D15EAA9B B3E01954\
+          \ 17701310 4D557CC7\n  80C1232B C9260185 E9CBDE83 EA25E52C 8DFDF3D3 9E48E817\
+          \ 93D2DB2A 12EB1794\n  A13C0558 3CE36516 EC39CE8D 10BBBB42 CFB6C628 20FD7C64\
+          \ 26E83B2B A4B22953\n  6B1341FA D435C74A E56876E6 12C23D82 BC446FA6 C56AECCA\
+          \ 7F114ADE 51BF6BF7\n  75517E28 77E7F5AE A4F20DA8 CE2773D0 3732CC89 C75805F6\
+          \ 484D3408 3E0C6709\n  D84506A0 02C94093 38481F70 2A6E48B0 4AE8E439 700C2BAD\
+          \ 843DEE60 CF689B02\n  84F5E187 23B33C9D 2E3FD459 E4E9\n  \tquit\n!\n!\n\
+          memory free low-watermark processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n\
+          !\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface\
+          \ Ethernet0/0\n ip address 172.16.45.2 255.255.255.0\n!\ninterface Ethernet0/1\n\
+          \ ip address 172.16.25.2 255.255.255.0\n!\ninterface Ethernet0/2\n ip address\
+          \ 172.16.57.1 255.255.255.0\n!\ninterface Ethernet0/3\n no ip address\n\
+          \ shutdown\n!\n!\nrouter eigrp ROMANSEIGRP\n !\n address-family ipv4 unicast\
+          \ autonomous-system 100\n  !\n  af-interface Ethernet0/0\n   authentication\
+          \ mode hmac-sha-256 ROMANSSHA\n   authentication key-chain R4R5\n  exit-af-interface\n\
+          \  !\n  af-interface Ethernet0/1\n   authentication mode md5\n   authentication\
+          \ key-chain R2R5\n  exit-af-interface\n  !\n  af-interface Ethernet0/2\n\
+          \   authentication mode hmac-sha-256 ROMANSSHA\n  exit-af-interface\n  !\n\
+          \  topology base\n  exit-af-topology\n  network 172.16.0.0\n exit-address-family\n\
+          !\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\n\
+          ip ssh bulk-mode 131072\nno logging btrace\n!\n!\n!\ncontrol-plane\n!\n\
+          !\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging\
+          \ synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout\
+          \ 0 0\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n\
+          !\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n5
+    image_definition: null
+    label: R5
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 240
+    y: -80
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3818 bytes\n\
+          !\n! Last configuration change at 17:30:39 UTC Sat Oct 3 2026\n!\nversion\
+          \ 17.18\nservice timestamps debug datetime msec\nservice timestamps log\
+          \ datetime msec\n!\nhostname R6\n!\nboot-start-marker\nboot-end-marker\n\
+          !\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nkey chain R3R6\n key 1\n  key-string ROMANSKEY\nkey chain R4R6\n\
+          \ key 1\n  key-string ROMANSKEY\n!\ncrypto pki trustpoint TP-self-signed-2039812\n\
+          \ enrollment selfsigned\n subject-name cn=IOS-Self-Signed-Certificate-2039812\n\
+          \ revocation-check none\n rsakeypair TP-self-signed-2039812\n hash sha512\n\
+          !\n!\ncrypto pki certificate chain TP-self-signed-2039812\n certificate\
+          \ self-signed 01\n  3082032A 30820212 A0030201 02020101 300D0609 2A864886\
+          \ F70D0101 0D050030\n  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967\
+          \ 6E65642D 43657274\n  69666963 6174652D 32303339 38313230 1E170D32 36313030\
+          \ 33313635 3434305A\n  170D3336 31303032 31363534 34305A30 2E312C30 2A060355\
+          \ 04030C23 494F532D\n  53656C66 2D536967 6E65642D 43657274 69666963 6174652D\
+          \ 32303339 38313230\n  82012230 0D06092A 864886F7 0D010101 05000382 010F0030\
+          \ 82010A02 82010100\n  9CE3819C BBEE1A50 7FBCE63E 147A9A0F 01FAFCA9 B6055838\
+          \ 2105DF10 81D49617\n  5C81D0A4 41DB4980 DE5934D3 4DDD7C05 79C160AF 2998B337\
+          \ 1C1FA265 6902CA7E\n  FEF17F35 204CA927 DDEC3C41 CAD488F3 928BBA77 14775B1F\
+          \ D228F138 30A52693\n  45F1AF24 BA143A33 CB5B4264 FA228A9C 0F56658B 95A9CA9E\
+          \ 692BDBEA 98CA3AB9\n  8973CDC6 1D0F014F B82B44EA 11CE1FC7 C5548D44 7AB3BD70\
+          \ 68083425 F23FE06B\n  C9D823EB 8667AFCC B4D39E43 DA498F8E DAB6EABB 3F003718\
+          \ 634786B3 CE6C501A\n  5A77B5BD 9C3A61F3 121A77A1 0866014B F64D9533 3E720CC9\
+          \ 8330B92C BB4433DE\n  B99A6294 449BCA96 8DB92073 CE29ADE1 297FAC90 C3C2F1E2\
+          \ D98A5738 50CE1C39\n  02030100 01A35330 51301D06 03551D0E 04160414 7D2F669A\
+          \ CFF59714 067C6F52\n  8FF12CF2 3198D42E 301F0603 551D2304 18301680 147D2F66\
+          \ 9ACFF597 14067C6F\n  528FF12C F23198D4 2E300F06 03551D13 0101FF04 05300301\
+          \ 01FF300D 06092A86\n  4886F70D 01010D05 00038201 0100563E FF0740D4 6A00FBAA\
+          \ 334CC9C0 7C6169BF\n  C3109179 DAA803B4 1E5A75F2 A53AA54E 35F38091 AB4896BF\
+          \ C10DB04F 13466EC4\n  00453D3E 331D253E 4B1E3797 70E5997C 64B606E9 BDCC029C\
+          \ 5F0215CE 9619C518\n  4E721B04 F1CE0682 2CE3CA79 98152FEB 6E4A2D24 6EBFFD83\
+          \ F50314C7 3620177B\n  352E4171 73B4F1C9 BF9294B7 26F5E83A FBC2898C 263568CE\
+          \ B84F8BEF 3CF13239\n  ABFBF71B 8C7686D3 A72C0820 C19854D6 2F0641FC 6C1ADBBD\
+          \ 2E5214D2 338BD070\n  CC84CF74 1F157AD1 B1B3E011 8F55BF37 4C501A99 F33E28FF\
+          \ 759A3A5B 47879CF6\n  E8792EA5 C5B71C25 86B67BFB 0154F844 667E5C7C B96C2DE8\
+          \ AAAA8263 BFD02B0B\n  2D6A1046 6457E242 BB0A9CF9 F038\n  \tquit\n!\n!\n\
+          memory free low-watermark processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n\
+          !\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface\
+          \ Ethernet0/0\n ip address 172.16.46.2 255.255.255.0\n!\ninterface Ethernet0/1\n\
+          \ ip address 172.16.36.2 255.255.255.0\n!\ninterface Ethernet0/2\n ip address\
+          \ 172.16.67.1 255.255.255.0\n!\ninterface Ethernet0/3\n no ip address\n\
+          \ shutdown\n!\n!\nrouter eigrp ROMANSEIGRP\n !\n address-family ipv4 unicast\
+          \ autonomous-system 100\n  !\n  af-interface Ethernet0/1\n   authentication\
+          \ mode md5\n   authentication key-chain R3R6\n  exit-af-interface\n  !\n\
+          \  af-interface Ethernet0/0\n   authentication mode hmac-sha-256 ROMANSSHA\n\
+          \   authentication key-chain R4R6\n  exit-af-interface\n  !\n  af-interface\
+          \ Ethernet0/2\n   authentication mode hmac-sha-256 ROMANSSHA\n  exit-af-interface\n\
+          \  !\n  topology base\n  exit-af-topology\n  network 172.16.0.0\n exit-address-family\n\
+          !\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\n\
+          ip ssh bulk-mode 131072\nno logging btrace\n!\n!\n!\ncontrol-plane\n!\n\
+          !\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging\
+          \ synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout\
+          \ 0 0\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n\
+          !\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n6
+    image_definition: null
+    label: R6
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 240
+    y: 160
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3791 bytes\n\
+          !\n! Last configuration change at 17:30:39 UTC Sat Oct 3 2026\n!\nversion\
+          \ 17.18\nservice timestamps debug datetime msec\nservice timestamps log\
+          \ datetime msec\n!\nhostname R7\n!\nboot-start-marker\nboot-end-marker\n\
+          !\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\ncrypto pki trustpoint TP-self-signed-2039809\n enrollment selfsigned\n\
+          \ subject-name cn=IOS-Self-Signed-Certificate-2039809\n revocation-check\
+          \ none\n rsakeypair TP-self-signed-2039809\n hash sha512\n!\n!\ncrypto pki\
+          \ certificate chain TP-self-signed-2039809\n certificate self-signed 01\n\
+          \  3082032A 30820212 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n\
+          \  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967 6E65642D 43657274\n\
+          \  69666963 6174652D 32303339 38303930 1E170D32 36313030 33313635 3432345A\n\
+          \  170D3336 31303032 31363534 32345A30 2E312C30 2A060355 04030C23 494F532D\n\
+          \  53656C66 2D536967 6E65642D 43657274 69666963 6174652D 32303339 38303930\n\
+          \  82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02 82010100\n\
+          \  AA6DA450 22874184 B9E23E5D 2820C211 8EDC22D4 2A918D37 436377AA 265489BC\n\
+          \  9D6F886E 66FBAD28 B935D21D D2E8F012 E4A4A8B0 29AFC6BD BBB4482F 58BEB7AB\n\
+          \  ABC057CC D6A26781 0EF36BFF 7174CE39 E8D304CE 278AAAAD 17842766 904C005B\n\
+          \  507EF0B2 5BAA8098 DD4F13CB 250DB82C 01D53A36 92425A8D 64005D64 5D38746E\n\
+          \  EA652325 E7852C8F E6627A30 77E3537F 8ACA43B9 51874A63 0022B4D2 1976F8CE\n\
+          \  BE6F2462 3CFD02C0 B527B419 FA7967BA 7EA5E8D3 93A4DEF6 E1B52CB7 E7240DA3\n\
+          \  0417B908 99B33C84 7F85E718 0D7CDFA5 C7B68AEE C59199A4 BAF0FB39 2C15111C\n\
+          \  45DBD9AC C255F91B 1E41102E 666A0269 97BA74A5 14417545 59F45094 E530961F\n\
+          \  02030100 01A35330 51301D06 03551D0E 04160414 4C78EA08 0970F92F A62339AF\n\
+          \  11EE4683 8644EF81 301F0603 551D2304 18301680 144C78EA 080970F9 2FA62339\n\
+          \  AF11EE46 838644EF 81300F06 03551D13 0101FF04 05300301 01FF300D 06092A86\n\
+          \  4886F70D 01010D05 00038201 01009DA4 23BB71DD 7F486953 3E1BF6EA EEA7D295\n\
+          \  C937E789 4C07F636 AB87F73F CA3ABB38 4F424653 DF988571 075D8948 EE4E6CA2\n\
+          \  81250247 7AC3A33A FED8973C D36DA7C2 A82D621E 6F1E4C2C D2659C02 A89E3F49\n\
+          \  D2B54CAD 70732CD8 9DBEA463 221A8D64 0456831F F91C9810 78C44DB3 44DCE606\n\
+          \  0735CF31 5CAD5257 A6D1A7D4 3A35924A 83FEA37C 16C4B7E0 3F0FD5BF 85AD6096\n\
+          \  868E8F5D FFBE359A 34A8F5DE 1DA004FA E2054408 D0D573DD 310F15B4 1D261F95\n\
+          \  8CBDE61B BCD2BFBF 9238E0B3 45E09B2A 6816C36A 3C668894 EBC139CE B668C69E\n\
+          \  C158D071 09EAEA38 C8CF0BBC B322EA95 0DF8D72E 0F17C786 67EBE4F0 A4EFC4DA\n\
+          \  DC1E795A F9728347 6A65E5D2 42B6\n  \tquit\n!\n!\nmemory free low-watermark\
+          \ processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Ethernet0/0\n\
+          \ ip address 172.16.57.2 255.255.255.0\n!\ninterface Ethernet0/1\n ip address\
+          \ 172.16.67.2 255.255.255.0\n!\ninterface Ethernet0/2\n ip address 192.168.1.1\
+          \ 255.255.255.0\n ip helper-address 172.16.45.1\n!\ninterface Ethernet0/3\n\
+          \ no ip address\n shutdown\n!\n!\nrouter eigrp ROMANSEIGRP\n !\n address-family\
+          \ ipv4 unicast autonomous-system 100\n  !\n  af-interface Ethernet0/0\n\
+          \   authentication mode hmac-sha-256 ROMANSSHA\n  exit-af-interface\n  !\n\
+          \  af-interface Ethernet0/1\n   authentication mode hmac-sha-256 ROMANSSHA\n\
+          \  exit-af-interface\n  !\n  af-interface Ethernet0/2\n   passive-interface\n\
+          \  exit-af-interface\n  !\n  topology base\n   distance 91 172.16.67.0 0.0.0.255\
+          \ 1\n  exit-af-topology\n  network 172.16.0.0\n  network 192.168.1.0\n exit-address-family\n\
+          !\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\n\
+          ip ssh bulk-mode 131072\nno logging btrace\nip access-list standard 1\n\
+          \ 10 permit 4.4.4.4\n!\n!\n!\ncontrol-plane\n!\n!\n!\nline con 0\n exec-timeout\
+          \ 0 0\n activation-character 13\n logging synchronous\nline aux 0\n activation-character\
+          \ 13\nline vty 0 4\n exec-timeout 0 0\n activation-character 13\n login\n\
+          \ transport input ssh\n!\n!\n!\n!\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n7
+    image_definition: null
+    label: R7
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 360
+    y: 40
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3685 bytes\n\
+          !\n! Last configuration change at 17:30:39 UTC Sat Oct 3 2026\n!\nversion\
+          \ 17.18\nservice timestamps debug datetime msec\nservice timestamps log\
+          \ datetime msec\n!\nhostname R1\n!\nboot-start-marker\nboot-end-marker\n\
+          !\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n\
+          !\n!\n!\n!\nkey chain R1R2\n key 1\n  key-string ROMANSKEY\nkey chain R1R3\n\
+          \ key 1\n  key-string ROMANSKEY\n!\ncrypto pki trustpoint TP-self-signed-2039810\n\
+          \ enrollment selfsigned\n subject-name cn=IOS-Self-Signed-Certificate-2039810\n\
+          \ revocation-check none\n rsakeypair TP-self-signed-2039810\n hash sha512\n\
+          !\n!\ncrypto pki certificate chain TP-self-signed-2039810\n certificate\
+          \ self-signed 01\n  3082032A 30820212 A0030201 02020101 300D0609 2A864886\
+          \ F70D0101 0D050030\n  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967\
+          \ 6E65642D 43657274\n  69666963 6174652D 32303339 38313030 1E170D32 36313030\
+          \ 33313635 3432375A\n  170D3336 31303032 31363534 32375A30 2E312C30 2A060355\
+          \ 04030C23 494F532D\n  53656C66 2D536967 6E65642D 43657274 69666963 6174652D\
+          \ 32303339 38313030\n  82012230 0D06092A 864886F7 0D010101 05000382 010F0030\
+          \ 82010A02 82010100\n  C1BC5341 1C563AE7 8AD1FC56 564995C6 2E392D65 8E0A74ED\
+          \ BB078BDC 544548C9\n  767FD7A9 6A2803F9 0D1BD224 A28760AF B27551FF 045713CF\
+          \ CAB6454E 311589CA\n  5CAB5244 5E2B8C12 D5BF7209 051CB69F 0DD93AED 46A6E7D7\
+          \ 56D57C2E 073E0918\n  5CB4F97E A428A3EB DEAE5300 5CAEA254 22748CAE 24FE401D\
+          \ 20915ABA FA8B5AB3\n  E7DEEE3A 25063E4D C8FFD084 3E1D9E6D D0047DDF 20F6C9D4\
+          \ 919B7C4A CC941004\n  51B4CE02 9319ECCC D59A55B1 0251E8A1 5158E327 6CAC3121\
+          \ D7C861E6 A447B361\n  8D8CA4E0 CF974F34 18AD0AAA 6674F132 22AE0728 4CA9D57D\
+          \ 3E8093E9 22D2009C\n  8C4EFC5B AC00BCA4 54C24A65 EFD8E0D4 A9013139 2E4CD3C8\
+          \ 7AE6EF2D E504052B\n  02030100 01A35330 51301D06 03551D0E 04160414 FF413562\
+          \ 8199B036 55B05A94\n  2C392AD6 D0C58116 301F0603 551D2304 18301680 14FF4135\
+          \ 628199B0 3655B05A\n  942C392A D6D0C581 16300F06 03551D13 0101FF04 05300301\
+          \ 01FF300D 06092A86\n  4886F70D 01010D05 00038201 010032EF DC188EA1 9DC3428A\
+          \ 651AB938 BE7FE400\n  4C6CDAED 62038EEC 7EAE6025 8ECF8A4B 0C90A260 078B8E36\
+          \ 2EE807ED 97049F6F\n  E14035B0 03B09C02 0BAD1493 2938783F 98FE4C2A D030202A\
+          \ EA457336 C061195E\n  D930DB6E D877B07F 3D93B327 C9FA9F38 0D375FCF 966A33C2\
+          \ 6329D3B3 874C029B\n  0B7386F3 8888DB13 44690F40 BCB3506E C9D0AA7A 4830ABBA\
+          \ EF73A41E 380C22D0\n  EEB394FC 57329B8E CFD78BDF BA5E57E4 DD243C5D CBC2064E\
+          \ 6931D10E 848FE487\n  D999F7EC B066F908 17483DD5 3F72481C 4FE35EF6 34901835\
+          \ 392A8FBC 0FF62F4B\n  9D8D5C43 1D6DBB58 0FEE87A8 828677D1 74B78F42 61C89AA3\
+          \ 5290AB12 15E8E8DF\n  D2C2DDD2 DC1314E5 384D8C81 7F12\n  \tquit\n!\n!\n\
+          memory free low-watermark processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n\
+          !\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface\
+          \ Ethernet0/0\n ip address 192.168.2.1 255.255.255.0\n ip helper-address\
+          \ 172.16.24.2\n!\ninterface Ethernet0/1\n ip address 172.16.12.1 255.255.255.0\n\
+          \ ip authentication mode eigrp 100 md5\n ip authentication key-chain eigrp\
+          \ 100 R1R2\n!\ninterface Ethernet0/2\n ip address 172.16.13.1 255.255.255.0\n\
+          \ ip authentication mode eigrp 100 md5\n ip authentication key-chain eigrp\
+          \ 100 R1R3\n!\ninterface Ethernet0/3\n no ip address\n shutdown\n!\n!\n\
+          router eigrp 100\n network 172.16.0.0\n network 192.168.2.0\n offset-list\
+          \ 1 in 1000 Ethernet0/2\n passive-interface Ethernet0/0\n!\nip forward-protocol\
+          \ nd\n!\n!\nip http server\nip http secure-server\nip ssh bulk-mode 131072\n\
+          no logging btrace\nip access-list standard 1\n 10 permit 4.4.4.4\n!\n!\n\
+          !\ncontrol-plane\n!\n!\n!\nline con 0\n exec-timeout 0 0\n activation-character\
+          \ 13\n logging synchronous\nline aux 0\n activation-character 13\nline vty\
+          \ 0 4\n exec-timeout 0 0\n activation-character 13\n login\n transport input\
+          \ ssh\n!\n!\n!\n!\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n8
+    image_definition: null
+    label: R1
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -200
+    y: 40
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+links:
+  - id: l0
+    n1: n0
+    n2: n8
+    i1: i0
+    i2: i1
+    conditioning: {}
+    label: D1-eth0<->R1-Ethernet0/0
+  - id: l1
+    n1: n8
+    n2: n2
+    i1: i2
+    i2: i1
+    conditioning: {}
+    label: R1-Ethernet0/1<->R2-Ethernet0/0
+  - id: l2
+    n1: n8
+    n2: n3
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: R1-Ethernet0/2<->R3-Ethernet0/0
+  - id: l3
+    n1: n2
+    n2: n4
+    i1: i2
+    i2: i1
+    conditioning: {}
+    label: R2-Ethernet0/1<->R4-Ethernet0/0
+  - id: l4
+    n1: n3
+    n2: n4
+    i1: i2
+    i2: i2
+    conditioning: {}
+    label: R3-Ethernet0/1<->R4-Ethernet0/1
+  - id: l5
+    n1: n4
+    n2: n5
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: R4-Ethernet0/2<->R5-Ethernet0/0
+  - id: l6
+    n1: n4
+    n2: n6
+    i1: i4
+    i2: i1
+    conditioning: {}
+    label: R4-Ethernet0/3<->R6-Ethernet0/0
+  - id: l7
+    n1: n3
+    n2: n6
+    i1: i3
+    i2: i2
+    conditioning: {}
+    label: R3-Ethernet0/2<->R6-Ethernet0/1
+  - id: l8
+    n1: n2
+    n2: n5
+    i1: i3
+    i2: i2
+    conditioning: {}
+    label: R2-Ethernet0/2<->R5-Ethernet0/1
+  - id: l9
+    n1: n5
+    n2: n7
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: R5-Ethernet0/2<->R7-Ethernet0/0
+  - id: l10
+    n1: n6
+    n2: n7
+    i1: i3
+    i2: i2
+    conditioning: {}
+    label: R6-Ethernet0/2<->R7-Ethernet0/1
+  - id: l11
+    n1: n1
+    n2: n7
+    i1: i0
+    i2: i3
+    conditioning: {}
+    label: D2-eth0<->R7-Ethernet0/2
+lab:
+  description: ''
+  notes: ''
+  title: EIGRP
+  node_staging:
+    enabled: false
+    start_remaining: true
+    abort_on_failure: false
+  version: 0.3.1
