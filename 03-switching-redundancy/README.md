@@ -29,7 +29,7 @@ This lab builds a **redundant, dual-homed campus** and proves it stays up when a
 > 1. **Every switch:** `vtp domain ROMANVTP` and `vtp version 3`
 > 2. **Core1:** `vtp mode server`, then `vtp primary vlan` (privileged EXEC), then create VLANs **10, 20, 30, 99**
 > 3. **Core2, Dist1, Dist2, A1, A2, A3:** `vtp mode client`
-> 4. **A1, A2, A3:** clear the saved sticky MACs (`clear port-security sticky`)
+> 4. **A1, A2, A3:** remove the saved sticky MACs (`no switchport port-security mac-address sticky <mac>` on each host port)
 > 5. **Hosts:** renew DHCP leases, then check `show vlan brief` and `show vtp status`
 
 ### Changes from the previous export
@@ -299,14 +299,20 @@ ip dhcp pool VLAN10
 
 **2. Rebuild VTP and the VLANs.** The export does not carry `vlan.dat`, so every switch starts with only the default VLANs (see the import note at the top). Apply the VTP block from *Design Details* on every switch, run `vtp primary vlan` on Core1, then create VLANs 10, 20, 30 and 99 on Core1 and let VTP push them out. Without VTP, the same `vlan` commands can be entered on each switch individually; either way the VLANs must exist before anything else will pass traffic.
 
-**3. Clear the saved sticky MACs.** The access ports carry the sticky MACs learned in the original run. If CML gave the desktops new MACs on import, A1 and A2 (default `maximum 1`) will drop the new host as a violation. Clear them and let the ports relearn:
+**3. Clear the saved sticky MACs.** The access ports carry the sticky MACs learned in the original run. If CML gave the desktops new MACs on import, A1 and A2 (default `maximum 1`) will drop the new host as a violation. Remove them under each host port and let the ports relearn. IOSvL2 15.2 has no `clear port-security` exec command, so the saved address is deleted in interface configuration:
 
 ```text
-A1# clear port-security sticky interface GigabitEthernet0/0
-A2# clear port-security sticky interface GigabitEthernet0/0
-A3# clear port-security sticky interface GigabitEthernet0/0
-A3# clear port-security sticky interface GigabitEthernet0/3
+A1(config)# interface GigabitEthernet0/0
+A1(config-if)# no switchport port-security mac-address sticky 5254.007c.8f24
+A2(config)# interface GigabitEthernet0/0
+A2(config-if)# no switchport port-security mac-address sticky 5254.006a.6308
+A3(config)# interface GigabitEthernet0/0
+A3(config-if)# no switchport port-security mac-address sticky 5254.00e9.3b29
+A3(config)# interface GigabitEthernet0/3
+A3(config-if)# no switchport port-security mac-address sticky 5254.008a.e3ab
 ```
+
+Frames the new host sent before this step were dropped by the `restrict` action, so `show port-security` will still report a non-zero violation count after the fix. That is expected; what matters is `Secure-up` with the new host's MAC learned as sticky.
 
 **4. Renew the hosts' DHCP leases** (or restart the desktops) so they lease from R1 now that the VLANs exist.
 

@@ -1,0 +1,9 @@
+# Local settings and secrets
+config.yaml
+.env
+.venv/
+__pycache__/
+*.pyc
+
+# Sealed answers stay local until the debrief reveals them
+sessions/*/answers.json

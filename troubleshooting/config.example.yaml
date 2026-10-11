@@ -1,0 +1,8 @@
+# Copy to config.yaml (gitignored) and set your values.
+# Credentials never go in this file: they come only from the environment
+# variables VIRL2_URL, VIRL2_USER, VIRL2_PASS and CML_CA_BUNDLE.
+
+# Most nodes your CML licence may run at once. `start` refuses to import when the
+# running nodes plus the new lab would exceed it, and lists what to stop.
+# External connectors and unmanaged switches are not counted.
+node_cap: <your CML node limit>

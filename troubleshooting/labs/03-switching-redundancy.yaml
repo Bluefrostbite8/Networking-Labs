@@ -1,0 +1,43 @@
+# Lab profile: what the CML export can't carry (VLANs, VTP), the design intent the
+# grader protects, and the healthy-state baseline. Every value comes from
+# ../03-switching-redundancy/README.md or topology.yaml.
+lab: 03-switching-redundancy
+source: ../../03-switching-redundancy/topology.yaml
+readme: ../../03-switching-redundancy/README.md
+
+boot:
+  timeout_min: 20
+  ready_check: "show version"          # console answers = node ready
+
+rebuild:                               # applied by `start` before the clock
+  vtp:                                 # README: VLAN database distribution (VTP version 3)
+    version: 3
+    domain: ROMANVTP
+    primary_server: Core1              # every other switch becomes a client
+  vlans:                               # README: VLANs table
+    10: Employees
+    20: Management
+    30: Service
+    99: null                           # unused native VLAN, no name in the README
+  clear_sticky: true                   # saved sticky MACs on A1, A2, A3 (new import = new host MACs)
+  renew_leases:                        # restart the DHCP hosts, then count bindings on the server
+    hosts: [E-1, M-1, S-1, E-2]
+    dhcp_server: R1
+  save: true                           # write memory on every switch after the rebuild
+
+intent:                                # design facts the grader protects
+  stp_root:    { "10": Core1, "20": Core2, "30": Core1 }
+  hsrp_active: { "10": Core1, "20": Core2, "30": Core1 }
+  # R1 peers with both cores over the /30s; the cores also peer with each other on
+  # Vlan10, 20 and 30 (README: OSPF runs on every SVI). Counts are confirmed on a
+  # healthy import in build step 3.
+  ospf_neighbors: { R1: 2, Core1: 4, Core2: 4 }
+  etherchannel:
+    Core1: { Po1: { protocol: lacp, members: 2 }, Po2: { protocol: pagp, members: 2 }, Po3: { protocol: "on", members: 2 } }
+    Core2: { Po1: { protocol: lacp, members: 2 }, Po2: { protocol: pagp, members: 2 }, Po3: { protocol: "on", members: 2 } }
+    Dist1: { Po1: { protocol: lacp, members: 2 }, Po2: { protocol: pagp, members: 2 } }
+    Dist2: { Po1: { protocol: lacp, members: 2 }, Po2: { protocol: pagp, members: 2 } }
+
+baseline: []                           # build step 3: tests that must all pass on the healthy lab
+
+never_touch: []                        # no external connectors or unmanaged switches in this lab

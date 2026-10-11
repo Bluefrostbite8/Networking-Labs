@@ -1,0 +1,491 @@
+"""Everything that talks to CML: connect, capacity check, import, boot,
+console access through pyATS, VLAN/VTP rebuild, stop and wipe.
+
+Safety rules enforced here, not left to callers:
+  * credentials come only from VIRL2_URL / VIRL2_USER / VIRL2_PASS / CML_CA_BUNDLE,
+    and TLS is always verified against the exported CML certificate;
+  * stop, wipe and remove refuse any lab whose title lacks the
+    " [incident <id>]" suffix, re-reading the title from the server first;
+  * pyATS connects without its default init config, which would otherwise
+    rewrite ``line console 0`` and ``line vty 0 4`` on every node.
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+import re
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Callable
+
+import yaml
+
+from .lab_model import INFRA_DEFINITIONS, TOOL_ROOT, LabModel, LabProfile
+
+ENV_VARS = ("VIRL2_URL", "VIRL2_USER", "VIRL2_PASS", "CML_CA_BUNDLE")
+INCIDENT_RE = re.compile(r" \[incident ([A-Za-z0-9][A-Za-z0-9_.-]*)\]$")
+CONFIG_PATH = TOOL_ROOT / "config.yaml"
+MAX_TITLE = 64  # CML lab title limit; keeps "<title> [incident <id>]" importable
+
+# unicon's defaults run "no logging console", "line console 0 / exec-timeout 0"
+# and "line vty 0 4 / exec-timeout 0" on connect. An empty list runs nothing.
+SAFE_INIT_EXEC = ["terminal length 0", "terminal width 0"]
+SAFE_INIT_CONFIG: list[str] = []
+
+CLI_ERROR_RE = re.compile(r"^\s*%\s*(Invalid|Incomplete|Ambiguous|Unrecognized|Error)", re.I | re.M)
+
+Log = Callable[[str], None]
+
+
+class CmlError(RuntimeError):
+    """A CML step failed; the message says what to do next."""
+
+
+class UnsafeOperation(CmlError):
+    """Refused: the target lab is not an incident lab."""
+
+
+def default_log(msg: str) -> None:
+    print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
+
+
+# --------------------------------------------------------------------------- config and connection
+
+
+def load_config() -> dict:
+    if not CONFIG_PATH.exists():
+        raise CmlError(
+            f"{CONFIG_PATH.name} not found. Copy config.example.yaml to config.yaml "
+            "in troubleshooting/ and set node_cap."
+        )
+    cfg = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8")) or {}
+    if not isinstance(cfg.get("node_cap"), int) or cfg["node_cap"] < 1:
+        raise CmlError("config.yaml: node_cap must be a whole number (your CML licence node limit)")
+    return cfg
+
+
+def credentials() -> dict[str, str]:
+    missing = [v for v in ENV_VARS if not os.environ.get(v)]
+    if missing:
+        raise CmlError(f"missing environment variables: {', '.join(missing)} (set them in ~/.bashrc)")
+    env = {v: os.environ[v] for v in ENV_VARS}
+    if not env["VIRL2_URL"].startswith("https://"):
+        raise CmlError("VIRL2_URL must start with https:// (TLS is never disabled)")
+    ca = Path(env["CML_CA_BUNDLE"]).expanduser()
+    if not ca.is_file():
+        raise CmlError(f"CML_CA_BUNDLE points to {ca}, which is not a file")
+    env["CML_CA_BUNDLE"] = str(ca)
+    return env
+
+
+def connect():
+    """Logged-in ClientLibrary with TLS verified against CML_CA_BUNDLE."""
+    from virl2_client import ClientLibrary
+
+    env = credentials()
+    try:
+        return ClientLibrary(
+            env["VIRL2_URL"],
+            env["VIRL2_USER"],
+            env["VIRL2_PASS"],
+            ssl_verify=env["CML_CA_BUNDLE"],
+            raise_for_auth_failure=True,
+        )
+    except Exception as exc:  # surface the real cause in one line
+        raise CmlError(f"could not log in to {env['VIRL2_URL']}: {type(exc).__name__}: {exc}") from exc
+
+
+# --------------------------------------------------------------------------- titles and the safety guard
+
+
+def incident_title(base_title: str, incident_id: str) -> str:
+    title = f"{base_title} [incident {incident_id}]"
+    if not INCIDENT_RE.search(title):
+        raise CmlError(f"invalid incident id {incident_id!r} (letters, digits, _ . - only)")
+    if len(title) > MAX_TITLE:
+        raise CmlError(f"lab title {title!r} is {len(title)} characters; CML allows {MAX_TITLE}")
+    return title
+
+
+def incident_id_of(title: str | None) -> str | None:
+    m = INCIDENT_RE.search(title or "")
+    return m.group(1) if m else None
+
+
+def server_title(lab) -> str:
+    """The lab's title as the server has it now (not a cached local copy)."""
+    try:
+        details = lab.details()
+        return details.get("lab_title") or details.get("title") or ""  # missing title = refused
+    except Exception as exc:
+        raise CmlError(f"could not read the title of lab {lab.id}: {exc}") from exc
+
+
+def _guard(lab) -> str:
+    title = server_title(lab)
+    if incident_id_of(title) is None:
+        raise UnsafeOperation(f"refusing to touch lab {lab.id} {title!r}: no ' [incident <id>]' suffix")
+    return title
+
+
+def find_incident_labs(client, incident_id: str | None = None) -> list:
+    out = []
+    for lab in client.all_labs():
+        found = incident_id_of(server_title(lab))
+        if found and (incident_id is None or found == incident_id):
+            out.append(lab)
+    return out
+
+
+def stop_and_wipe(lab, remove: bool = False, log: Log = default_log) -> None:
+    title = _guard(lab)
+    log(f"stopping {title}")
+    lab.stop(wait=True)
+    _guard(lab)
+    log(f"wiping {title}")
+    lab.wipe(wait=True)
+    if remove:
+        _guard(lab)
+        log(f"removing {title}")
+        lab.remove()
+
+
+# --------------------------------------------------------------------------- capacity
+
+
+@dataclass
+class LabUsage:
+    title: str
+    id: str
+    running: int
+
+
+def node_usage(client) -> list[LabUsage]:
+    """Running nodes per lab that count against the licence."""
+    usage = []
+    for lab in client.all_labs():
+        lab.sync_states()
+        n = sum(1 for node in lab.nodes() if node.is_active() and node.node_definition not in INFRA_DEFINITIONS)
+        if n:
+            usage.append(LabUsage(lab.title, lab.id, n))
+    return usage
+
+
+def check_capacity(client, needed: int, cap: int) -> list[LabUsage]:
+    usage = node_usage(client)
+    running = sum(u.running for u in usage)
+    if running + needed <= cap:
+        return usage
+    lines = [f"  {u.running:>3}  {u.title}  (id {u.id})" for u in sorted(usage, key=lambda u: -u.running)]
+    raise CmlError(
+        f"not enough licence headroom: {running} nodes running + {needed} needed > cap {cap}.\n"
+        f"Stop {running + needed - cap} or more running nodes first. Running now:\n" + "\n".join(lines) +
+        "\nNothing was imported or started."
+    )
+
+
+# --------------------------------------------------------------------------- import and boot
+
+
+def import_lab(client, model: LabModel, incident_id: str, log: Log = default_log):
+    title = incident_title(model.title, incident_id)
+    if client.find_labs_by_title(title):
+        raise CmlError(f"a lab titled {title!r} already exists; clean it or pick another id")
+    lab = client.import_lab(model.to_yaml(title=title), title=title)
+    log(f"imported {title} as lab {lab.id}")
+    return lab
+
+
+def boot(lab, timeout_min: float, log: Log = default_log, poll_s: int = 15) -> None:
+    lab.start(wait=False)
+    wait_booted(lab, None, timeout_min, log, poll_s)
+
+
+def wait_booted(lab, labels: set[str] | None, timeout_min: float, log: Log = default_log, poll_s: int = 15) -> None:
+    deadline = time.monotonic() + timeout_min * 60
+    last = None
+    while True:
+        lab.sync_states()
+        nodes = [n for n in lab.nodes() if labels is None or n.label in labels]
+        pending = sorted(n.label for n in nodes if not n.is_booted())
+        if not pending:
+            log(f"all {len(nodes)} nodes booted")
+            return
+        if pending != last:
+            log(f"waiting for {len(pending)} node(s) to boot: {', '.join(pending)}")
+            last = pending
+        if time.monotonic() > deadline:
+            raise CmlError(f"boot timeout after {timeout_min} min; still booting: {', '.join(pending)}")
+        time.sleep(poll_s)
+
+
+# --------------------------------------------------------------------------- consoles
+
+
+class Consoles:
+    """Console sessions to lab nodes through the CML terminal server (pyATS)."""
+
+    def __init__(self, lab) -> None:
+        # Genie's file-transfer helper looks for "terminal_server" among testbed
+        # file servers; CML defines it as a device, so it warns on every connect.
+        # The tool never transfers files, so those warnings are noise.
+        logging.getLogger("genie.libs.filetransferutils").setLevel(logging.ERROR)
+        env = credentials()
+        self.lab = lab
+        lab.pyats.sync_testbed(env["VIRL2_USER"], env["VIRL2_PASS"])
+        self.pyats = lab.pyats
+        self._ready: set[str] = set()
+        self._tune_console_wakeup()
+
+    def _tune_console_wakeup(self) -> None:
+        """Keep pressing Enter longer, and give up sooner, when a console is quiet.
+
+        Right after boot an IOSvL2 console sits at "Press RETURN to get started!"
+        while it generates RSA keys and ignores input. unicon's default presses
+        Enter for about 28 s, then waits up to 8 min (iosv CONNECTION_TIMEOUT 480)
+        for a prompt that never comes. 15 tries with its growing wait cover about
+        2 min; a failed attempt then ends in 2 min and wait_consoles retries.
+        Uses ClPyats._testbed (virl2-client is pinned to 2.10.1); CML names each
+        node's console connection "a".
+        """
+        overrides = {"ESCAPE_CHAR_PROMPT_WAIT_RETRIES": 15, "CONNECTION_TIMEOUT": 120}
+        testbed = getattr(self.pyats, "_testbed", None)
+        if testbed is None:
+            return
+        for name, device in testbed.devices.items():
+            if name != "terminal_server" and "a" in device.connections:
+                device.connections["a"].setdefault("settings", {}).update(overrides)
+
+    def run(self, node: str, command: str, confirm: bool = False) -> str:
+        """Exec-mode command. ``confirm`` answers IOS [confirm] prompts."""
+        kwargs = {}
+        if confirm:
+            from unicon.eal.dialogs import Dialog, Statement
+
+            self._ensure(node)  # extra kwargs must not reach a fresh connect()
+            kwargs["reply"] = Dialog(
+                [Statement(pattern=r"\[confirm\]", action="sendline()", loop_continue=True, continue_timer=False)]
+            )
+        try:
+            out = self.pyats.run_command(
+                node, command, init_exec_commands=SAFE_INIT_EXEC, init_config_commands=SAFE_INIT_CONFIG, **kwargs
+            )
+        except Exception as exc:
+            _raise_from_unicon(node, command, exc)
+        self._ready.add(node)
+        _raise_on_cli_error(node, command, out)
+        return out
+
+    def configure(self, node: str, lines: list[str]) -> str:
+        try:
+            out = self.pyats.run_config_command(
+                node, "\n".join(lines), init_exec_commands=SAFE_INIT_EXEC, init_config_commands=SAFE_INIT_CONFIG
+            )
+        except Exception as exc:
+            _raise_from_unicon(node, "; ".join(line.strip() for line in lines), exc)
+        self._ready.add(node)
+        _raise_on_cli_error(node, "; ".join(line.strip() for line in lines), out)
+        return out
+
+    def _ensure(self, node: str) -> None:
+        if node not in self._ready:
+            self.run(node, "show clock")
+
+    def close(self) -> None:
+        try:
+            self.pyats.cleanup()
+        except Exception:
+            pass
+
+
+def _raise_from_unicon(node: str, command: str, exc: Exception) -> None:
+    """unicon raises SubCommandFailure itself when IOS answers '% Invalid input';
+    turn that into one readable CmlError. Connection problems pass through."""
+    if type(exc).__name__ != "SubCommandFailure":
+        raise exc
+    texts: list[str] = []
+
+    def collect(obj, depth=0):
+        if depth > 4:
+            return
+        if isinstance(obj, str):
+            texts.append(obj)
+        elif isinstance(obj, BaseException):
+            for arg in obj.args:
+                collect(arg, depth + 1)
+            collect(obj.__cause__, depth + 1)
+        elif isinstance(obj, (list, tuple)):
+            for item in obj:
+                collect(item, depth + 1)
+
+    collect(exc)
+    text = "\n".join(texts).replace("\r", "")
+    m = CLI_ERROR_RE.search(text)
+    detail = text[m.start():].splitlines()[0].strip() if m else "command failed"
+    raise CmlError(f"{node} rejected '{command}': {detail}") from exc
+
+
+def _raise_on_cli_error(node: str, command: str, output: str) -> None:
+    m = CLI_ERROR_RE.search(output or "")
+    if m:
+        line = output[m.start():].splitlines()[0].strip()
+        raise CmlError(f"{node} rejected '{command}': {line}")
+
+
+def wait_consoles(consoles: Consoles, labels: list[str], ready_check: str, timeout_min: float,
+                  log: Log = default_log, poll_s: int = 15) -> None:
+    deadline = time.monotonic() + timeout_min * 60
+    pending = list(labels)
+    while pending:
+        for label in list(pending):
+            log(f"connecting to {label} console")
+            try:
+                if consoles.run(label, ready_check).strip():
+                    pending.remove(label)
+                    log(f"console ready: {label}")
+            except Exception as exc:
+                reason = " ".join(str(exc).split())[:160]
+                log(f"{label} console not ready ({type(exc).__name__}: {reason}); will retry")
+                if time.monotonic() > deadline:
+                    raise CmlError(f"console on {label} never answered '{ready_check}': {exc}") from exc
+        if pending:
+            if time.monotonic() > deadline:
+                raise CmlError(f"consoles not ready: {', '.join(pending)}")
+            time.sleep(poll_s)
+
+
+# --------------------------------------------------------------------------- VLAN / VTP rebuild
+
+
+def vlan_lines(vlans: dict[int, str | None]) -> list[str]:
+    lines = []
+    for vid, name in sorted(vlans.items()):
+        lines.append(f"vlan {vid}")
+        if name:
+            lines.append(f" name {name}")
+        lines.append(" exit")
+    return lines
+
+
+def parse_vlans(output: str) -> dict[int, tuple[str, str]]:
+    """{vlan: (name, state)} from 'show vlan'. Genie first, regex fallback."""
+    try:
+        from genie.conf.base import Device
+
+        dev = Device("parser", os="ios")
+        dev.custom = {"abstraction": {"order": ["os"]}}
+        parsed = dev.parse("show vlan", output=output)
+        return {int(k): (v.get("name", ""), v.get("state", "")) for k, v in parsed.get("vlans", {}).items()}
+    except Exception:
+        found = {}
+        for m in re.finditer(r"^(\d{1,4})\s+(\S+)\s+(active|suspended|act/\S+)", output, re.M):
+            found[int(m.group(1))] = (m.group(2), m.group(3))
+        return found
+
+
+def count_dhcp_bindings(output: str) -> int:
+    """Rows in 'show ip dhcp binding' (no Genie parser for IOS)."""
+    return len(re.findall(r"^\d{1,3}(?:\.\d{1,3}){3}\s+\S+", output, re.M))
+
+
+def rebuild(lab, consoles: Consoles, model: LabModel, profile: LabProfile, log: Log = default_log) -> None:
+    """Restore what the export can't carry, from the lab profile (before the clock)."""
+    rb = profile.rebuild
+    vlans = profile.vlans
+    switches = [n.label for n in model.switches() if n.label not in profile.never_touch]
+    vtp = rb.get("vtp")
+
+    if vtp:
+        primary = vtp["primary_server"]
+        log(f"VTP v{vtp['version']} domain {vtp['domain']} on {len(switches)} switches, primary {primary}")
+        for sw in switches:
+            consoles.configure(sw, [f"vtp domain {vtp['domain']}", f"vtp version {vtp['version']}"])
+        for sw in switches:
+            if sw != primary:
+                consoles.configure(sw, ["vtp mode client"])
+        consoles.configure(primary, ["vtp mode server"])
+        out = consoles.run(primary, f"vtp primary {vtp.get('feature', 'vlan')}", confirm=True)
+        log(f"{primary}: {' '.join(out.split())[:120]}")
+        if vlans:
+            consoles.configure(primary, vlan_lines(vlans))
+    elif vlans:
+        for sw in switches:
+            consoles.configure(sw, vlan_lines(vlans))
+
+    if vlans:
+        wait_vlans(consoles, switches, vlans, rb.get("vlan_timeout_s", 300), log)
+
+    if rb.get("clear_sticky"):
+        # IOSvL2 15.2 has no "clear port-security" exec command; deleting the
+        # saved address on the interface is the supported way to remove it.
+        for sw in switches:
+            for iface, macs in model.node(sw).config.sticky_macs().items():
+                running = consoles.run(sw, f"show running-config interface {iface}")
+                present = [mac for mac in macs if f"mac-address sticky {mac}" in running]
+                if not present:  # already removed (e.g. a second rebuild run)
+                    continue
+                lines = [f"interface {iface}"]
+                lines += [f" no switchport port-security mac-address sticky {mac}" for mac in present]
+                consoles.configure(sw, lines)
+                log(f"{sw}: removed saved sticky MAC {', '.join(present)} on {iface}")
+
+    leases = rb.get("renew_leases")
+    if leases:
+        renew_leases(lab, consoles, leases, log)
+
+    if rb.get("save", True):
+        for sw in switches:
+            out = consoles.run(sw, "write memory", confirm=True)
+            if "[OK]" not in out:
+                raise CmlError(f"{sw}: write memory did not report [OK]")
+        log(f"saved running config on {len(switches)} switches")
+
+
+def wait_vlans(consoles: Consoles, switches: list[str], vlans: dict[int, str | None], timeout_s: int,
+               log: Log = default_log, poll_s: int = 10) -> None:
+    deadline = time.monotonic() + timeout_s
+    pending = list(switches)
+    problems: dict[str, str] = {}
+    while pending:
+        for sw in list(pending):
+            have = parse_vlans(consoles.run(sw, "show vlan"))
+            bad = [
+                str(v) for v, name in vlans.items()
+                if v not in have or have[v][1] != "active" or (name and have[v][0] != name)
+            ]
+            if bad:
+                problems[sw] = ", ".join(bad)
+            else:
+                pending.remove(sw)
+                problems.pop(sw, None)
+        if pending:
+            if time.monotonic() > deadline:
+                detail = "; ".join(f"{sw} missing {problems[sw]}" for sw in pending)
+                raise CmlError(f"VLANs did not reach every switch: {detail}")
+            time.sleep(poll_s)
+    log(f"VLANs {', '.join(map(str, sorted(vlans)))} active on all {len(switches)} switches")
+
+
+def renew_leases(lab, consoles: Consoles, leases: dict, log: Log = default_log) -> None:
+    """Restart the DHCP hosts so they lease now that the VLANs exist, then count bindings."""
+    hosts = list(leases.get("hosts") or [])
+    server = leases.get("dhcp_server")
+    for label in hosts:
+        node = lab.get_node_by_label(label)
+        node.stop(wait=True)
+        node.start(wait=False)
+    log(f"restarted {len(hosts)} hosts: {', '.join(hosts)}")
+    wait_booted(lab, set(hosts), leases.get("boot_timeout_min", 5), log)
+    if not server:
+        return
+    deadline = time.monotonic() + leases.get("timeout_s", 240)
+    while True:
+        count = count_dhcp_bindings(consoles.run(server, "show ip dhcp binding"))
+        if count >= len(hosts):
+            log(f"{server}: {count} DHCP bindings")
+            return
+        if time.monotonic() > deadline:
+            raise CmlError(f"{server} shows {count} DHCP bindings, expected {len(hosts)}")
+        time.sleep(10)
