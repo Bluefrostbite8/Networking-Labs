@@ -43,6 +43,12 @@ CCNA certified (Sept 2026), CCNP ENCOR in progress.
 Each lab folder has its own README with the full topology diagram, addressing tables,
 a config walkthrough, and the verification steps.
 
+## Troubleshooting
+
+| Tool | What it does | Sessions |
+|------|--------------|----------|
+| [CML Break-Fix Troubleshooting](troubleshooting/) | Breaks one of these labs on purpose, boots it in CML, grades my fix live through pyATS (device state, not config diffs) and writes a debrief on the method: where to look, which commands, and the output line that gave the fault away | 1 published, see the [session index](troubleshooting/README.md#session-index) |
+
 ## Why this repo exists
 
 Configuring a protocol once from a tutorial doesn't teach much. Breaking it and

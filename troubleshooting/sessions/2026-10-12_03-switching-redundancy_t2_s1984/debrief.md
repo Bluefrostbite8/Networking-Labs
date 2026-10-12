@@ -6,7 +6,7 @@
 ![Hints](https://img.shields.io/badge/Hints-0-6d28d9)
 ![Time](https://img.shields.io/badge/Time-21.3%20min-0b7285)
 
-The debrief for [ticket](ticket.md) `03-t2-s1984` on lab 03 Redundant Campus Access Layer: 1 fault(s), seed 1984, graded 2026-10-12 16:48.
+The debrief for [ticket](ticket.md) `03-t2-s1984` on lab 03 Redundant Campus Access Layer: 1 fault, seed 1984, graded 2026-10-12 16:48.
 
 ## Results
 
@@ -53,6 +53,13 @@ What you changed in the faulted sections, read from the running config at gradin
   ! Core1, interface Vlan10
 - standby 0 priority 0
 + standby 0 priority 255
+```
+
+Still different from the original lab after your fix (not wrong, but not the design's config either; worth tidying on a real network):
+
+```diff
+  ! Core2, interface Vlan10
++ standby 0 preempt
 ```
 
 ### Where to look
@@ -106,15 +113,17 @@ None. Every baseline check that passed at the start still passed at grading.
 
 ## Takeaways
 
-- Solved without hints: fault 1 (hsrp active on the wrong switch).
+- Solved without hints: fault 1 (HSRP active on the wrong switch).
 
 ### In my own words
 
-# Steps in solving ticket 03-t2-s1984
-Ran a ping to insure connectivity remainded between vlans/host
-Then a traceroute in which logged path taken was through CORE2, Should be CORE1
-Implemented show commands on CORE1 to see standby status.
-Implemented changes on int vlan 10 to change standby 0 priority and preempt
+**How I worked ticket 03-t2-s1984**
+
+1. Pinged between hosts in different VLANs to confirm connectivity was still up, so this was not an outage.
+2. Ran a traceroute: VLAN 10 traffic went through Core2, but the design says Core1.
+3. Ran `show standby brief` and `show standby vlan 10` on Core1: it was Standby with priority 0.
+4. Set `standby 0 priority 255` on Core1's Vlan10 and saved. Core1 took Active back.
+5. Missed: the fault had also added `standby 0 preempt` on Core2. That line is harmless here but not part of the design.
 
 ## Evidence
 

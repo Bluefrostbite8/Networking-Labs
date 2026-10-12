@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![pyATS](https://img.shields.io/badge/Automation-pyATS%20%2B%20Genie%2025.x-005073)
 ![API](https://img.shields.io/badge/API-virl2--client%202.10.1-0b7285)
-![Status](https://img.shields.io/badge/Status-Build%20step%205%20of%207-b45309)
+![Status](https://img.shields.io/badge/Status-Build%20step%206%20of%207-b45309)
 
 ## Objective
 
@@ -18,7 +18,7 @@ A tool that breaks a working lab from this repo, boots it in CML, grades the fix
 | 2 | `lab_model.py`, `cml_api.py`: parse, import, boot, VLAN/VTP rebuild, clean | done, proven on lab 03 |
 | 3 | Six lab profiles, each baseline passing on a healthy import | done, all six pass (table below) |
 | 4 | `checks.py`, `grading.py`, first five faults on lab 03 | done, all five pass selftest on lab 03 |
-| 5 | `report.py`: ticket and debrief, first published session | built 2026-10-12; first session pending |
+| 5 | `report.py`: ticket and debrief, first published session | done 2026-10-12, session `03-t2-s1984` published |
 | 6 | Full library of 60 faults, each through `selftest` | |
 | 7 | T4 combos and the methods pages | |
 
@@ -107,7 +107,6 @@ Each lab imported unbroken, rebuilt and checked live. Evidence for every check i
 | `config.example.yaml` | Local options template (`config.yaml` is gitignored) |
 
 ## Session Index
-
 
 Published break-fix sessions, newest first. Each links to its debrief.
 
