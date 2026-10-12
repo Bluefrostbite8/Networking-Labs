@@ -66,7 +66,8 @@ Each lab imported unbroken, rebuilt and checked live. Evidence for every check i
 
 | Behaviour | Seen on | What the tool does |
 |-----------|---------|--------------------|
-| Console ignores input while RSA keys generate after boot | IOSvL2 | Presses Enter for up to 2 minutes per attempt and retries until the boot timeout |
+| Console ignores input while RSA keys generate after boot | IOSvL2 | Gives each attempt about 30 s and keeps retrying until the boot timeout |
+| Some console sessions come up dead: the console server attaches, then not one byte arrives | CML console server | Abandons a silent session after about 30 s and opens a fresh one, which answers at once; a connect over 20 s keeps unicon's log in `runs/` |
 | IOS-XE runs on the VGA console on a fresh import (`platform console serial` applies from the second boot) | Catalyst 9800-CL | Waits until DC-1 pings the WLC, power-cycles it once, then connects on serial |
 | New VLANs leave ports in listening/learning; SVIs, HSRP and DHCP wait on them | IOSvL2 (PVST, MST) | Waits for `show spanning-tree summary` to show nothing in transition before checks |
 | An SVI whose VLAN was auto-created at boot stays down/down after the VLAN is active | IOSvL2 | Bounces only those SVIs after spanning tree settles, and logs each one |

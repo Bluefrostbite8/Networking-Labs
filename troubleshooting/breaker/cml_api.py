@@ -253,20 +253,65 @@ class Consoles:
         lab.pyats.sync_testbed(env["VIRL2_USER"], env["VIRL2_PASS"])
         self.pyats = lab.pyats
         self._ready: set[str] = set()
+        self._attempts: dict[str, int] = {}
         self._tune_console_wakeup()
+        # Replace virl2-client's reconnect (it sends unicon's log to /dev/null) so
+        # every connect is timed and a slow or failed one keeps unicon's log.
+        self.pyats._reconnect = self._reconnect
+
+    SLOW_CONNECT_S = 20
+
+    def _reconnect(self, device, params: dict) -> None:
+        """Same steps as ClPyats._reconnect in virl2-client 2.10.1 (pinned), plus
+        timing and a kept unicon log when a connect is slow or fails."""
+        from virl2_client.models.cl_pyats import _remove_unicon_loggers
+
+        pyats = self.pyats
+        if pyats._is_connected(device):
+            return
+        pyats._destroy_device(device, raise_exc=False)
+        label = device.name.strip()
+        n = self._attempts[label] = self._attempts.get(label, 0) + 1
+        logfile = None
+        if LOG_FILE is not None:
+            logfile = LOG_FILE.with_name(f"{LOG_FILE.stem}-unicon-{label}-{n}.log")
+        t0 = time.monotonic()
+        try:
+            device.connect(logfile=str(logfile) if logfile else os.devnull, log_stdout=False,
+                           learn_hostname=True, **params)
+        except Exception as exc:
+            where = f"; unicon log {logfile.name}" if logfile else ""
+            default_log(f"{label}: console connect {n} failed after {time.monotonic() - t0:.0f} s "
+                        f"({type(exc).__name__}){where}")
+            raise
+        finally:
+            _remove_unicon_loggers(device)
+        pyats._connections.add(device)
+        took = time.monotonic() - t0
+        if took >= self.SLOW_CONNECT_S:
+            where = f"; unicon log {logfile.name}" if logfile else ""
+            default_log(f"{label}: console connect {n} took {took:.0f} s{where}")
+        elif logfile is not None:
+            try:
+                logfile.unlink()  # fast and fine: nothing to keep
+            except OSError:
+                pass
 
     def _tune_console_wakeup(self) -> None:
-        """Keep pressing Enter longer, and give up sooner, when a console is quiet.
+        """Give up on a silent console session after about 30 s instead of 2 min.
 
-        Right after boot an IOSvL2 console sits at "Press RETURN to get started!"
-        while it generates RSA keys and ignores input. unicon's default presses
-        Enter for about 28 s, then waits up to 8 min (iosv CONNECTION_TIMEOUT 480)
-        for a prompt that never comes. 15 tries with its growing wait cover about
-        2 min; a failed attempt then ends in 2 min and wait_consoles retries.
+        Some sessions through the CML console server come up dead: "Escape
+        character is '^]'" and then not one byte, however long unicon presses
+        Enter, while a fresh session to the same node answers at once (unicon
+        logs, lab 01, 2026-10-11). unicon's growing Enter wait (1+2+...+n s) with
+        n=6 is 21 s, and CONNECTION_TIMEOUT 30 caps the attempt; virl2-client then
+        reconnects once, and wait_consoles keeps opening new sessions until the
+        boot timeout, which also covers an IOSvL2 console that ignores input while
+        it generates RSA keys after boot.
         Uses ClPyats._testbed (virl2-client is pinned to 2.10.1); CML names each
         node's console connection "a".
         """
-        overrides = {"ESCAPE_CHAR_PROMPT_WAIT_RETRIES": 15, "CONNECTION_TIMEOUT": 120}
+        overrides = {"ESCAPE_CHAR_PROMPT_WAIT_RETRIES": 6, "CONNECTION_TIMEOUT": 30}
         testbed = getattr(self.pyats, "_testbed", None)
         if testbed is None:
             return
