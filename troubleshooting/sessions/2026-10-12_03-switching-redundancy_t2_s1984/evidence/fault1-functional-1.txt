@@ -1,0 +1,9 @@
+# hsrp_state Core1 Vlan10: PASS (Core1 Vlan10 is Active (want Active))
+
+## Core1# show standby brief
+                     P indicates configured to preempt.
+                     |
+Interface   Grp  Pri P State   Active          Standby         Virtual IP
+Vl10        0    255 P Active  local           10.1.10.2       10.1.10.3
+Vl20        1    1     Standby 10.1.20.2       local           10.1.20.3
+Vl30        2    255 P Active  local           10.1.30.2       10.1.30.3

@@ -1,0 +1,179 @@
+[
+  {
+    "index": 1,
+    "id": "fhrp-priority-flip",
+    "title": "HSRP active on the wrong switch",
+    "category": "fhrp",
+    "state_only": false,
+    "tier": 2,
+    "node": "Core1",
+    "vars": {
+      "node": "Core1",
+      "peer": "Core2",
+      "vlan": 10,
+      "svi": "Vlan10",
+      "peer_ip": "10.1.10.2",
+      "group": "0",
+      "vip": "10.1.10.3",
+      "priority": 255,
+      "peer_priority": 1,
+      "peer_preempt": false,
+      "bad_priority": 0,
+      "n": 1
+    },
+    "touched": [
+      [
+        "Core1",
+        "interface Vlan10"
+      ],
+      [
+        "Core2",
+        "interface Vlan10"
+      ]
+    ],
+    "changes": [
+      {
+        "node": "Core1",
+        "section": "interface Vlan10",
+        "before": [
+          " ip address 10.1.10.1 255.255.255.0",
+          " ip helper-address 192.168.1.1",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 255",
+          " standby 0 preempt"
+        ],
+        "after": [
+          " ip address 10.1.10.1 255.255.255.0",
+          " ip helper-address 192.168.1.1",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 0",
+          " standby 0 preempt"
+        ]
+      },
+      {
+        "node": "Core2",
+        "section": "interface Vlan10",
+        "before": [
+          " ip address 10.1.10.2 255.255.255.0",
+          " ip helper-address 192.168.1.5",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 1"
+        ],
+        "after": [
+          " ip address 10.1.10.2 255.255.255.0",
+          " ip helper-address 192.168.1.5",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 1",
+          " standby 0 preempt"
+        ]
+      }
+    ],
+    "original_sections": {
+      "Core1": {
+        "interface Vlan10": [
+          " ip address 10.1.10.1 255.255.255.0",
+          " ip helper-address 192.168.1.1",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 255",
+          " standby 0 preempt"
+        ]
+      },
+      "Core2": {
+        "interface Vlan10": [
+          " ip address 10.1.10.2 255.255.255.0",
+          " ip helper-address 192.168.1.5",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 1"
+        ]
+      }
+    },
+    "ticket": "Monitoring shows VLAN 10 traffic leaving through a different first hop than the design.",
+    "hints": [
+      "This is a first-hop redundancy question: who is the gateway for VLAN 10, and why?",
+      "Compare the HSRP group for VLAN 10 on Core1 and Core2.",
+      "Run 'show standby Vlan10' on both and compare priority and preempt."
+    ],
+    "checks": {
+      "functional": [
+        {
+          "hsrp_state": {
+            "on": "Core1",
+            "vlan": 10,
+            "state": "Active",
+            "wait_s": 60
+          }
+        }
+      ],
+      "root_cause": [
+        {
+          "hsrp_priority_above": {
+            "on": "Core1",
+            "peer": "Core2",
+            "vlan": 10
+          }
+        }
+      ],
+      "intent": [
+        "hsrp_active"
+      ],
+      "workaround_signatures": [
+        {
+          "interface_state": {
+            "on": "Core2",
+            "interface": "Vlan10",
+            "state": "admin-down"
+          }
+        }
+      ]
+    },
+    "reference_fix": {
+      "Core1": [
+        "interface Vlan10",
+        " standby 0 priority 255"
+      ],
+      "Core2": [
+        "interface Vlan10",
+        " no standby 0 preempt"
+      ]
+    },
+    "selftest": {
+      "reinject": {
+        "Core1": [
+          "interface Vlan10",
+          " standby 0 priority 0"
+        ],
+        "Core2": [
+          "interface Vlan10",
+          " standby 0 preempt"
+        ]
+      },
+      "workaround": {
+        "Core2": [
+          "interface Vlan10",
+          " shutdown"
+        ]
+      },
+      "workaround_saved": false
+    },
+    "debrief": {
+      "scope": "VLAN 10's first hop; users still have a working gateway",
+      "methods": [
+        "compare_known_good",
+        "follow_the_path"
+      ],
+      "reasoning": "Users still have a gateway, so this is not an outage: HSRP elected the other router. The question is why the design active lost the election, so compare priority and preempt on both peers. Two changes work together here: the design active's priority dropped below its peer's, and the peer gained preempt, so it takes over even when it comes up second.\n",
+      "commands": {
+        "show": [
+          "show standby brief",
+          "show standby Vlan10",
+          "show running-config interface Vlan10"
+        ],
+        "debug": [
+          "debug standby events"
+        ]
+      },
+      "key_clue": "show standby Vlan10 on Core1: 'Active router is 10.1.10.2, priority 1' while its own line reads 'Priority 0 (configured 0)'",
+      "better_fix_if_temporary": "Bring Core2's SVI back up, restore priority 255 on Core1 and remove the added preempt on Core2."
+    }
+  }
+]
