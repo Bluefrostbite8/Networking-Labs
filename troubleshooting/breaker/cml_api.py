@@ -270,8 +270,11 @@ def restart_nodes(lab, labels: list[str], timeout_min: float, log: Log = default
 class Consoles:
     """Console sessions to lab nodes through the CML terminal server (pyATS)."""
 
-    def __init__(self, lab, hosts: set[str] | frozenset = frozenset()) -> None:
+    def __init__(self, lab, hosts: set[str] | frozenset = frozenset(),
+                 hostnames: dict[str, str] | None = None) -> None:
         self.hosts = set(hosts)  # Linux nodes: no IOS init commands on connect
+        # IOS hostname per node label, from the lab's own config (see _reconnect).
+        self.hostnames = dict(hostnames or {})
         # Genie's file-transfer helper looks for "terminal_server" among testbed
         # file servers; CML defines it as a device, so it warns on every connect.
         # The tool never transfers files, so those warnings are noise.
@@ -303,14 +306,23 @@ class Consoles:
         logfile = None
         if LOG_FILE is not None:
             logfile = LOG_FILE.with_name(f"{LOG_FILE.stem}-unicon-{label}-{n}.log")
+        # Hostname learning reads the first prompt-like text after the console
+        # opens. When the device is slow to answer, that is the console server's
+        # own "consoles> " prompt: unicon learns "consoles", takes it for user
+        # EXEC, sends "enable" to a device already at "A3#", and then never
+        # matches "A3#" (lab 03 session 03-t2-s1984, 2026-10-12: four nodes,
+        # 41 s each). When the node label is the IOS hostname, unicon is told the
+        # hostname instead (device name = label); otherwise it still learns.
+        fixed = self.hostnames.get(device.name) == device.name
         t0 = time.monotonic()
         try:
             device.connect(logfile=str(logfile) if logfile else os.devnull, log_stdout=False,
-                           learn_hostname=True, **params)
+                           learn_hostname=not fixed, **params)
         except Exception as exc:
             where = f"; unicon log {logfile.name}" if logfile else ""
+            how = "hostname from config" if fixed else "hostname learned"
             default_log(f"{label}: console connect {n} failed after {time.monotonic() - t0:.0f} s "
-                        f"({type(exc).__name__}){where}")
+                        f"({type(exc).__name__}, {how}){where}")
             raise
         finally:
             _remove_unicon_loggers(device)

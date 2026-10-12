@@ -79,8 +79,16 @@ def cmd_doctor(args) -> int:
 
 
 def _consoles(lab, model, profile):
+    import re
+
     hosts = {n.label for n in model.nodes if n.is_host}
-    return cml_api.Consoles(lab, hosts=hosts)
+    hostnames = {}
+    for n in model.nodes:
+        cfg = n.config if n.is_ios else None
+        m = re.search(r"^hostname (\S+)\s*$", cfg.text, re.M) if cfg else None
+        if m:
+            hostnames[n.label] = m.group(1)
+    return cml_api.Consoles(lab, hosts=hosts, hostnames=hostnames)
 
 
 def _wait_ready(consoles, model, profile, log=cml_api.default_log, incident_id: str = "run",
