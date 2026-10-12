@@ -56,6 +56,29 @@ class LabModelError(ValueError):
     """The topology or profile can't be used as it is."""
 
 
+class _ToolLoader(yaml.SafeLoader):
+    """SafeLoader where only true/false are booleans.
+
+    YAML 1.1 also reads on/off/yes/no as booleans, so a check written
+    ``on: Core1`` (the blueprint's own template) would lose its key.
+    Used for the tool's own files (profiles, faults, combos), not CML exports.
+    """
+
+
+_ToolLoader.yaml_implicit_resolvers = {
+    first: [(tag, rx) for tag, rx in resolvers if tag != "tag:yaml.org,2002:bool"]
+    for first, resolvers in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+_ToolLoader.add_implicit_resolver(
+    "tag:yaml.org,2002:bool", re.compile(r"^(?:true|True|TRUE|false|False|FALSE)$"), list("tTfF")
+)
+
+
+def load_tool_yaml(path: Path) -> Any:
+    with Path(path).open(encoding="utf-8") as fh:
+        return yaml.load(fh, Loader=_ToolLoader)
+
+
 def canonical_ifname(name: str) -> str:
     """Expand an abbreviated interface name: 'gi0/1' -> 'GigabitEthernet0/1'."""
     m = re.match(r"^([A-Za-z-]+)\s*([\d/.:]+)$", name.strip())
@@ -410,6 +433,30 @@ class LabModel:
     def licensed_node_count(self) -> int:
         return sum(1 for n in self.nodes if n.counts_against_licence)
 
+    def console_nodes(self, never_touch: set[str] = frozenset()) -> list[Node]:
+        """Nodes the tool talks to over the console: IOS family and the WLC."""
+        return [n for n in self.nodes if (n.is_ios or n.is_wlc) and n.label not in never_touch]
+
+    def apply_host_addressing(self, addressing: dict[str, dict]) -> None:
+        """Give desktops a static test address in THIS in-memory copy (the import),
+        never in the repo's topology.yaml. CML runs a desktop's node.cfg as a shell
+        script at boot, so plain ip commands configure eth0."""
+        for label, spec in (addressing or {}).items():
+            node = self.node(label)
+            if node.node_definition != "desktop":
+                raise LabModelError(f"host_addressing: {label} is {node.node_definition}, not a desktop")
+            lines = ["", "# breaker: static test address (harness addition, not part of the lab design)",
+                     "ip link set dev eth0 up", f"ip address add {spec['address']} dev eth0"]
+            if spec.get("gateway"):
+                lines.append(f"ip route add default via {spec['gateway']}")
+            current = node.config_file("node.cfg")
+            if current is None:
+                node.raw.setdefault("configuration", []).append({"name": "node.cfg", "content": (
+                    "# this is a shell script which will be sourced at boot\n"
+                    f"hostname {label}\n# configurable user account\nUSERNAME=cisco\nPASSWORD=cisco")})
+                current = node.config_file("node.cfg")
+            node.set_config_file("node.cfg", current.rstrip("\n") + "\n".join(lines))
+
     def sanitize_issues(self) -> dict[str, list[str]]:
         out = {}
         for n in self.nodes:
@@ -476,8 +523,7 @@ class LabProfile:
         path = PROFILES_DIR / f"{resolve_lab(lab).name}.yaml"
         if not path.exists():
             raise LabModelError(f"no profile yet for {resolve_lab(lab).name} ({path.name})")
-        with path.open(encoding="utf-8") as fh:
-            return cls(yaml.safe_load(fh) or {}, path)
+        return cls(load_tool_yaml(path) or {}, path)
 
     @property
     def lab(self) -> str:
@@ -517,13 +563,32 @@ class LabProfile:
             named.append(vtp["primary_server"])
         leases = rb.get("renew_leases") or {}
         named += list(leases.get("hosts") or [])
-        if leases.get("dhcp_server"):
-            named.append(leases["dhcp_server"])
+        server = leases.get("dhcp_server")
+        named += server if isinstance(server, list) else ([server] if server else [])
+        for label in self.raw.get("host_addressing") or {}:
+            named.append(label)
+            if model.has_node(label) and not model.node(label).is_host:
+                raise LabModelError(f"{self.path.name}: host_addressing names {label}, which is not a host")
+        cycle = self.boot.get("console_power_cycle")
+        if cycle:
+            named.append(cycle["node"])
+            if cycle.get("ready_ping"):
+                named.append(cycle["ready_ping"]["from"])
         intent = self.raw.get("intent") or {}
         for key in ("stp_root", "hsrp_active"):
             named += list((intent.get(key) or {}).values())
-        for key in ("ospf_neighbors", "etherchannel"):
+        for key in ("ospf_neighbors", "eigrp_neighbors", "etherchannel", "route_via"):
             named += list((intent.get(key) or {}).keys())
+        for item in self.raw.get("baseline") or []:
+            if not isinstance(item, dict) or len(item) != 1:
+                raise LabModelError(f"{self.path.name}: each baseline entry needs exactly one check kind: {item!r}")
+            (kind, spec), = item.items()
+            if kind == "intent":
+                continue
+            for key in ("on", "from"):
+                value = (spec or {}).get(key)
+                if value and value != "switches":
+                    named += value if isinstance(value, list) else [value]
         missing = sorted({n for n in named if not model.has_node(n)})
         if missing:
             raise LabModelError(f"{self.path.name} names nodes not in the topology: {missing}")

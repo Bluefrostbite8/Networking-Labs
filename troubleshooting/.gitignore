@@ -7,3 +7,6 @@ __pycache__/
 
 # Sealed answers stay local until the debrief reveals them
 sessions/*/answers.json
+
+# Local evidence from healthy runs
+runs/

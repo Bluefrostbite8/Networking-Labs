@@ -29,8 +29,8 @@ intent:                                # design facts the grader protects
   stp_root:    { "10": Core1, "20": Core2, "30": Core1 }
   hsrp_active: { "10": Core1, "20": Core2, "30": Core1 }
   # R1 peers with both cores over the /30s; the cores also peer with each other on
-  # Vlan10, 20 and 30 (README: OSPF runs on every SVI). Counts are confirmed on a
-  # healthy import in build step 3.
+  # Vlan10, 20 and 30 (README: OSPF runs on every SVI). Confirmed live on
+  # 2026-10-11: baseline 39/39 on a healthy import.
   ospf_neighbors: { R1: 2, Core1: 4, Core2: 4 }
   etherchannel:
     Core1: { Po1: { protocol: lacp, members: 2 }, Po2: { protocol: pagp, members: 2 }, Po3: { protocol: "on", members: 2 } }
@@ -38,6 +38,18 @@ intent:                                # design facts the grader protects
     Dist1: { Po1: { protocol: lacp, members: 2 }, Po2: { protocol: pagp, members: 2 } }
     Dist2: { Po1: { protocol: lacp, members: 2 }, Po2: { protocol: pagp, members: 2 } }
 
-baseline: []                           # build step 3: tests that must all pass on the healthy lab
+baseline:                              # must ALL pass on the healthy lab (README: How to Run & Verify)
+  - intent: all                        # STP roots, HSRP active, OSPF neighbors, EtherChannels above
+  - vtp: { on: Core1, version: 3, domain: ROMANVTP, mode: primary server }
+  - vtp: { on: [Core2, Dist1, Dist2, A1, A2, A3], version: 3, domain: ROMANVTP, mode: client }
+  - vlans: { on: switches }            # 10, 20, 30, 99 active with their names
+  - port_security: { on: A1, interface: Gi0/0, status: Secure-up, sticky: 1 }
+  - port_security: { on: A2, interface: Gi0/0, status: Secure-up, sticky: 1 }
+  - port_security: { on: A3, interface: Gi0/0, status: Secure-up, sticky: 1 }
+  - port_security: { on: A3, interface: Gi0/3, status: Secure-up, sticky: 1 }
+  - dhcp_bindings: { on: R1, min: 4 }  # one lease per host
+  # Every leased host answers R1: host -> HSRP gateway -> OSPF -> R1 and back.
+  # Host-sourced pings (E-1 to E-2) need a host console login: added in build step 4.
+  - ping: { from: R1, to: leases }
 
 never_touch: []                        # no external connectors or unmanaged switches in this lab

@@ -47,8 +47,23 @@ class UnsafeOperation(CmlError):
     """Refused: the target lab is not an incident lab."""
 
 
+LOG_FILE: Path | None = None  # set by the CLI per run; every log line is also appended here
+
+
 def default_log(msg: str) -> None:
-    print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
+    """Print and file a log line. Never raises: a closed terminal or pipe (Ctrl+C
+    also kills a `| tee`) must not stop a cleanup that is still running."""
+    line = f"[{time.strftime('%H:%M:%S')}] {msg}"
+    try:
+        print(line, flush=True)
+    except (OSError, ValueError):
+        pass
+    if LOG_FILE is not None:
+        try:
+            with LOG_FILE.open("a", encoding="utf-8") as fh:
+                fh.write(line + "\n")
+        except OSError:
+            pass
 
 
 # --------------------------------------------------------------------------- config and connection
@@ -227,7 +242,8 @@ def wait_booted(lab, labels: set[str] | None, timeout_min: float, log: Log = def
 class Consoles:
     """Console sessions to lab nodes through the CML terminal server (pyATS)."""
 
-    def __init__(self, lab) -> None:
+    def __init__(self, lab, hosts: set[str] | frozenset = frozenset()) -> None:
+        self.hosts = set(hosts)  # Linux nodes: no IOS init commands on connect
         # Genie's file-transfer helper looks for "terminal_server" among testbed
         # file servers; CML defines it as a device, so it warns on every connect.
         # The tool never transfers files, so those warnings are noise.
@@ -268,9 +284,10 @@ class Consoles:
             kwargs["reply"] = Dialog(
                 [Statement(pattern=r"\[confirm\]", action="sendline()", loop_continue=True, continue_timer=False)]
             )
+        init_exec = [] if node in self.hosts else SAFE_INIT_EXEC
         try:
             out = self.pyats.run_command(
-                node, command, init_exec_commands=SAFE_INIT_EXEC, init_config_commands=SAFE_INIT_CONFIG, **kwargs
+                node, command, init_exec_commands=init_exec, init_config_commands=SAFE_INIT_CONFIG, **kwargs
             )
         except Exception as exc:
             _raise_from_unicon(node, command, exc)
@@ -288,6 +305,15 @@ class Consoles:
         self._ready.add(node)
         _raise_on_cli_error(node, "; ".join(line.strip() for line in lines), out)
         return out
+
+    def console_log(self, node: str, lines: int = 200) -> str:
+        """CML's own buffer of what the node's console printed (no pyATS involved)."""
+        raw = self.lab.get_node_by_label(node).console_logs(0, lines=lines)
+        if isinstance(raw, dict):
+            return str(raw.get("log") or "\n".join(str(v) for v in raw.values()))
+        if isinstance(raw, list):
+            return "\n".join(str(x) for x in raw)
+        return str(raw)
 
     def _ensure(self, node: str) -> None:
         if node not in self._ready:
@@ -335,7 +361,9 @@ def _raise_on_cli_error(node: str, command: str, output: str) -> None:
 
 
 def wait_consoles(consoles: Consoles, labels: list[str], ready_check: str, timeout_min: float,
-                  log: Log = default_log, poll_s: int = 15) -> None:
+                  log: Log = default_log, poll_s: int = 15,
+                  on_fail: Callable[[str, str], None] | None = None) -> None:
+    """``on_fail(label, console_text)`` receives CML's console buffer after a failed attempt."""
     deadline = time.monotonic() + timeout_min * 60
     pending = list(labels)
     while pending:
@@ -348,12 +376,49 @@ def wait_consoles(consoles: Consoles, labels: list[str], ready_check: str, timeo
             except Exception as exc:
                 reason = " ".join(str(exc).split())[:160]
                 log(f"{label} console not ready ({type(exc).__name__}: {reason}); will retry")
+                if on_fail:
+                    try:
+                        on_fail(label, consoles.console_log(label))
+                    except Exception as log_exc:  # diagnostics must never stop the run
+                        log(f"could not read {label}'s console log: {log_exc}")
                 if time.monotonic() > deadline:
                     raise CmlError(f"console on {label} never answered '{ready_check}': {exc}") from exc
         if pending:
             if time.monotonic() > deadline:
                 raise CmlError(f"consoles not ready: {', '.join(pending)}")
             time.sleep(poll_s)
+
+
+def console_power_cycle(lab, consoles: Consoles, spec: dict, timeout_min: float,
+                        log: Log = default_log, poll_s: int = 30) -> str:
+    """Power-cycle one node so its console comes up where pyATS can reach it.
+
+    A Catalyst 9800-CL (like other virtual IOS-XE) picks its console in GRUB,
+    before the config loads: on a fresh import IOS-XE runs on the VGA console
+    even with 'platform console serial' in the config, which only takes effect
+    from the next boot. ``ready_ping`` waits until the node answers on its
+    management address (IOS-XE up, config applied) before the cycle.
+    Returns the node label.
+    """
+    from .checks import _ping_received
+
+    label = spec["node"]
+    ping = spec.get("ready_ping")
+    if ping:
+        deadline = time.monotonic() + timeout_min * 60
+        log(f"waiting for {label} to answer {ping['to']} from {ping['from']} (first boot, VGA console)")
+        while _ping_received(consoles.run(ping["from"], f"ping {ping['to']}")) < 3:
+            if time.monotonic() > deadline:
+                raise CmlError(f"{label} never answered {ping['to']} from {ping['from']} on its first boot")
+            time.sleep(poll_s)
+        log(f"{label} is up on its first boot; settling {spec.get('settle_s', 30)} s before the power cycle")
+        time.sleep(spec.get("settle_s", 30))
+    node = lab.get_node_by_label(label)
+    node.stop(wait=True)
+    node.start(wait=False)
+    log(f"power-cycled {label} so IOS-XE starts on the serial console")
+    wait_booted(lab, {label}, timeout_min, log)
+    return label
 
 
 # --------------------------------------------------------------------------- VLAN / VTP rebuild
@@ -416,6 +481,11 @@ def rebuild(lab, consoles: Consoles, model: LabModel, profile: LabProfile, log: 
 
     if vlans:
         wait_vlans(consoles, switches, vlans, rb.get("vlan_timeout_s", 300), log)
+        # New VLANs start new spanning-tree instances; until their ports leave
+        # listening/learning, SVIs stay down, HSRP sits in Init and DHCP and
+        # pings fail. Wait for that before leases are renewed or checks run.
+        wait_stp_settled(consoles, switches, rb.get("stp_settle_s", 120), log)
+        recover_stuck_svis(consoles, switches, vlans, log)
 
     if rb.get("clear_sticky"):
         # IOSvL2 15.2 has no "clear port-security" exec command; deleting the
@@ -468,24 +538,110 @@ def wait_vlans(consoles: Consoles, switches: list[str], vlans: dict[int, str | N
     log(f"VLANs {', '.join(map(str, sorted(vlans)))} active on all {len(switches)} switches")
 
 
+def stp_transitioning(output: str) -> int | None:
+    """Ports in listening or learning, from the totals of 'show spanning-tree summary'."""
+    from .checks import genie_parse
+    parsed = genie_parse("show spanning-tree summary", output)
+    totals = (parsed or {}).get("total_statistics")
+    if totals:
+        return int(totals.get("listenings", 0)) + int(totals.get("learnings", 0))
+    m = re.search(r"^\d+\s+(?:vlans?|msts?)\s+\d+\s+(\d+)\s+(\d+)\s+\d+\s+\d+", output, re.M)
+    return int(m.group(1)) + int(m.group(2)) if m else None
+
+
+def wait_stp_settled(consoles: Consoles, switches: list[str], timeout_s: int,
+                     log: Log = default_log, poll_s: int = 5) -> None:
+    """Wait until no switch has a port in listening or learning. Never fails the
+    run: after ``timeout_s`` it logs what is still moving and carries on."""
+    t0 = time.monotonic()
+    pending = list(switches)
+    moving: dict[str, int | None] = {}
+    while pending:
+        for sw in list(pending):
+            n = stp_transitioning(consoles.run(sw, "show spanning-tree summary"))
+            if n == 0:
+                pending.remove(sw)
+                moving.pop(sw, None)
+            else:
+                moving[sw] = n
+        if not pending:
+            break
+        if time.monotonic() - t0 > timeout_s:
+            still = ", ".join(f"{sw} ({moving[sw] if moving[sw] is not None else 'unparsed'})" for sw in pending)
+            log(f"spanning tree still moving after {timeout_s} s on {still}; continuing")
+            return
+        time.sleep(poll_s)
+    log(f"spanning tree settled on all {len(switches)} switches after {time.monotonic() - t0:.0f} s")
+
+
+def down_svis(output: str) -> list[str]:
+    """SVIs with an address that are down/down (not administratively down),
+    from 'show ip interface brief'."""
+    from .checks import genie_parse
+    parsed = genie_parse("show ip interface brief", output)
+    if parsed:
+        rows = [(name, i.get("ip_address", ""), i.get("status", ""))
+                for name, i in (parsed.get("interface") or {}).items()]
+    else:
+        rows = [(m.group(1), m.group(2), m.group(3).strip()) for m in re.finditer(
+            r"^(Vlan\d+)\s+(\S+)\s+\S+\s+\S+\s+(administratively down|up|down)\s", output, re.M)]
+    return [name for name, ip, status in rows
+            if name.startswith("Vlan") and ip != "unassigned" and status == "down"]
+
+
+def recover_stuck_svis(consoles: Consoles, switches: list[str], vlans: dict[int, str | None],
+                       log: Log = default_log, wait_s: int = 30, poll_s: int = 5) -> None:
+    """IOSvL2 quirk: an SVI whose VLAN was auto-created at boot (an access port
+    named it before the rebuild) can stay down/down after the VLAN is active and
+    forwarding. Runs after spanning tree settles, so a down SVI here is stuck, not
+    converging. Bounces only those SVIs, in rebuilt VLANs; never admin-down ones."""
+    wanted = {f"Vlan{v}" for v in vlans}
+    for sw in switches:
+        stuck = [s for s in down_svis(consoles.run(sw, "show ip interface brief")) if s in wanted]
+        if not stuck:
+            continue
+        lines = []
+        for svi in stuck:
+            lines += [f"interface {svi}", " shutdown", " no shutdown"]
+        consoles.configure(sw, lines)
+        deadline = time.monotonic() + wait_s
+        still = stuck
+        while still and time.monotonic() < deadline:
+            time.sleep(poll_s)
+            still = [s for s in down_svis(consoles.run(sw, "show ip interface brief")) if s in stuck]
+        log(f"{sw}: {', '.join(stuck)} stuck down after the VLAN rebuild; bounced"
+            + (f", still down: {', '.join(still)}" if still else ", now up"))
+
+
 def renew_leases(lab, consoles: Consoles, leases: dict, log: Log = default_log) -> None:
     """Restart the DHCP hosts so they lease now that the VLANs exist, then count bindings."""
     hosts = list(leases.get("hosts") or [])
-    server = leases.get("dhcp_server")
+    raw_server = leases.get("dhcp_server")
+    servers = raw_server if isinstance(raw_server, list) else ([raw_server] if raw_server else [])
+
+    def bindings() -> int:  # summed: lab 04 runs two uncoordinated servers on the same scopes
+        return sum(count_dhcp_bindings(consoles.run(s, "show ip dhcp binding")) for s in servers)
+
+    where = "+".join(s.strip() for s in servers)
+    if servers:
+        have = bindings()
+        if have >= len(hosts):  # every host already leased at boot: no restart needed
+            log(f"{where}: {have} DHCP bindings already, hosts not restarted")
+            return
     for label in hosts:
         node = lab.get_node_by_label(label)
         node.stop(wait=True)
         node.start(wait=False)
     log(f"restarted {len(hosts)} hosts: {', '.join(hosts)}")
     wait_booted(lab, set(hosts), leases.get("boot_timeout_min", 5), log)
-    if not server:
+    if not servers:
         return
     deadline = time.monotonic() + leases.get("timeout_s", 240)
     while True:
-        count = count_dhcp_bindings(consoles.run(server, "show ip dhcp binding"))
+        count = bindings()
         if count >= len(hosts):
-            log(f"{server}: {count} DHCP bindings")
+            log(f"{where}: {count} DHCP bindings")
             return
         if time.monotonic() > deadline:
-            raise CmlError(f"{server} shows {count} DHCP bindings, expected {len(hosts)}")
+            raise CmlError(f"{where} shows {count} DHCP bindings, expected {len(hosts)}")
         time.sleep(10)

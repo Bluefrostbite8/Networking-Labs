@@ -1,0 +1,35 @@
+# Lab profile: what the CML export can't carry, the design intent the grader
+# protects, and the healthy-state baseline. Every value comes from
+# ../01-switching-fundamentals/README.md or topology.yaml, except the host test
+# addresses, which are a harness addition (agreed 2026-10-11).
+lab: 01-switching-fundamentals
+source: ../../01-switching-fundamentals/topology.yaml
+readme: ../../01-switching-fundamentals/README.md
+
+boot:
+  timeout_min: 20
+  ready_check: "show version"
+
+rebuild:
+  vlans: { 10: null, 20: null, 99: null }   # README names none, so created by number only
+  save: false                               # VLANs live in vlan.dat; the running config is unchanged
+
+# Harness addition, not part of the lab design: the export has no host addressing
+# and the lab has no Layer 3, so both hosts get a static test address in VLAN 10.
+# Applied to the imported copy only, never to topology.yaml; flagged in every ticket.
+host_addressing:
+  M-D1: { address: 10.0.10.11/24 }
+  M-D2: { address: 10.0.10.12/24 }
+
+intent:                                # design facts the grader protects
+  stp_root: { "10": S4, "20": S3 }     # README: per-VLAN root load-balancing
+
+baseline:                              # must ALL pass on the healthy lab (README: How to Run)
+  - intent: all
+  - vlans: { on: switches }            # 10, 20, 99 active on all four switches
+  - trunks: { on: switches }           # allowed 10,20, native 99 on every trunk
+  # Intra-VLAN reachability across the switched core, host to host both ways.
+  - ping: { from: M-D1, to: [M-D2] }
+  - ping: { from: M-D2, to: [M-D1] }
+
+never_touch: []                        # no external connectors or unmanaged switches in this lab

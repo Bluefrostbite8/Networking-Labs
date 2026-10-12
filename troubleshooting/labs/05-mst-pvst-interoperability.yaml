@@ -1,0 +1,43 @@
+# Lab profile: what the CML export can't carry, the design intent the grader
+# protects, and the healthy-state baseline. Every value comes from
+# ../05-mst-pvst-interoperability/README.md or topology.yaml, except the host test
+# addresses, which are a harness addition (agreed 2026-10-11).
+lab: 05-mst-pvst-interoperability
+source: ../../05-mst-pvst-interoperability/topology.yaml
+readme: ../../05-mst-pvst-interoperability/README.md
+
+boot:
+  timeout_min: 20
+  ready_check: "show version"
+
+rebuild:
+  vlans: { 10: null, 20: null, 30: null, 99: null }   # README names none, so created by number only
+  save: false                                         # VLANs live in vlan.dat; running config unchanged
+
+# Harness addition, not part of the lab design: the export has no host addressing.
+# README: D1 in 10.0.20.0/24 and D2 in 10.0.10.0/24, each using an SVI in its own
+# VLAN as gateway. Applied to the imported copy only; flagged in every ticket.
+host_addressing:
+  D1: { address: 10.0.20.11/24, gateway: 10.0.20.3 }   # MST-1 Vlan20
+  D2: { address: 10.0.10.11/24, gateway: 10.0.10.2 }   # RSTP-1 Vlan10
+
+intent:                                # design facts the grader protects
+  stp_root: { "10": MST-1, "20": MST-1, "30": MST-1 }  # CIST and MSTI 1/2 root inside the region
+  # Not protected here: which ports block (MST-3 Gi0/2, RSTP-3 Gi0/2, RSTP-1 Gi0/1).
+  # They are decided by MAC address, and CML assigns new MACs on every import.
+
+baseline:                              # must ALL pass on the healthy lab (README: How to Run & Verify)
+  - intent: all
+  - mst_region: { on: [MST-1, MST-2, MST-3], name: ROMANMST, revision: 1, instances: { 1: "10,20", 2: "30" } }
+  - stp_port: { on: MST-2, interface: Gi0/0, role: Desg, state: FWD, type_contains: Bound(PVST) }
+  - stp_port: { on: MST-3, interface: Gi0/0, role: Desg, state: FWD, type_contains: Bound(PVST) }
+  - stp_inconsistent: { on: [MST-2, MST-3], max: 0 }    # root guard armed, nothing tripped
+  - stp_summary: { on: [RSTP-1, RSTP-2, RSTP-3], mode: rapid-pvst, pathcost: long }
+  - vlans: { on: switches }
+  - trunks: { on: switches }           # native 99 everywhere; RSTP-3 Gi0/1 has no allowed list
+  - ping: { from: RSTP-1, to: [10.0.10.3, 10.0.20.3, 10.0.30.3] }   # across the boundary, MSTI 1 and 2
+  - ping: { from: MST-1, to: [D2] }    # region side reaches the ring-side host
+  - ping: { from: RSTP-1, to: [D1] }   # ring side reaches the region-side host
+  - ping: { from: D1, to: [D2] }       # end to end, routed by the SVIs
+
+never_touch: []                        # no external connectors or unmanaged switches in this lab

@@ -1,0 +1,37 @@
+# Lab profile: what the CML export can't carry, the design intent the grader
+# protects, and the healthy-state baseline. Every value comes from
+# ../06-eigrp-classic-named-interoperability/README.md or topology.yaml.
+lab: 06-eigrp-classic-named-interoperability
+source: ../../06-eigrp-classic-named-interoperability/topology.yaml
+readme: ../../06-eigrp-classic-named-interoperability/README.md
+
+boot:
+  timeout_min: 20
+  ready_check: "show version"
+
+rebuild:                               # routed lab: no VLAN database to restore
+  renew_leases:                        # hosts are restarted only if R4 is missing bindings
+    hosts: [D1, D2]
+    dhcp_server: R4
+  save: false                          # the rebuild changes nothing on the routers
+
+intent:                                # design facts the grader protects
+  # Ten authenticated adjacencies in AS 100 (README: Cabling / Link Map).
+  eigrp_neighbors: { R1: 2, R2: 3, R3: 3, R4: 4, R5: 3, R6: 3, R7: 2 }
+  route_via:
+    R1:
+      - { prefix: 4.4.4.4, via: [172.16.12.2], distance: 90 }          # offset-list 1 in 1000 Et0/2: R2 wins
+      - { prefix: 192.168.1.0, via: [172.16.12.2, 172.16.13.2] }       # equal-cost paths to D2's LAN
+    R7:
+      - { prefix: 4.4.4.4, via: [172.16.57.1], distance: 90 }          # AD 91 on R6's copy: R5 wins
+      - { prefix: 192.168.2.0, via: [172.16.57.1, 172.16.67.1] }       # equal-cost paths to D1's LAN
+
+baseline:                              # must ALL pass on the healthy lab (README: How to Run & Verify)
+  - intent: all                        # adjacencies, offset-list, per-neighbor AD, ECMP above
+  - dhcp_bindings: { on: R4, min: 2 }  # D1 and D2 leased through the R1 and R7 relays
+  # Each leased host answers both edge routers, so each crosses the core once.
+  # Host-sourced D1 to D2 traceroute (never through R4) needs a host login: build step 4.
+  - ping: { from: R1, to: leases }
+  - ping: { from: R7, to: leases }
+
+never_touch: []                        # no external connectors or unmanaged switches in this lab

@@ -1,0 +1,53 @@
+# Lab profile: what the CML export can't carry, the design intent the grader
+# protects, and the healthy-state baseline. Every value comes from
+# ../02-multi-area-ospf-campus/README.md or topology.yaml.
+# Note: the DHCP router's label in topology.yaml is "DHCP " (trailing space);
+# it is quoted exactly as exported below.
+lab: 02-multi-area-ospf-campus
+source: ../../02-multi-area-ospf-campus/topology.yaml
+readme: ../../02-multi-area-ospf-campus/README.md
+
+boot:
+  timeout_min: 20
+  ready_check: "show version"
+
+rebuild:
+  vlans:                               # README: VLANs (names confirmed by show vlan brief)
+    10: USERS
+    20: HR
+    99: NATIVE
+  renew_leases:                        # hosts restarted only if bindings are missing
+    hosts: [U-D1, HR-D2, U-D3, HR-D4]
+    dhcp_server: "DHCP "
+  save: false                          # VLANs live in vlan.dat; the running config is unchanged
+
+intent:                                # design facts the grader protects
+  # Adjacencies from the OSPF network statements and cabling: the DHCP router is the
+  # Area 0 transit; each ABR has its ASBR (area 0) and two distribution switches.
+  ospf_neighbors:
+    "DHCP ": 2
+    ASBR1: 2
+    ASBR2: 2
+    ABR1: 3
+    ABR2: 3
+    DC-S1: 1
+    DC-S2: 1
+    DC-S3: 1
+    DC-S4: 1
+  route_via:
+    # Default originated by ASBR1 only. ASBR1 learns its own default over the WAN
+    # (DHCP through the external connector), so this depends on the Internet path:
+    # reported, never required.
+    "DHCP ":
+      - { prefix: 0.0.0.0, via: [10.4.10.1], optional: true }
+
+baseline:                              # must ALL pass on the healthy lab (README: How to Run & Verify)
+  - intent: all
+  - vlans: { on: switches }            # 10 USERS, 20 HR, 99 NATIVE on all eight switches
+  - trunks: { on: switches }           # every trunk as configured: 10,20,99, native 99
+  - dhcp_bindings: { on: "DHCP ", min: 4 }
+  # Each ABR reaches all four hosts: its own site directly, the other site across Area 0.
+  - ping: { from: ABR1, to: leases }
+  - ping: { from: ABR2, to: leases }
+
+never_touch: [Internet, Redundant]     # external connector and unmanaged switch

@@ -1,0 +1,49 @@
+# Lab profile: what the CML export can't carry, the design intent the grader
+# protects, and the healthy-state baseline. Every value comes from
+# ../04-enterprise-wireless/README.md or topology.yaml.
+lab: 04-enterprise-wireless
+source: ../../04-enterprise-wireless/topology.yaml
+readme: ../../04-enterprise-wireless/README.md
+
+boot:
+  timeout_min: 30                      # the Catalyst 9800-CL boots far slower than IOSvL2
+  ready_check: "show version"
+  # 9800-CL: on a fresh import IOS-XE comes up on the VGA console; 'platform console
+  # serial' only applies from the second boot. Once DC-1 can ping the WLC's Vlan10
+  # address (topology.yaml), the tool power-cycles the WLC once and then uses serial.
+  console_power_cycle:
+    node: WLC
+    ready_ping: { from: DC-1, to: 10.0.10.5 }
+
+rebuild:
+  vlans:                               # README: VLANs (names from the 9800's vlan stanzas)
+    10: WLC-MGMT
+    20: AP-MGMT
+    30: WLAN-CORP
+    40: WLAN-GUEST
+    99: INFRA-MGMT
+  renew_leases:                        # both DCs serve the same scopes, uncoordinated: bindings are summed
+    hosts: [DESK-1]
+    dhcp_server: [DC-1, DC-2]
+  save: false                          # VLANs live in vlan.dat; ip routing is already in topology.yaml
+
+intent:                                # design facts the grader protects
+  hsrp_active: { "10": DC-1, "20": DC-2, "30": DC-1, "40": DC-2, "99": DC-1 }
+  etherchannel:                        # WLC LACP passive, DC ends active (README: Cabling / Link Map)
+    WLC:  { Po1: { protocol: lacp, members: 2 }, Po2: { protocol: lacp, members: 2 } }
+    DC-1: { Po2: { protocol: lacp, members: 2 } }
+    DC-2: { Po1: { protocol: lacp, members: 2 } }
+
+baseline:                              # must ALL pass on the healthy lab (README: How to Run & Verify)
+  - intent: all
+  - vlans: { on: switches }            # all five VLANs, named, on A-1, A-2, DC-1, DC-2
+  - trunks: { on: switches }           # access/inter-DC 10,20,30,40,99; WLC bundles 10,20,30,40
+  - dhcp_bindings: { on: [DC-1, DC-2], min: 1, total: true }   # DESK-1 leased from either DC
+  - wlan: { on: WLC, name: CORP-WiFi, status: UP }
+  - ping: { from: WLC, to: [10.0.10.1] }                        # management VIP, same subnet
+  # WLC (VLAN 10) to every leased host (VLAN 20) proves ip routing on the DCs,
+  # the HSRP gateways in both VLANs and the WLC uplink bundles.
+  - ping: { from: WLC, to: leases }
+  # The RF plane (hostapd on W-AP2, wpa_supplicant on W-2) needs a host login: build step 4.
+
+never_touch: []                        # no external connectors or unmanaged switches in this lab
