@@ -1,7 +1,7 @@
 """Command line: python -m breaker <command>.
 
-Build steps 2 and 3: list, show, doctor, start --healthy, rebuild, baseline, clean.
-break, hint, grade, debrief and selftest arrive in later build steps.
+Steps 2 and 3: list, show, doctor, start --healthy, rebuild, baseline, console, clean.
+Step 4: break, start <session>, hint, grade, selftest. debrief arrives in step 5.
 """
 
 from __future__ import annotations
@@ -21,14 +21,20 @@ RUNS_DIR = TOOL_ROOT / "runs"  # local evidence from healthy runs (gitignored)
 
 
 def cmd_list(args) -> int:
-    faults = len(list(FAULTS_DIR.glob("*/*.yaml"))) if FAULTS_DIR.exists() else 0
-    print(f"{'Lab':42} {'CML title':10} {'Nodes':>5} {'Licensed':>8}  {'Profile':8} Faults")
+    from .faults import library
+
+    lib = library() if FAULTS_DIR.exists() else []
+    print(f"{'Lab':42} {'CML title':10} {'Nodes':>5} {'Licensed':>8}  {'Profile':8} Faults (of {len(lib)})")
     for d in lab_dirs():
         model = LabModel.load(d / "topology.yaml")
-        has_profile = (TOOL_ROOT / "labs" / f"{d.name}.yaml").exists()
-        # Per-lab fault matching (applies_when) arrives with checks.py in build step 4.
+        path = TOOL_ROOT / "labs" / f"{d.name}.yaml"
+        fits = "-"
+        if path.exists():
+            profile = LabProfile.load(d.name)
+            fit = [f for f in lib if f.candidates(model, profile)]
+            fits = f"{sum(f.proven_on(d.name) for f in fit)} proven, {len(fit)} fit"
         print(f"{d.name:42} {model.title:10} {len(model.nodes):>5} {model.licensed_node_count():>8}  "
-              f"{'yes' if has_profile else 'no':8} {faults}")
+              f"{'yes' if path.exists() else 'no':8} {fits}")
     return 0
 
 
@@ -97,10 +103,50 @@ def _write_result(incident_id: str, data: dict) -> None:
     (RUNS_DIR / f"{incident_id}-result.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
 
 
+def bring_up(profile: LabProfile, model: LabModel, incident_id: str, state: dict, log, strict: bool = True):
+    """Capacity check, import, boot, consoles, rebuild. Sets state["lab"] as soon as
+    the lab exists, so a caller can clean up whatever stage fails."""
+    cfg = cml_api.load_config()
+    client = cml_api.connect()
+    state["stage"] = "capacity"
+    needed = model.licensed_node_count()
+    cml_api.check_capacity(client, needed, cfg["node_cap"])
+    log(f"capacity ok: {needed} nodes needed, cap {cfg['node_cap']}")
+    state["stage"] = "import"
+    lab = cml_api.import_lab(client, model, incident_id, log)
+    state["lab"] = lab
+    state["stage"] = "boot"
+    cml_api.boot(lab, profile.boot["timeout_min"], log)
+    consoles = _consoles(lab, model, profile)
+    state["consoles"] = consoles
+    # A node that needs a power cycle before its console works (the 9800-CL) is
+    # left out of the first wait and brought up after the rebuild, which creates
+    # the VLANs its readiness ping travels over.
+    cycle = profile.boot.get("console_power_cycle")
+    skip = (cycle["node"],) if cycle else ()
+    state["stage"] = "consoles"
+    _wait_ready(consoles, model, profile, log, incident_id, skip=skip)
+    state["stage"] = "rebuild"
+    cml_api.rebuild(lab, consoles, model, profile, log, strict=strict)
+    if cycle:
+        state["stage"] = "power cycle"
+        cml_api.console_power_cycle(lab, consoles, cycle, profile.boot["timeout_min"], log)
+        state["stage"] = "consoles"
+        _wait_ready(consoles, model, profile, log, incident_id, labels=[cycle["node"]])
+    return lab, consoles
+
+
+def _with_test_addresses(profile: LabProfile, model: LabModel, log) -> LabModel:
+    addressing = profile.raw.get("host_addressing") or {}
+    if addressing:  # only the imported copy changes; topology.yaml in the repo stays as it is
+        model.apply_host_addressing(addressing)
+        log(f"harness test addresses on {', '.join(addressing)} (not part of the lab design)")
+    return model
+
+
 def cmd_start(args) -> int:
     if not args.healthy:
-        print("start needs --healthy until 'break' exists (build step 4).", file=sys.stderr)
-        return 2
+        return start_session(args)
     t0 = time.monotonic()
     log = cml_api.default_log
     profile = LabProfile.load(args.lab)
@@ -108,58 +154,29 @@ def cmd_start(args) -> int:
     issues = model.sanitize_issues()
     if issues:
         log(f"warning: sanitizer found {sum(map(len, issues.values()))} issue(s) in {', '.join(issues)}")
-    addressing = profile.raw.get("host_addressing") or {}
-    if addressing:  # only the imported copy changes; topology.yaml in the repo stays as it is
-        model.apply_host_addressing(addressing)
-        log(f"harness test addresses on {', '.join(addressing)} (not part of the lab design)")
+    _with_test_addresses(profile, model, log)
     # Short id keeps the CML title under its length limit: "Switching [incident 03-healthy-1622]"
     incident_id = args.id or f"{profile.lab[:2]}-healthy-{datetime.now():%H%M}"
     RUNS_DIR.mkdir(exist_ok=True)
     cml_api.LOG_FILE = RUNS_DIR / f"{incident_id}.log"  # the tool's own log: no tee needed
-    cfg = cml_api.load_config()
-    client = cml_api.connect()
     result = {"lab": profile.lab, "incident": incident_id, "started": datetime.now().isoformat(timespec="seconds"),
               "stage": "capacity", "ok": False}
-
-    lab = None
+    state: dict = {}
     try:
-        needed = model.licensed_node_count()
-        cml_api.check_capacity(client, needed, cfg["node_cap"])
-        log(f"capacity ok: {needed} nodes needed, cap {cfg['node_cap']}")
-
-        result["stage"] = "import"
-        lab = cml_api.import_lab(client, model, incident_id, log)
         if not args.clean_after:
             print(f"\nIf anything below fails, clean up with:\n  python -m breaker clean --id {incident_id}\n",
                   flush=True)
-
-        result["stage"] = "boot"
-        cml_api.boot(lab, profile.boot["timeout_min"], log)
-        consoles = _consoles(lab, model, profile)
+        lab, consoles = bring_up(profile, model, incident_id, state, log)
         try:
-            # A node that needs a power cycle before its console works (the 9800-CL)
-            # is left out of the first wait and brought up after the rebuild, which
-            # creates the VLANs its readiness ping travels over.
-            cycle = profile.boot.get("console_power_cycle")
-            skip = (cycle["node"],) if cycle else ()
-            result["stage"] = "consoles"
-            _wait_ready(consoles, model, profile, log, incident_id, skip=skip)
-            result["stage"] = "rebuild"
-            cml_api.rebuild(lab, consoles, model, profile, log)
-            if cycle:
-                result["stage"] = "power cycle"
-                cml_api.console_power_cycle(lab, consoles, cycle, profile.boot["timeout_min"], log)
-                result["stage"] = "consoles"
-                _wait_ready(consoles, model, profile, log, incident_id, labels=[cycle["node"]])
-            result["stage"] = "baseline"
+            state["stage"] = "baseline"
             ok, summary = run_baseline(lab, consoles, model, profile, incident_id)
             result.update(summary)
         finally:
             consoles.close()
         result["ok"] = ok
-        result["stage"] = "done"
-        state = "healthy lab ready" if ok else "lab up, but the baseline did not fully pass"
-        log(f"{state} in {(time.monotonic() - t0) / 60:.1f} min: {lab.title} (id {lab.id})")
+        state["stage"] = "done"
+        verdict = "healthy lab ready" if ok else "lab up, but the baseline did not fully pass"
+        log(f"{verdict} in {(time.monotonic() - t0) / 60:.1f} min: {lab.title} (id {lab.id})")
         return 0 if ok else 1
     except (cml_api.CmlError, LabModelError) as exc:
         result["error"] = str(exc)
@@ -171,13 +188,287 @@ def cmd_start(args) -> int:
         result["error"] = "interrupted (Ctrl+C)"
         raise
     finally:
+        result["stage"] = state.get("stage", "capacity")
         result["minutes"] = round((time.monotonic() - t0) / 60, 1)
         _write_result(incident_id, result)
-        if args.clean_after and lab is not None:
+        if args.clean_after and state.get("lab") is not None:
+            try:
+                cml_api.stop_and_wipe(state["lab"], remove=True, log=log)
+            except Exception as exc:
+                log(f"clean-after failed ({exc}); run: python -m breaker clean --id {incident_id} --remove")
+
+
+# --------------------------------------------------------------------------- sessions (step 4)
+
+
+def _healthy_baseline_passed(lab: str) -> str | None:
+    """Engine rule 7: the healthy lab's baseline must have passed once before any
+    injection. Returns the run that proves it, or None."""
+    for path in sorted(RUNS_DIR.glob("*-baseline.json"), reverse=True):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if data.get("lab") == lab and data.get("total") and data.get("passed") == data.get("total") \
+                and "-healthy-" in str(data.get("incident", "")):
+            return data["incident"]
+    return None
+
+
+def cmd_break(args) -> int:
+    import secrets
+
+    from .faults import pick
+    from .session import Session, plain_ticket
+
+    profile = LabProfile.load(args.lab)
+    model = profile.model()
+    proof = _healthy_baseline_passed(profile.lab)
+    if not proof:
+        raise LabModelError(f"no passing healthy baseline for {profile.lab} in runs/; "
+                            f"run: python -m breaker start {args.lab} --healthy (engine rule 7)")
+    seed = args.seed if args.seed is not None else 1000 + secrets.randbelow(9000)
+    broken, instances = pick(model, profile, args.tier, seed, only=args.fault)
+    session = Session.create(profile, broken, instances, args.tier, seed,
+                             lambda incident: plain_ticket(profile, model, instances, args.tier, seed, incident))
+    session.update(healthy_baseline=proof)
+    print(f"Session {session.path.name}: tier T{args.tier}, {len(instances)} fault(s), seed {seed}")
+    print(f"Ticket:  {session.path.relative_to(TOOL_ROOT)}/ticket.md")
+    print(f"Next:    python -m breaker start {session.incident}")
+    return 0
+
+
+def start_session(args, session=None, state: dict | None = None):
+    """Import the broken lab, rebuild, record the baseline the session starts from.
+    The clock starts here. Returns 0, or (lab, consoles) when called by selftest."""
+    from .checks import Checker
+    from .session import Session
+
+    t0 = time.monotonic()
+    log = cml_api.default_log
+    session = session or Session.find(args.lab)
+    profile = session.profile()
+    model = _with_test_addresses(profile, session.broken_model(), log)
+    cml_api.LOG_FILE = session.path / "session.log"
+    state = state if state is not None else {}
+    keep_open = state.get("keep_open", False)
+    print(f"\nIf anything below fails, clean up with:\n  python -m breaker clean --id {session.incident}\n", flush=True)
+    lab, consoles = bring_up(profile, model, session.incident, state, log, strict=False)
+    try:
+        # Runtime faults would be pushed and saved here; the first five are all static.
+        state["stage"] = "baseline before"
+        log("recording the baseline the session starts from (collateral is judged against it)")
+        checker = Checker(lambda node, cmd: consoles.run(node, cmd), _with_test_addresses(
+            profile, profile.model(), lambda _m: None), profile)
+        before = checker.baseline()
+        session.write_json("baseline_before.json", [r.as_dict() for r in before])
+        failing = [r for r in before if not r.ok and not r.optional]
+        log(f"session baseline: {len(before) - len(failing)}/{len(before)} pass (the failures are the symptoms)")
+        session.update(started=datetime.now().isoformat(timespec="seconds"), lab_id=lab.id)
+    except BaseException:
+        consoles.close()
+        raise
+    if keep_open:
+        return lab, consoles
+    consoles.close()
+    log(f"session {session.incident} ready in {(time.monotonic() - t0) / 60:.1f} min. The clock is running.")
+    print(f"Ticket: {session.path.relative_to(TOOL_ROOT)}/ticket.md")
+    return 0
+
+
+def cmd_hint(args) -> int:
+    from .session import Session
+
+    session = Session.find(args.session)
+    level, text = session.take_hint(args.fault)
+    print(f"Fault {args.fault}, hint h{level}: {text}")
+    return 0
+
+
+def grade_session(session, lab, consoles, log, save: bool = True, collateral_check: bool = True) -> dict:
+    from .checks import Checker
+    from .grading import Grader, collateral, evidence_files, score, stamp
+
+    profile = session.profile()
+    model = _with_test_addresses(profile, profile.model(), lambda _m: None)
+    checker = Checker(lambda node, cmd: consoles.run(node, cmd), model, profile)
+    grader = Grader(checker, lambda node, cmd: consoles.run(node, cmd),
+                    lambda hosts: cml_api.restart_hosts(lab, consoles, hosts, log), log)
+    answers = session.answers()
+    records = []
+    for inst in answers:
+        log(f"grading fault {inst['index']}")
+        records.append(grader.grade_fault(inst))
+    after, lost = [], []
+    if collateral_check:  # selftest skips it: only each fault's grade matters there
+        log("rerunning the lab baseline for collateral")
+        checker.fresh()
+        after = checker.baseline()
+        lost = collateral(session.read_json("baseline_before.json") or [], after)
+    hints = session.hints_taken()
+    for rec in records:
+        rec["hints"] = hints.get(rec["index"], 0)
+        rec["score"] = score(rec, rec["hints"], len(lost))
+    total = round(sum(r["score"] for r in records) / len(records)) if records else 0
+    started = session.meta.get("started")
+    minutes = None
+    if started:
+        minutes = round((datetime.now() - datetime.fromisoformat(started)).total_seconds() / 60, 1)
+    report = {"session": session.path.name, "incident": session.incident, "graded": stamp(),
+              "minutes_since_start": minutes, "score": total, "collateral": lost, "faults": records,
+              "baseline_after": [r.as_dict() for r in after]}
+    if save:
+        session.write_json("grade.json", report)
+        ev = session.path / "evidence"
+        ev.mkdir(exist_ok=True)
+        for name, text in evidence_files(records).items():
+            (ev / name).write_text(text, encoding="utf-8")
+    for rec in records:
+        print(f"  Fault {rec['index']}: {rec['grade']:<11} score {rec['score']:>3}  hints {rec['hints']}  "
+              + " > ".join(f"{s['question']} {'yes' if s['ok'] else 'NO'}" for s in rec["steps"]), flush=True)
+    if lost:
+        print("  Collateral (passed at start, failing now): " + "; ".join(lost))
+    print(f"  Session score {total}" + (f", {minutes} min since start" if minutes is not None else ""))
+    return report
+
+
+def cmd_grade(args) -> int:
+    from .session import Session
+
+    log = cml_api.default_log
+    session = Session.find(args.session)
+    cml_api.LOG_FILE = session.path / "session.log"
+    profile = session.profile()
+    model = session.broken_model()
+    client = cml_api.connect()
+    labs = cml_api.find_incident_labs(client, session.incident)
+    if len(labs) != 1:
+        raise cml_api.CmlError(f"found {len(labs)} running labs for incident {session.incident}; "
+                               f"start it with: python -m breaker start {session.incident}")
+    lab = labs[0]
+    consoles = _consoles(lab, model, profile)
+    try:
+        _wait_ready(consoles, model, profile, log, session.incident)
+        grade_session(session, lab, consoles, log)
+    finally:
+        consoles.close()
+    print(f"Saved {session.path.relative_to(TOOL_ROOT)}/grade.json and evidence/")
+    return 0
+
+
+def _push(consoles, changes: dict[str, list[str]], save: bool, log, what: str) -> None:
+    for node, lines in changes.items():
+        consoles.configure(node, lines)
+        log(f"{what} on {node}: {' / '.join(x.strip() for x in lines)}")
+        if save:
+            out = consoles.run(node, "write memory", confirm=True)
+            if "[OK]" not in out:
+                raise cml_api.CmlError(f"{node}: write memory did not report [OK]")
+
+
+def cmd_selftest(args) -> int:
+    """Acceptance for faults on one lab, in ONE import: inject every fault, boot,
+    symptoms present, apply every reference_fix -> each Exact, re-inject, apply
+    every workaround -> each Temporary. Faults never share a section or a host
+    (engine rule 1), so they can be tested side by side."""
+    from .faults import by_id, library, pick
+    from .session import Session, plain_ticket
+
+    log = cml_api.default_log
+    profile = LabProfile.load(args.lab)
+    model = profile.model()
+    if args.all:
+        faults = [f for f in library() if f.candidates(model, profile)
+                  and (args.include_proven or not f.proven_on(profile.lab))]
+    else:
+        faults = [by_id(fid) for fid in args.fault]
+    if not faults:
+        raise LabModelError(f"nothing to test on {profile.lab} (all fitting faults already proven; "
+                            "add --include-proven to retest)")
+    for fault in faults:
+        problems = fault.problems()
+        if problems:
+            raise LabModelError(f"{fault.id} fails acceptance before any lab: {'; '.join(problems)}")
+    if not _healthy_baseline_passed(profile.lab):
+        raise LabModelError(f"no passing healthy baseline for {profile.lab} in runs/ (engine rule 7)")
+    tier = max(max(f.tier for f in faults), 1)
+    broken, instances = pick(model, profile, tier, args.seed, only=[f.id for f in faults])
+    base = RUNS_DIR / "selftest"
+    base.mkdir(parents=True, exist_ok=True)
+    incident = f"{profile.lab[:2]}-st-{args.seed}"
+    session = Session.create(profile, broken, instances, tier, args.seed,
+                             lambda i: plain_ticket(profile, model, instances, tier, args.seed, i),
+                             base=base, incident=incident)
+    for inst in instances:
+        log(f"selftest {inst['id']} on {profile.lab}: {', '.join(f'{n} {h}' for n, h in inst['touched'])}")
+    stages: list[dict] = []          # one entry per stage, with every fault's grade
+    state: dict = {"keep_open": True}
+    consoles = None
+    t0 = time.monotonic()
+    want = {"broken": {"Open", "Partial", "Temporary"}, "reference-fix": {"Exact"}, "workaround": {"Temporary"}}
+    try:
+        lab, consoles = start_session(args, session=session, state=state)
+        # Evidence for each debrief key clue: the fault's show commands, broken state.
+        clue = []
+        for inst, fault in zip(instances, faults):
+            node = inst["vars"].get(fault.node_var)
+            for cmd in (inst["debrief"].get("commands") or {}).get("show") or []:
+                try:
+                    out = consoles.run(node, cmd)
+                except Exception as exc:
+                    out = f"(failed: {exc})"
+                clue.append(f"## fault {inst['index']} {inst['id']}: {node}# {cmd}\n{out}")
+        (session.path / "broken-state-show.txt").write_text("\n\n".join(clue) + "\n", encoding="utf-8")
+
+        def stage(name: str) -> None:
+            log(f"selftest stage: {name} ({len(instances)} fault(s))")
+            report = grade_session(session, lab, consoles, log, save=False, collateral_check=False)
+            grades = {rec["id"]: rec for rec in report["faults"]}
+            stages.append({"stage": name, "grades": grades})
+            session.write_json(f"selftest-{len(stages)}-{name}.json", report)
+            for fid, rec in grades.items():
+                ok = rec["grade"] in want[name]
+                log(f"{name}: {fid} graded {rec['grade']} ({'as expected' if ok else 'expected ' + ' or '.join(sorted(want[name]))})")
+
+        stage("broken")
+        for inst in instances:
+            _push(consoles, inst["reference_fix"], True, log, f"reference fix ({inst['id']})")
+        stage("reference-fix")
+        for inst in instances:
+            _push(consoles, inst["selftest"]["reinject"], True, log, f"re-inject ({inst['id']})")
+        for inst in instances:
+            _push(consoles, inst["selftest"]["workaround"], inst["selftest"]["workaround_saved"], log,
+                  f"workaround ({inst['id']})")
+        stage("workaround")
+    finally:
+        if consoles is not None:
+            consoles.close()
+        minutes = round((time.monotonic() - t0) / 60, 1)
+        print(f"\nselftest on {profile.lab}, {len(instances)} fault(s) in one import, {minutes} min:")
+        all_passed = True
+        for inst, fault in zip(instances, faults):
+            mine = [{"stage": st["stage"], "grade": st["grades"][fault.id]["grade"], "want": sorted(want[st["stage"]]),
+                     "ok": st["grades"][fault.id]["grade"] in want[st["stage"]],
+                     "steps": st["grades"][fault.id]["steps"], "record": st["grades"][fault.id]}
+                    for st in stages if fault.id in st["grades"]]
+            passed = len(mine) == 3 and all(m["ok"] for m in mine)
+            all_passed &= passed
+            result = {"fault": fault.id, "lab": profile.lab, "seed": args.seed, "passed": passed,
+                      "minutes": minutes, "batch": [i["id"] for i in instances], "target": inst["touched"],
+                      "stages": mine, "session": str(session.path.relative_to(TOOL_ROOT))}
+            (RUNS_DIR / f"selftest-{fault.id}-{profile.lab[:2]}.json").write_text(json.dumps(result, indent=2),
+                                                                                    encoding="utf-8")
+            line = "  ".join(f"{m['stage']} {m['grade']}{'' if m['ok'] else ' (!)'}" for m in mine)
+            print(f"  {'PASS' if passed else 'FAIL'}  {fault.id:<22} {line}")
+            if passed and not fault.proven_on(profile.lab):
+                print(f"        add {profile.lab[:2]!r} to selftest_passed in {fault.path.relative_to(TOOL_ROOT)}")
+        lab = state.get("lab")
+        if lab is not None and not args.keep:
             try:
                 cml_api.stop_and_wipe(lab, remove=True, log=log)
             except Exception as exc:
-                log(f"clean-after failed ({exc}); run: python -m breaker clean --id {incident_id} --remove")
+                log(f"cleanup failed ({exc}); run: python -m breaker clean --id {incident} --remove")
+    return 0 if all_passed else 1
 
 
 def cmd_rebuild(args) -> int:
@@ -299,12 +590,33 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("doctor", help="check credentials, TLS, login and running-node headroom")
 
-    s = sub.add_parser("start", help="import and boot a lab, then rebuild VLANs/VTP")
+    s = sub.add_parser("break", help="pick faults for a lab and write a session (ticket, broken.yaml)")
     s.add_argument("lab", help="lab folder or prefix, e.g. 03")
+    s.add_argument("--tier", type=int, required=True, choices=[1, 2, 3], help="difficulty tier")
+    s.add_argument("--seed", type=int, help="same seed = same faults and ticket (default: random)")
+    s.add_argument("--fault", action="append", help="practise a specific fault id (repeatable)")
+
+    s = sub.add_parser("start", help="start a session (import the broken lab), or a healthy lab with --healthy")
+    s.add_argument("lab", help="session incident id (e.g. 03-t2-s4127), or a lab with --healthy, e.g. 03")
     s.add_argument("--healthy", action="store_true", help="import the unbroken topology.yaml")
     s.add_argument("--id", help="incident id for the title suffix (default: <lab#>-healthy-HHMM)")
     s.add_argument("--clean-after", action="store_true",
                    help="stop, wipe and delete the lab when done (pass or fail); results stay in runs/")
+
+    s = sub.add_parser("hint", help="unlock the next hint for one fault (in order, logged)")
+    s.add_argument("session", help="session incident id, e.g. 03-t2-s4127")
+    s.add_argument("fault", type=int, help="fault number from the ticket")
+
+    s = sub.add_parser("grade", help="grade the running session lab live and save evidence")
+    s.add_argument("session", help="session incident id, e.g. 03-t2-s4127")
+
+    s = sub.add_parser("selftest", help="acceptance test for faults on one lab, all in one import (cleans up)")
+    s.add_argument("fault", nargs="*", help="fault ids, e.g. ospf-area-mismatch l1-shutdown")
+    s.add_argument("--lab", required=True, help="lab folder or prefix, e.g. 03")
+    s.add_argument("--all", action="store_true", help="every fault that fits the lab and is not proven there yet")
+    s.add_argument("--include-proven", action="store_true", help="with --all, retest proven faults too")
+    s.add_argument("--seed", type=int, default=1, help="target choice seed (default 1)")
+    s.add_argument("--keep", action="store_true", help="leave the lab running afterwards")
 
     s = sub.add_parser("rebuild", help="rerun the VLAN/VTP rebuild on a running incident lab")
     s.add_argument("lab", help="lab folder or prefix, e.g. 03")
@@ -327,9 +639,9 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-COMMANDS = {"list": cmd_list, "show": cmd_show, "doctor": cmd_doctor, "start": cmd_start,
-            "rebuild": cmd_rebuild, "baseline": cmd_baseline, "console": cmd_console,
-            "clean": cmd_clean}
+COMMANDS = {"list": cmd_list, "show": cmd_show, "doctor": cmd_doctor, "break": cmd_break, "start": cmd_start,
+            "hint": cmd_hint, "grade": cmd_grade, "selftest": cmd_selftest, "rebuild": cmd_rebuild,
+            "baseline": cmd_baseline, "console": cmd_console, "clean": cmd_clean}
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -1,0 +1,62 @@
+id: ospf-area-mismatch
+title: OSPF area mismatch on one end of a link
+category: ospf
+tier: 2                                   # lowest tier it can appear in
+mode: static                              # static = YAML edit | runtime = CLI after boot
+platforms: [iosvl2, iosv, iol-xe]
+selftest_passed: ["03"]                   # labs where selftest passed; break draws only these
+applies_when:
+  - section: "router ospf"
+  - link_between_feature_nodes: ospf
+
+inject:
+  target: ospf_network_on_link_end        # one network statement covering exactly that interface
+  node_var: node
+  action: change_area                     # 0 -> 1, otherwise -> 0
+  save: true
+
+ticket:
+  t1: "{node} has no OSPF neighbor on {iface_short}. The link to {peer} is up."
+  t2: "Monitoring shows the network lost one of its redundant routing paths overnight. Users haven't noticed yet."
+  t3: "The network feels less resilient than it should; one path isn't being used."
+
+hints:                                    # unlocked strictly in order
+  h1: "The problem is above Layer 2. The link itself is healthy."
+  h2: "Look at the adjacency between {node} and {peer}."
+  h3: "Run 'debug ip ospf adj' on {node} and read the reject reason."
+
+checks:
+  functional:                             # does traffic work?
+    - ospf_neighbor: { on: "{node}", neighbor: "{peer_rid}", state: FULL, wait_s: 60 }
+  root_cause:                             # is the cause gone? state, not text
+    - ospf_interface_area: { on: "{node}", interface: "{iface}", area: "{original_area}" }
+  intent: [ospf_neighbors]                # keys from the lab profile
+  workaround_signatures:
+    - ospf_interface_area: { on: "{peer}", interface: "{peer_iface}", area: "{bad_area}" }   # area changed on the peer instead
+
+reference_fix: |
+  router ospf {pid}
+   no network {net} {wild} area {bad_area}
+   network {net} {wild} area {original_area}
+
+selftest:
+  reinject:
+    "{node}": "router ospf {pid}\n no network {net} {wild} area {original_area}\n network {net} {wild} area {bad_area}"
+  workaround:
+    "{peer}": "router ospf {peer_pid}\n no network {peer_net} {peer_wild} area {original_area}\n network {peer_net} {peer_wild} area {bad_area}"
+  workaround_saved: false
+
+debrief:
+  methods: [divide_and_conquer, compare_known_good]
+  reasoning: >
+    Traffic still flows over the redundant path, so this is lost redundancy, not an
+    outage. The link between {node} and {peer} is up and pings, but there is no
+    neighbor: hellos arrive and are rejected, so compare the hello parameters on
+    both ends.
+  commands:
+    show: ["show ip ospf neighbor", "show ip ospf interface brief", "show ip protocols",
+           "show running-config | section router ospf", "show logging | include OSPF"]
+    debug: ["debug ip ospf adj", "debug ip ospf hello"]
+  # Verified on lab 03 (selftest 2026-10-12), logged by R1 every ~10 s without any debug:
+  key_clue: "{node} logs '%OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from {peer_ip}, {iface}'"
+  better_fix_if_temporary: "Put the peer back in area {original_area} and correct the area on {node}."

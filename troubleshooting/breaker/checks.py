@@ -1,8 +1,8 @@
 """Live state checks: Genie parsers first, regex fallback, never config text.
 
-Build step 3 scope: the check kinds a lab baseline needs, and the intent
-checks (stp_root, hsrp_active, ospf_neighbors, etherchannel) that the grader
-reuses in step 4. Every result keeps the raw output it judged, as evidence.
+Baseline check kinds (step 3), intent checks the grader reuses, and the state
+checks fault files use for functional, root-cause and workaround tests (step 4).
+Every result keeps the raw output it judged, as evidence.
 """
 
 from __future__ import annotations
@@ -111,6 +111,8 @@ class Checker:
     def _nodes(self, value) -> list[str]:
         if value == "switches":
             return [n.label for n in self.model.switches() if n.label not in self.profile.never_touch]
+        if value == "ios":  # every IOS-family node the tool may touch
+            return [n.label for n in self.model.ios_nodes() if n.label not in self.profile.never_touch]
         return _as_list(value)
 
     def _ev(self, node: str, command: str) -> dict[str, str]:
@@ -512,6 +514,198 @@ class Checker:
         want = spec.get("status", "UP")
         return Result(f"wlan {node} {spec['name']}", status == want, f"{spec['name']} {status or 'not found'}",
                       [self._ev(node, cmd)])
+
+    # ---- fault checks (step 4): live state for functional, root-cause and
+    # workaround checks. Every spec is already rendered from the fault file.
+
+    def _poll(self, spec: dict, attempt: Callable[[], Result]) -> Result:
+        """Retry a state check for up to ``wait_s`` seconds until it passes, re-reading
+        the device each time (convergence after a fix takes a few seconds)."""
+        wait_s = int(spec.get("wait_s", 0))
+        waited = 0
+        while True:
+            try:
+                result = attempt()
+            except Exception as exc:  # e.g. a host console still booting after a restart
+                if waited >= wait_s:
+                    raise
+                result = Result("retry", False, f"{type(exc).__name__}: {exc}")
+            if result.ok or waited >= wait_s:
+                if waited:
+                    result.detail += f" (after {waited} s)"
+                return result
+            self.sleep(10)
+            waited += 10
+            self.fresh()
+
+    def check_host_lease(self, node: str, spec: dict) -> Result:
+        """A host holds an IPv4 address inside ``subnet`` on eth0."""
+        import ipaddress
+
+        subnet = ipaddress.IPv4Network(spec["subnet"])
+        cmd = "ip -4 addr show dev eth0"
+
+        def attempt() -> Result:
+            raw = self.run(node, cmd)
+            addrs = [ipaddress.IPv4Interface(f"{a}/{p}") for a, p in re.findall(r"inet (\d+\.\d+\.\d+\.\d+)/(\d+)", raw)]
+            inside = [str(a.ip) for a in addrs if a.ip in subnet]
+            detail = (f"{node} has {', '.join(inside)}" if inside else
+                      f"{node} has {', '.join(str(a) for a in addrs) or 'no IPv4 address'}, none in {subnet}")
+            return Result(f"host_lease {node}", bool(inside), detail, [{"node": node, "command": cmd, "output": raw}])
+
+        return self._poll(spec, attempt)
+
+    def check_host_gateway(self, node: str, spec: dict) -> Result:
+        """A host's default route points at ``gateway`` (what DHCP handed it)."""
+        cmd = "ip -4 route"
+
+        def attempt() -> Result:
+            raw = self.run(node, cmd)
+            m = re.search(r"^default via (\d+\.\d+\.\d+\.\d+)", raw, re.M)
+            via = m.group(1) if m else None
+            return Result(f"host_gateway {node}", via == spec["gateway"],
+                          f"{node} default via {via or 'none'} (want {spec['gateway']})",
+                          [{"node": node, "command": cmd, "output": raw}])
+
+        return self._poll(spec, attempt)
+
+    def _iface_state(self, node: str, iface: str) -> tuple[str, str]:
+        """(state, raw) where state is up, down or admin-down."""
+        cmd = f"show interfaces {iface}"
+        raw = self.show(node, cmd)
+        parsed = genie_parse(cmd, raw) or {}
+        info = parsed.get(iface) or next(iter(parsed.values()), {}) if parsed else {}
+        if info:
+            enabled, oper = info.get("enabled"), str(info.get("oper_status", "")).lower()
+            proto = str(info.get("line_protocol", "")).lower()
+            if enabled is False:
+                return "admin-down", raw
+            return ("up" if oper == "up" and proto == "up" else "down"), raw
+        if re.search(r"is administratively down", raw):
+            return "admin-down", raw
+        return ("up" if re.search(r"is up, line protocol is up", raw) else "down"), raw
+
+    def check_interface_state(self, node: str, spec: dict) -> Result:
+        iface = canonical_ifname(spec["interface"])
+        want = spec.get("state", "up")
+
+        def attempt() -> Result:
+            state, _ = self._iface_state(node, iface)
+            return Result(f"interface_state {node} {iface}", state == want, f"{node} {iface} is {state} (want {want})",
+                          [self._ev(node, f"show interfaces {iface}")])
+
+        return self._poll(spec, attempt)
+
+    def check_access_vlan(self, node: str, spec: dict) -> Result:
+        iface = canonical_ifname(spec["interface"])
+        cmd = f"show interfaces {iface} switchport"
+        raw = self.show(node, cmd)
+        parsed = genie_parse(cmd, raw) or {}
+        info = parsed.get(iface) or (next(iter(parsed.values()), {}) if parsed else {})
+        vlan = str(info.get("access_vlan", "")) if info else ""
+        if not vlan:
+            m = re.search(r"Access Mode VLAN: (\d+)", raw)
+            vlan = m.group(1) if m else ""
+        want = str(spec["vlan"])
+        return Result(f"access_vlan {node} {iface}", vlan == want, f"{node} {iface} access VLAN {vlan or '?'} (want {want})",
+                      [self._ev(node, cmd)])
+
+    def check_ospf_neighbor(self, node: str, spec: dict) -> Result:
+        """One named neighbor (router ID) in the wanted state, default FULL."""
+        cmd = "show ip ospf neighbor"
+        want = str(spec.get("state", "FULL")).upper()
+
+        def attempt() -> Result:
+            raw = self.show(node, cmd)
+            parsed = genie_parse(cmd, raw)
+            state = None
+            if parsed:
+                for i in (parsed.get("interfaces") or {}).values():
+                    for rid, n in (i.get("neighbors") or {}).items():
+                        if rid == spec["neighbor"]:
+                            state = str(n.get("state", ""))
+            else:
+                m = re.search(rf"^{re.escape(spec['neighbor'])}\s+\d+\s+(\S+)", raw, re.M)
+                state = m.group(1) if m else None
+            ok = bool(state) and state.upper().startswith(want)
+            return Result(f"ospf_neighbor {node} {spec['neighbor']}", ok,
+                          f"{node} sees {spec['neighbor']} {state or 'not at all'}", [self._ev(node, cmd)])
+
+        return self._poll(spec, attempt)
+
+    def check_ospf_interface_area(self, node: str, spec: dict) -> Result:
+        """The area an interface runs OSPF in, read from the router, not the config."""
+        import ipaddress
+
+        iface = canonical_ifname(spec["interface"])
+        cmd = f"show ip ospf interface {iface}"
+        raw = self.show(node, cmd)
+        m = re.search(r"Area (\S+?),", raw)
+        area = m.group(1) if m else None
+
+        def norm(a) -> str:
+            a = str(a)
+            return str(ipaddress.IPv4Address(int(a))) if a.isdigit() else a
+
+        want = norm(spec["area"])
+        got = norm(area) if area else None
+        return Result(f"ospf_interface_area {node} {iface}", got == want,
+                      f"{node} {iface} in area {got or 'none (not running OSPF)'} (want {want})", [self._ev(node, cmd)])
+
+    def check_hsrp_state(self, node: str, spec: dict) -> Result:
+        def attempt() -> Result:
+            state = self._hsrp_state(node, str(spec["vlan"]))
+            want = str(spec.get("state", "Active"))
+            return Result(f"hsrp_state {node} Vlan{spec['vlan']}", (state or "").lower() == want.lower(),
+                          f"{node} Vlan{spec['vlan']} is {state or 'not found'} (want {want})",
+                          [self._ev(node, "show standby brief")])
+
+        return self._poll(spec, attempt)
+
+    def _hsrp_priority(self, node: str, vlan: str) -> int | None:
+        raw = self.show(node, "show standby brief")
+        m = re.search(rf"^Vl{vlan}\s+\d+\s+(\d+)\s", raw, re.M)
+        return int(m.group(1)) if m else None
+
+    def check_hsrp_priority_above(self, node: str, spec: dict) -> Result:
+        """Root cause for a priority flip: this router outranks its peer again."""
+        vlan, peer = str(spec["vlan"]), spec["peer"]
+        mine, theirs = self._hsrp_priority(node, vlan), self._hsrp_priority(peer, vlan)
+        ok = mine is not None and theirs is not None and mine > theirs
+        return Result(f"hsrp_priority {node}>{peer} Vlan{vlan}", ok, f"{node} {mine} vs {peer} {theirs}",
+                      [self._ev(node, "show standby brief"), self._ev(peer, "show standby brief")])
+
+    def check_address_owner(self, nodes, spec: dict) -> Result:
+        """Workaround signature: some device answers for ``ip`` (primary,
+        secondary or HSRP virtual address). Use with ``total: true``."""
+        ip = spec["ip"]
+        owners, ev = [], []
+        for n in _as_list(nodes):
+            for cmd in ("show ip interface", "show standby brief"):
+                raw = self.show(n, cmd)
+                ev.append({"node": n, "command": cmd, "output": raw})
+                if re.search(rf"(Internet address is|Secondary address) {re.escape(ip)}/", raw) or \
+                        re.search(rf"\s{re.escape(ip)}\s*$", raw, re.M) and cmd == "show standby brief":
+                    owners.append(n)
+        owners = sorted(set(owners))
+        return Result(f"address_owner {ip}", bool(owners),
+                      f"{ip} answered by {', '.join(owners)}" if owners else f"nobody owns {ip}", ev)
+
+    def check_static_route_toward(self, nodes, spec: dict) -> Result:
+        """Workaround signature: a static route (not a default) covering ``prefix``."""
+        import ipaddress
+
+        want = ipaddress.IPv4Network(spec["prefix"])
+        hits, ev = [], []
+        for n in _as_list(nodes):
+            cmd = "show ip route static"
+            raw = self.show(n, cmd)
+            ev.append({"node": n, "command": cmd, "output": raw})
+            for net in re.findall(r"^S\*?\s+(\d+\.\d+\.\d+\.\d+/\d+)", raw, re.M):
+                route = ipaddress.IPv4Network(net, strict=False)
+                if route.prefixlen > 0 and want.subnet_of(route):
+                    hits.append(f"{n} {net}")
+        return Result(f"static_route_toward {want}", bool(hits), ", ".join(hits) or "no static route toward it", ev)
 
 
 def _vlan_set(text: str) -> set[int]:

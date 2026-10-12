@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![pyATS](https://img.shields.io/badge/Automation-pyATS%20%2B%20Genie%2025.x-005073)
 ![API](https://img.shields.io/badge/API-virl2--client%202.10.1-0b7285)
-![Status](https://img.shields.io/badge/Status-Build%20step%204%20of%207-b45309)
+![Status](https://img.shields.io/badge/Status-Build%20step%205%20of%207-b45309)
 
 ## Objective
 
@@ -17,7 +17,7 @@ A tool that breaks a working lab from this repo, boots it in CML, grades the fix
 | 1 | WSL1 environment and CML login with verified TLS | done |
 | 2 | `lab_model.py`, `cml_api.py`: parse, import, boot, VLAN/VTP rebuild, clean | done, proven on lab 03 |
 | 3 | Six lab profiles, each baseline passing on a healthy import | done, all six pass (table below) |
-| 4 | `checks.py`, `grading.py`, first five faults on lab 03 | |
+| 4 | `checks.py`, `grading.py`, first five faults on lab 03 | done, all five pass selftest on lab 03 |
 | 5 | `report.py`: ticket and debrief, first published session | |
 | 6 | Full library of 60 faults, each through `selftest` | |
 | 7 | T4 combos and the methods pages | |
@@ -47,6 +47,11 @@ Credentials come only from `VIRL2_URL`, `VIRL2_USER`, `VIRL2_PASS` and `CML_CA_B
 | `python -m breaker baseline 03 --id <id>` | Run the profile's baseline checks live and save the evidence to `runs/` |
 | `python -m breaker rebuild 03 --id <id>` | Rerun the rebuild on an incident lab that is already running (no import, no boot) |
 | `python -m breaker console 04 WLC --id <id>` | Print and save CML's console buffer for one node (what it showed before pyATS could log in) |
+| `python -m breaker break 03 --tier 2 [--seed S]` | Pick faults that passed selftest on the lab, write a session: `broken.yaml`, `ticket.md`, sealed answers |
+| `python -m breaker start <incident>` | Import the broken lab, rebuild, record the starting baseline; the clock starts |
+| `python -m breaker hint <incident> <fault#>` | Unlock the next hint for one fault (in order, logged, penalised) |
+| `python -m breaker grade <incident>` | Grade every fault live, rerun the baseline for collateral, save `grade.json` and `evidence/` |
+| `python -m breaker selftest <fault> [<fault> ...] --lab 03` or `--all` | Acceptance test, all faults in one import: inject, symptoms, reference fixes grade Exact, workarounds grade Temporary, then clean up |
 | `python -m breaker clean [--id <id>] [--remove]` | Stop and wipe incident labs only (optionally delete them) |
 
 ## Healthy Baselines
@@ -87,6 +92,11 @@ Each lab imported unbroken, rebuilt and checked live. Evidence for every check i
 | `breaker/lab_model.py` | Topology parsing, config file per `node_definition`, config sections, cabling, sanitizer guard, lab profiles |
 | `breaker/cml_api.py` | Login, capacity check, import, boot, console access, VLAN/VTP rebuild, stop and wipe |
 | `breaker/checks.py` | Live state checks: Genie parsers first, regex fallback, evidence kept per check |
+| `breaker/faults.py` | Fault library: load, acceptance checks, pick by tier and seed, render templates |
+| `breaker/inject_static.py` | Fault targets (where a fault fits) and actions (the YAML edit before import) |
+| `breaker/grading.py` | Grade decision order, persistence and original-section compare, collateral, scoring |
+| `breaker/session.py` | Session folder: ticket, broken lab, sealed answers, hints log |
+| `faults/` | One YAML per fault, by category; `selftest_passed` lists the labs it is proven on |
 | `breaker/cli.py` | Command line entry point |
 | `runs/` | Per-run log, result and baseline evidence (gitignored) |
 | `labs/` | One profile per lab: VLANs and VTP to rebuild, design intent, baseline |

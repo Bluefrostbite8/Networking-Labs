@@ -1,0 +1,62 @@
+id: svc-pool-gateway
+title: DHCP pool hands out the wrong default gateway
+category: services
+tier: 2
+mode: static
+platforms: [iosv, iosvl2, iol-xe]
+selftest_passed: ["03"]                   # labs where selftest passed; break draws only these
+applies_when:
+  - feature: dhcp_server
+  - dhcp_hosts: true
+
+inject:
+  target: dhcp_pool_with_hosts
+  node_var: server
+  action: change_default_router           # an unused address from the pool's excluded range
+  save: true
+
+ticket:
+  t1: "Hosts in {subnet} get a DHCP lease but can't reach anything outside their subnet. {server} serves pool {pool}."
+  t2: "People on one floor can reach each other's PCs, but nothing outside their own network works."
+  t3: "Some users say the network is down; others say it's fine."
+
+hints:
+  h1: "The hosts have addresses, so look at what else DHCP gives them."
+  h2: "Compare the default gateway {host} received with the gateway VLAN {vlan} actually uses."
+  h3: "On {server}, run 'show running-config | section ip dhcp pool {pool}' and check default-router against the HSRP virtual IP."
+
+checks:
+  refresh: ["{host}"]
+  functional:
+    - host_lease: { on: "{host}", subnet: "{subnet}", wait_s: 90 }
+    - ping: { from: "{host}", to: ["{server_ip}"] }     # off-subnet: needs a working gateway
+  root_cause:
+    - host_gateway: { on: "{host}", gateway: "{gateway}", wait_s: 30 }
+  intent: []
+  workaround_signatures:
+    - address_owner: { on: ios, ip: "{bad_gateway}", total: true }   # someone now answers for the bad gateway
+
+reference_fix: |
+  ip dhcp pool {pool}
+   default-router {gateway}
+
+selftest:
+  reinject:
+    "{server}": "ip dhcp pool {pool}\n default-router {bad_gateway}"
+  workaround:                             # make the wrong gateway answer instead of fixing the pool
+    "{gateway_node}": "interface Vlan{vlan}\n ip address {bad_gateway} {mask} secondary"
+  workaround_saved: false
+
+debrief:
+  methods: [divide_and_conquer, compare_known_good]
+  reasoning: >
+    Hosts lease addresses, so the path to the DHCP server works. They can't leave
+    their subnet, which points at the first hop. The lease names a default gateway
+    no device owns; compare the pool's default-router with the VLAN's HSRP virtual IP.
+  commands:
+    show: ["show running-config | section ip dhcp pool {pool}", "show ip dhcp binding",
+           "show ip dhcp pool {pool}"]
+    debug: ["debug ip dhcp server packet (the OFFER carries the router option)"]
+  # Verified on lab 03 (selftest 2026-10-12), R1 in the broken state:
+  key_clue: "show running-config | section ip dhcp pool {pool} on {server}: ' default-router {bad_gateway}' while the VLAN's HSRP virtual IP is {gateway}"
+  better_fix_if_temporary: "Remove the borrowed address and correct default-router in pool {pool} on {server}."

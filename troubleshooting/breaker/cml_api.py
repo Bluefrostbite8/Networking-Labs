@@ -236,6 +236,34 @@ def wait_booted(lab, labels: set[str] | None, timeout_min: float, log: Log = def
         time.sleep(poll_s)
 
 
+def restart_nodes(lab, labels: list[str], timeout_min: float, log: Log = default_log,
+                  attempts: int = 2, on_restart: Callable[[str], None] | None = None) -> None:
+    """Power-cycle nodes and wait for them to boot. A node still booting at the
+    timeout gets one more cycle (a CML desktop occasionally hangs in boot after a
+    stop/start; seen on lab 03 E-1, 2026-10-12) before the run gives up."""
+    pending = list(labels)
+    for attempt in range(1, attempts + 1):
+        for label in pending:
+            node = lab.get_node_by_label(label)
+            node.stop(wait=True)
+            node.start(wait=False)
+            if on_restart:
+                on_restart(label)
+        log(f"restarted {len(pending)} host(s): {', '.join(pending)}" + (f" (attempt {attempt})" if attempt > 1 else ""))
+        try:
+            wait_booted(lab, set(pending), timeout_min, log)
+            return
+        except CmlError:
+            lab.sync_states()
+            pending = sorted(n.label for n in lab.nodes() if n.label in set(pending) and not n.is_booted())
+            if not pending:  # finished booting just after the deadline
+                log(f"all {len(labels)} restarted host(s) booted")
+                return
+            if attempt == attempts:
+                raise
+            log(f"still booting after {timeout_min} min: {', '.join(pending)}; power-cycling again")
+
+
 # --------------------------------------------------------------------------- consoles
 
 
@@ -350,6 +378,12 @@ class Consoles:
         self._ready.add(node)
         _raise_on_cli_error(node, "; ".join(line.strip() for line in lines), out)
         return out
+
+    def reset(self, node: str) -> None:
+        """Drop a node's console session (after the node restarts, the old one is stale)."""
+        device = getattr(self.pyats, "_testbed", None) and self.pyats._testbed.devices.get(node)
+        if device is not None:
+            self.pyats._destroy_device(device, raise_exc=False)
 
     def console_log(self, node: str, lines: int = 200) -> str:
         """CML's own buffer of what the node's console printed (no pyATS involved)."""
@@ -500,7 +534,8 @@ def count_dhcp_bindings(output: str) -> int:
     return len(re.findall(r"^\d{1,3}(?:\.\d{1,3}){3}\s+\S+", output, re.M))
 
 
-def rebuild(lab, consoles: Consoles, model: LabModel, profile: LabProfile, log: Log = default_log) -> None:
+def rebuild(lab, consoles: Consoles, model: LabModel, profile: LabProfile, log: Log = default_log,
+            strict: bool = True) -> None:
     """Restore what the export can't carry, from the lab profile (before the clock)."""
     rb = profile.rebuild
     vlans = profile.vlans
@@ -548,7 +583,9 @@ def rebuild(lab, consoles: Consoles, model: LabModel, profile: LabProfile, log: 
 
     leases = rb.get("renew_leases")
     if leases:
-        renew_leases(lab, consoles, leases, log)
+        # A broken lab may be missing a lease on purpose (that is the symptom):
+        # strict=False logs the shortfall instead of stopping the start.
+        renew_leases(lab, consoles, leases, log, strict=strict)
 
     if rb.get("save", True):
         for sw in switches:
@@ -658,7 +695,13 @@ def recover_stuck_svis(consoles: Consoles, switches: list[str], vlans: dict[int,
             + (f", still down: {', '.join(still)}" if still else ", now up"))
 
 
-def renew_leases(lab, consoles: Consoles, leases: dict, log: Log = default_log) -> None:
+def restart_hosts(lab, consoles: Consoles, hosts: list[str], log: Log = default_log,
+                  timeout_min: float = 5) -> None:
+    """Power-cycle hosts so they ask DHCP again (the user's "reboot the PC")."""
+    restart_nodes(lab, hosts, timeout_min, log, on_restart=consoles.reset)
+
+
+def renew_leases(lab, consoles: Consoles, leases: dict, log: Log = default_log, strict: bool = True) -> None:
     """Restart the DHCP hosts so they lease now that the VLANs exist, then count bindings."""
     hosts = list(leases.get("hosts") or [])
     raw_server = leases.get("dhcp_server")
@@ -673,20 +716,18 @@ def renew_leases(lab, consoles: Consoles, leases: dict, log: Log = default_log) 
         if have >= len(hosts):  # every host already leased at boot: no restart needed
             log(f"{where}: {have} DHCP bindings already, hosts not restarted")
             return
-    for label in hosts:
-        node = lab.get_node_by_label(label)
-        node.stop(wait=True)
-        node.start(wait=False)
-    log(f"restarted {len(hosts)} hosts: {', '.join(hosts)}")
-    wait_booted(lab, set(hosts), leases.get("boot_timeout_min", 5), log)
+    restart_nodes(lab, hosts, leases.get("boot_timeout_min", 5), log, on_restart=consoles.reset)
     if not servers:
         return
-    deadline = time.monotonic() + leases.get("timeout_s", 240)
+    deadline = time.monotonic() + leases.get("timeout_s", 240 if strict else 120)
     while True:
         count = bindings()
         if count >= len(hosts):
             log(f"{where}: {count} DHCP bindings")
             return
         if time.monotonic() > deadline:
+            if not strict:
+                log(f"{where}: {count} of {len(hosts)} DHCP bindings (expected in a broken lab)")
+                return
             raise CmlError(f"{where} shows {count} DHCP bindings, expected {len(hosts)}")
         time.sleep(10)
