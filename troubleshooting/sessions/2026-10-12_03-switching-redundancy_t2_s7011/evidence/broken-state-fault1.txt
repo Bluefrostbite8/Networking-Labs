@@ -1,0 +1,35 @@
+## Core1# show standby brief
+                     P indicates configured to preempt.
+                     |
+Interface   Grp  Pri P State   Active          Standby         Virtual IP
+Vl10        0    255 P Active  local           10.1.10.2       10.1.10.3
+Vl20        1    1     Standby 10.1.20.2       local           10.1.20.3
+Vl30        2    0   P Standby 10.1.30.2       local           10.1.30.3
+
+## Core1# show standby Vlan30
+Vlan30 - Group 2
+  State is Standby
+    1 state change, last state change 00:00:18
+  Virtual IP address is 10.1.30.3
+  Active virtual MAC address is 0000.0c07.ac02 (MAC Not In Use)
+    Local virtual MAC address is 0000.0c07.ac02 (v1 default)
+  Hello time 3 sec, hold time 10 sec
+    Next hello sent in 2.592 secs
+  Preemption enabled
+  Active router is 10.1.30.2, priority 1 (expires in 7.760 sec)
+  Standby router is local
+  Priority 0 (configured 0)
+  Group name is "hsrp-Vl30-2" (default)
+
+## Core1# show running-config interface Vlan30
+Building configuration...
+
+Current configuration : 157 bytes
+!
+interface Vlan30
+ ip address 10.1.30.1 255.255.255.0
+ ip helper-address 192.168.1.1 
+ standby 2 ip 10.1.30.3
+ standby 2 priority 0
+ standby 2 preempt
+end

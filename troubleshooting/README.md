@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![pyATS](https://img.shields.io/badge/Automation-pyATS%20%2B%20Genie%2025.x-005073)
 ![API](https://img.shields.io/badge/API-virl2--client%202.10.1-0b7285)
-![Status](https://img.shields.io/badge/Status-Build%20step%206%20of%207-b45309)
+![Status](https://img.shields.io/badge/Status-Build%20step%206%20of%208-b45309)
 
 ## Objective
 
@@ -19,8 +19,9 @@ A tool that breaks a working lab from this repo, boots it in CML, grades the fix
 | 3 | Six lab profiles, each baseline passing on a healthy import | done, all six pass (table below) |
 | 4 | `checks.py`, `grading.py`, first five faults on lab 03 | done, all five pass selftest on lab 03 |
 | 5 | `report.py`: ticket and debrief, first published session | done 2026-10-12, session `03-t2-s1984` published |
-| 6 | Full library of 60 faults, each through `selftest` | |
-| 7 | T4 combos and the methods pages | |
+| 6 | Local web console (`python -m breaker gui`) over the same commands | built 2026-10-12; first live session pending |
+| 7 | Full library of 60 faults, each through `selftest` | |
+| 8 | T4 combos and the methods pages | |
 
 ## Setup
 
@@ -54,6 +55,7 @@ Credentials come only from `VIRL2_URL`, `VIRL2_USER`, `VIRL2_PASS` and `CML_CA_B
 | `python -m breaker debrief <incident>` | Reveal the answers (`answers.json` in plain text), sanitize, write `debrief.md`, add the session to the index below |
 | `python -m breaker selftest <fault> [<fault> ...] --lab 03` or `--all` | Acceptance test, all faults in one import: inject, symptoms, reference fixes grade Exact, workarounds grade Temporary, then clean up |
 | `python -m breaker clean [--id <id>] [--remove]` | Stop and wipe incident labs only (optionally delete them) |
+| `python -m breaker gui [--port 5050]` | Local web console: open `http://localhost:5050` in the Windows browser. Sessions, ticket and debrief, Start/Hint/Grade/Debrief/Clean buttons with a live log, the fault library with selftest |
 
 ## Healthy Baselines
 
@@ -100,6 +102,7 @@ Each lab imported unbroken, rebuilt and checked live. Evidence for every check i
 | `breaker/report.py` | `ticket.md` and `debrief.md` in this repo's README style, the sanitizer pass, the session index |
 | `faults/` | One YAML per fault, by category; `selftest_passed` lists the labs it is proven on |
 | `breaker/cli.py` | Command line entry point |
+| `breaker/gui/` | Flask web console: runs the CLI commands as background jobs (logs in `runs/gui-jobs/`), renders tickets and debriefs, hides anything that names a fault until its debrief. Fonts are bundled (SIL OFL) so it works offline |
 | `runs/` | Per-run log, result and baseline evidence (gitignored) |
 | `sessions/` | Published break-fix sessions: ticket, debrief, broken lab, answers, grade, evidence, hints |
 | `labs/` | One profile per lab: VLANs and VTP to rebuild, design intent, baseline |
@@ -112,5 +115,6 @@ Published break-fix sessions, newest first. Each links to its debrief.
 
 | Date | Session | Lab | Tier | Faults | Score | Grades |
 |------|---------|-----|------|--------|-------|--------|
+| 2026-10-12 | [03-t2-s7011](sessions/2026-10-12_03-switching-redundancy_t2_s7011/debrief.md) | 03 Redundant Campus Access Layer | T2 | 1 | 100 | Exact |
 | 2026-10-12 | [03-t2-s1984](sessions/2026-10-12_03-switching-redundancy_t2_s1984/debrief.md) | 03 Redundant Campus Access Layer | T2 | 1 | 100 | Equivalent |
 
