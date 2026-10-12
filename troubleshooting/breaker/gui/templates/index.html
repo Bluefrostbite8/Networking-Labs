@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stepper, grade_chip with context %}
+{% block title %}Sessions{% endblock %}
+{% block main %}
+{% set open = sessions|selectattr('state', 'ne', 'debriefed')|list %}
+<section class="hero">
+  {% if open %}
+    {% set s = open[0] %}
+    <p class="hero-kicker">Open incident</p>
+    <h1 class="incident"><a href="{{ url_for('session', name=s.name) }}">{{ s.incident }}</a></h1>
+    <p class="hero-sub">{{ s.lab_name }}, {{ s.tier_name }}, {{ s.faults }} fault{{ 's' if s.faults != 1 }}</p>
+    {{ stepper(s) }}
+    {% if s.started and s.state in ('started', 'graded') %}
+      <p class="clock-line">Clock running <span class="clock" data-since="{{ s.started }}"></span></p>
+    {% endif %}
+  {% else %}
+    <h1 class="incident">No open incident</h1>
+    <p class="hero-sub">Break a lab to get a ticket. Faults are drawn only from those that passed selftest on that lab.</p>
+    <a class="btn btn-primary" href="{{ url_for('new') }}">New incident</a>
+  {% endif %}
+</section>
+
+<section class="block">
+  <h2>Sessions</h2>
+  {% if sessions %}
+  <table class="grid">
+    <thead><tr><th>Incident</th><th>Lab</th><th>Tier</th><th>State</th><th>Score</th><th>Grades</th><th>Created</th></tr></thead>
+    <tbody>
+    {% for s in sessions %}
+      <tr>
+        <td><a href="{{ url_for('session', name=s.name) }}" class="mono">{{ s.incident }}</a></td>
+        <td>{{ s.lab[:2] }} {{ s.lab_name }}</td>
+        <td>{{ s.tier_name }}</td>
+        <td><span class="state state-{{ s.state }}">{{ s.state|capitalize }}</span></td>
+        <td class="num">{{ s.score if s.score is not none else '' }}</td>
+        <td>{% if s.state == 'debriefed' %}{% for g in s.grades %}{{ grade_chip(g) }} {% endfor %}{% elif s.grades %}<span class="muted">graded</span>{% endif %}</td>
+        <td class="muted">{{ s.created|since }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="empty">No sessions yet. <a href="{{ url_for('new') }}">Break a lab</a> to create the first one.</p>
+  {% endif %}
+</section>
+
+<section class="block">
+  <div class="block-head">
+    <h2>Labs</h2>
+    <form method="post" action="{{ url_for('doctor') }}"><input type="hidden" name="token" value="{{ token }}"><button class="btn btn-quiet" {{ 'disabled' if running }}>Check CML (doctor)</button></form>
+  </div>
+  <table class="grid">
+    <thead><tr><th>Lab</th><th>Nodes</th><th>Faults proven</th><th>Healthy baseline</th><th></th></tr></thead>
+    <tbody>
+    {% for lab in labs %}
+      <tr>
+        <td><a href="/files/{{ lab.lab }}/README.md">{{ lab.number }} {{ lab.name }}</a></td>
+        <td class="num">{{ lab.licensed if lab.profile else '' }}</td>
+        <td>{% if lab.profile %}<span class="num">{{ lab.proven|length }}</span> <span class="muted">of {{ lab.fit|length }} that fit</span>{% else %}<span class="muted">no profile</span>{% endif %}</td>
+        <td>{% if lab.healthy %}<span class="led led-green"></span> {{ lab.healthy.passed }}/{{ lab.healthy.total }} <span class="muted">{{ lab.healthy.when }}</span>
+            {% elif lab.profile %}<span class="led led-magenta"></span> <span class="muted">none passing yet</span>{% endif %}</td>
+        <td class="right">{% if lab.profile %}
+          <form method="post" action="{{ url_for('healthy', lab=lab.lab) }}"><input type="hidden" name="token" value="{{ token }}">
+            <button class="btn btn-quiet" {{ 'disabled' if running }} title="Import, boot, rebuild, baseline, then delete the lab">Healthy run</button></form>
+        {% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if recent %}
+<section class="block">
+  <h2>Recent jobs</h2>
+  <ul class="joblist">
+    {% for j in recent %}
+      <li><span class="led {{ 'led-amber led-blink' if j.status == 'running' else 'led-green' if j.status == 'done' else 'led-magenta' }}"></span>
+        <a href="{{ url_for('job_page', job_id=j.id) }}">{{ j.title }}</a> <span class="muted">{{ j.started|since }}, {{ j.status }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

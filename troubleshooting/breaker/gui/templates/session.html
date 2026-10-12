@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stepper, grade_chip, console with context %}
+{% block title %}{{ s.incident }}{% endblock %}
+{% block main %}
+<header class="session-head">
+  <div>
+    <h1 class="incident">{{ s.incident }}</h1>
+    <p class="hero-sub">{{ s.lab[:2] }} {{ s.lab_name }}, {{ s.tier_name }}, {{ s.faults }} fault{{ 's' if s.faults != 1 }}, seed {{ s.seed }}</p>
+  </div>
+  {{ stepper(s) }}
+</header>
+
+{% if running %}
+  <p class="busy-line"><span class="led led-amber led-blink"></span>{% if running.target == s.incident %}{{ running.title }} is running; its output is below. CML buttons unlock when it finishes.{% else %}CML is busy with <a href="{{ url_for('job_page', job_id=running.id) }}">{{ running.title }}</a>; CML buttons unlock when it finishes.{% endif %}</p>
+{% endif %}
+<div class="actions">
+  {% macro act(action, label, cls='btn-quiet', confirm='', cml=true) -%}
+    <form method="post" action="{{ url_for('session_action', name=s.name, action=action) }}" {% if confirm %}data-confirm="{{ confirm }}"{% endif %}>
+      <input type="hidden" name="token" value="{{ token }}">
+      <button class="btn {{ cls }}" {{ 'disabled' if cml and running }}>{{ label }}</button>
+    </form>
+  {%- endmacro %}
+  {% if s.state == 'created' %}
+    {{ act('start', 'Start incident', 'btn-primary') }}
+    <p class="hint-text">Imports and boots the broken lab, about 15 to 20 minutes. The clock starts when it is ready.</p>
+  {% elif s.state == 'started' %}
+    {{ act('grade', 'Grade now', 'btn-primary') }}
+    <p class="hint-text">Save your fixes with <code>write memory</code> first. You can grade as often as you like.</p>
+  {% elif s.state == 'graded' %}
+    {{ act('debrief', 'Write debrief', 'btn-primary', 'This reveals the answers and locks hints. Finish first?', false) }}
+    {{ act('grade', 'Grade again') }}
+  {% else %}
+    {{ act('debrief', 'Rebuild debrief', 'btn-quiet', '', false) }}
+  {% endif %}
+  {% if s.state != 'created' %}
+    {{ act('clean', 'Delete incident lab', 'btn-danger', 'Stop, wipe and delete the CML lab for ' ~ s.incident ~ '? Only this incident lab is touched.') }}
+  {% endif %}
+</div>
+
+<div class="session-grid">
+  <article class="doc">
+    {% if s.state == 'debriefed' %}
+      <nav class="tabs" aria-label="Document">
+        <a href="?view=ticket" class="{{ 'on' if view == 'ticket' }}">Ticket</a>
+        <a href="?view=debrief" class="{{ 'on' if view == 'debrief' }}">Debrief</a>
+      </nav>
+    {% endif %}
+    <div class="md">{{ body|safe }}</div>
+  </article>
+
+  <aside class="side">
+    {% if s.started and s.state in ('started', 'graded') %}
+      <section class="panel">
+        <h2>Clock</h2>
+        <p class="clock big" data-since="{{ s.started }}"></p>
+        <p class="muted small">Since <code>start</code> finished at {{ s.started|since }}. Recorded, not scored.</p>
+      </section>
+    {% endif %}
+
+    {% if s.state in ('started', 'graded') %}
+      <section class="panel">
+        <h2>Hints</h2>
+        {% for h in s.hints %}
+          <div class="hint-row">
+            <p class="hint-fault">Fault {{ h.fault }}</p>
+            {% for t in h.taken %}<p class="hint-taken"><span class="mono">{{ t.level }}</span> {{ t.text }}</p>{% endfor %}
+            {% if h.next %}
+              <form method="post" action="{{ url_for('session_action', name=s.name, action='hint') }}" data-confirm="Take hint h{{ h.next }} for fault {{ h.fault }}? It costs {{ h.cost }} points.">
+                <input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="fault" value="{{ h.fault }}">
+                <button class="btn btn-quiet btn-small">Take h{{ h.next }} (minus {{ h.cost }})</button>
+              </form>
+            {% else %}<p class="muted small">No hints left at {{ s.tier_name }}.</p>{% endif %}
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {% if s.grade %}
+      <section class="panel">
+        <h2>Last grade</h2>
+        <p><span class="score">{{ s.grade.score }}</span> <span class="muted">graded {{ s.grade.graded|since }}{% if s.grade.minutes_since_start is not none %}, {{ s.grade.minutes_since_start }} min after start{% endif %}</span></p>
+        {% for f in s.grade.faults %}
+          <div class="grade-row">
+            <p>Fault {{ f.index }} {{ grade_chip(f.grade) }} <span class="num">{{ f.score }}</span></p>
+            <ul class="leds">{% for st in f.steps %}<li><span class="led {{ 'led-green' if st.ok else 'led-magenta' }}"></span>{{ st.question|replace('_', ' ') }}</li>{% endfor %}</ul>
+          </div>
+        {% endfor %}
+        {% if s.grade.collateral %}<p class="warn small">Collateral: {{ s.grade.collateral|join('; ') }}</p>{% endif %}
+      </section>
+    {% endif %}
+
+    {% if s.state != 'created' %}
+      <section class="panel" id="notes">
+        <h2>Your notes</h2>
+        <p class="muted small">How you found it, in your own words. They appear in the debrief.</p>
+        <form method="post" action="{{ url_for('session_action', name=s.name, action='notes') }}">
+          <input type="hidden" name="token" value="{{ token }}">
+          <textarea name="notes" rows="8" aria-label="Notes">{{ s.notes }}</textarea>
+          <button class="btn btn-quiet btn-small">Save notes</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if s.state == 'debriefed' %}
+      <section class="panel">
+        <h2>Publish</h2>
+        <p class="muted small">In PowerShell, from the repo folder:</p>
+        <pre class="cmd" data-copy>git add {{ where }} troubleshooting/README.md
+git status
+git commit -m "Publish break-fix session {{ s.incident }}"
+git push</pre>
+        <button type="button" class="btn btn-quiet btn-small" data-role="copy">Copy commands</button>
+      </section>
+    {% endif %}
+  </aside>
+</div>
+
+{% if job %}
+  <h2 class="console-label">Latest job</h2>
+  {{ console(job) }}
+{% endif %}
+{% endblock %}

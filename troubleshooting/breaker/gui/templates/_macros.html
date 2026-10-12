@@ -1,0 +1,24 @@
+{% macro stepper(s) -%}
+<ol class="stepper" aria-label="Session progress">
+  {% for st in states %}
+    <li class="{{ 'done' if loop.index0 < s.state_index else 'now' if loop.index0 == s.state_index else '' }}">{{ st|capitalize }}</li>
+  {% endfor %}
+</ol>
+{%- endmacro %}
+
+{% macro grade_chip(g) -%}
+<span class="chip chip-{{ {'Exact':'green','Equivalent':'green','Off-design':'amber','Temporary':'amber','Partial':'magenta','Open':'magenta'}.get(g, 'muted') }}">{{ g }}</span>
+{%- endmacro %}
+
+{% macro console(job, height='') -%}
+<section class="console {{ height }}" data-job="{{ job.id }}" data-status="{{ job.status }}" aria-label="Job output">
+  <header class="console-head">
+    <span class="led {{ 'led-amber led-blink' if job.status == 'running' else 'led-green' if job.status == 'done' else 'led-magenta' }}"></span>
+    <span class="console-title">{{ job.title }}</span>
+    <span class="console-status" data-role="status">{{ job.status }}</span>
+    <span class="console-clock" data-role="clock" data-started="{{ job.started }}" data-ended="{{ job.ended or '' }}"></span>
+    {% if job.status == 'running' %}<button type="button" class="btn btn-quiet" data-role="stop">Stop (Ctrl+C)</button>{% endif %}
+  </header>
+  <pre class="console-body" data-role="log" tabindex="0"></pre>
+</section>
+{%- endmacro %}

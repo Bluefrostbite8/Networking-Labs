@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% from "_macros.html" import console with context %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block main %}
+<h1 class="page-title">{{ job.title }}</h1>
+<p class="lede mono small">python -m breaker {{ job.args|join(' ') }}</p>
+{{ console(job, 'tall') }}
+{% endblock %}

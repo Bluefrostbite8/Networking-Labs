@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}New incident{% endblock %}
+{% block main %}
+<h1 class="page-title">New incident</h1>
+<p class="lede">Pick a lab and a tier. The tool draws faults that passed selftest on that lab, injects them into a copy of its topology, and writes the ticket. Nothing touches CML until you start the incident.</p>
+<form method="post" class="form" action="{{ url_for('create') }}">
+  <input type="hidden" name="token" value="{{ token }}">
+  <fieldset>
+    <legend>Lab</legend>
+    {% for lab in labs %}
+      <label class="choice {{ 'off' if not lab.proven or not lab.healthy }}">
+        <input type="radio" name="lab" value="{{ lab.lab }}" {{ 'disabled' if not lab.proven or not lab.healthy }} {{ 'checked' if loop.first and lab.proven and lab.healthy }}>
+        <span><strong>{{ lab.number }} {{ lab.name }}</strong>
+          <span class="muted">{% if not lab.healthy %}needs a passing healthy run first{% elif not lab.proven %}no faults proven here yet{% else %}{{ lab.proven|length }} fault{{ 's' if lab.proven|length != 1 }} proven{% endif %}</span></span>
+      </label>
+    {% endfor %}
+  </fieldset>
+  <fieldset>
+    <legend>Tier</legend>
+    {% for t, why in [(1, 'One fault, the ticket names the device and symptom'), (2, 'One or two faults, the user view, no device named'), (3, 'Two or three faults, a vague help-desk complaint')] %}
+      <label class="choice"><input type="radio" name="tier" value="{{ t }}" {{ 'checked' if t == 2 }}><span><strong>{{ tiers[t] }}</strong> <span class="muted">{{ why }}</span></span></label>
+    {% endfor %}
+  </fieldset>
+  <details class="form-more">
+    <summary>Seed and practice options</summary>
+    <label class="field">Seed <span class="muted">(same seed, same faults and ticket; blank picks one)</span>
+      <input name="seed" inputmode="numeric" pattern="[0-9]*" placeholder="random"></label>
+    <p class="muted small">Practising one fault on purpose? Pick it here; this shows you what is broken, so it suits drills more than blind tickets.</p>
+    {% for lab in labs if lab.proven %}
+      <div class="practice" data-lab="{{ lab.lab }}">
+        <p class="small">{{ lab.number }} {{ lab.name }}</p>
+        {% for f in lab.proven %}<label class="check"><input type="checkbox" name="fault" value="{{ f }}"> {{ f }}</label>{% endfor %}
+      </div>
+    {% endfor %}
+  </details>
+  <button class="btn btn-primary">Break the lab</button>
+</form>
+{% endblock %}

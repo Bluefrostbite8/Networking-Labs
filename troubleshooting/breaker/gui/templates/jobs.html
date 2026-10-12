@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Jobs{% endblock %}
+{% block main %}
+<h1 class="page-title">Jobs</h1>
+<p class="lede">Every CML job is the same CLI command run in the background. Logs live in <code>runs/gui-jobs/</code> and survive a console restart.</p>
+{% if jobs %}
+<table class="grid">
+  <thead><tr><th>Job</th><th>Command</th><th>Started</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for j in jobs %}
+    <tr><td><a href="{{ url_for('job_page', job_id=j.id) }}">{{ j.title }}</a></td>
+      <td class="mono small">python -m breaker {{ j.args|join(' ') }}</td>
+      <td class="muted">{{ j.started|since }}</td>
+      <td><span class="led {{ 'led-amber led-blink' if j.status == 'running' else 'led-green' if j.status == 'done' else 'led-magenta' }}"></span> {{ j.status }}{% if j.returncode not in (none, 0) %} (exit {{ j.returncode }}){% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">No jobs yet. Start an incident or a selftest and its output shows up here.</p>{% endif %}
+{% endblock %}

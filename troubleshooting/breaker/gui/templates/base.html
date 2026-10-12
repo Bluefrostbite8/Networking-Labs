@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Breaker{% endblock %} · Breaker console</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='gui.css') }}">
+</head>
+<body>
+<div class="shell">
+  <nav class="rail" aria-label="Main">
+    <a class="mark" href="{{ url_for('index') }}"><span class="mark-glyph" aria-hidden="true"></span>Breaker</a>
+    <a href="{{ url_for('index') }}" class="{{ 'on' if request.endpoint == 'index' }}">Sessions</a>
+    <a href="{{ url_for('new') }}" class="{{ 'on' if request.endpoint == 'new' }}">New incident</a>
+    <a href="{{ url_for('selftest') }}" class="{{ 'on' if request.endpoint == 'selftest' }}">Fault library</a>
+    <a href="{{ url_for('jobs_page') }}" class="{{ 'on' if request.endpoint in ('jobs_page', 'job_page') }}">Jobs</a>
+    <div class="rail-foot">
+      {% if running %}
+        <a class="busy" href="{{ url_for('job_page', job_id=running.id) }}"><span class="led led-amber led-blink"></span>{{ running.title }}</a>
+      {% else %}
+        <span class="idle"><span class="led led-green"></span>CML idle</span>
+      {% endif %}
+    </div>
+  </nav>
+  <main class="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <pre class="flash flash-{{ cat }}" role="status">{{ msg }}</pre>
+      {% endfor %}
+    {% endwith %}
+    {% block main %}{% endblock %}
+  </main>
+</div>
+<script>window.BREAKER_TOKEN = "{{ token }}";</script>
+<script src="{{ url_for('static', filename='gui.js') }}"></script>
+</body>
+</html>

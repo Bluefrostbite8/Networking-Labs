@@ -1,4 +1,7 @@
-# Python 3.12 (WSL2 Ubuntu 24.04). virl2-client 2.10.1 requires pyATS 25.x: never install 26.
+# Python 3.12 (WSL1 Ubuntu 24.04). virl2-client 2.10.1 requires pyATS 25.x: never install 26.
 virl2-client[pyats]==2.10.1
 pyats[full]>=25,<26
 PyYAML>=6,<7
+# Build step 6: the local web console (python -m breaker gui)
+Flask>=3,<4
+Markdown>=3.5,<4

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Fault library{% endblock %}
+{% block main %}
+<h1 class="page-title">Fault library</h1>
+<p class="lede">A fault joins a lab's library only after selftest proves it there: symptom present, the reference fix grades Exact, the workaround grades Temporary, and the key clue is found in real output.</p>
+
+<form method="post" class="form form-inline" action="{{ url_for('selftest_run') }}">
+  <input type="hidden" name="token" value="{{ token }}">
+  <label class="field">Lab
+    <select name="lab">{% for lab in labs %}<option value="{{ lab.lab }}">{{ lab.number }} {{ lab.name }}</option>{% endfor %}</select></label>
+  <label class="check"><input type="checkbox" name="keep" value="1"> Keep the lab running afterwards</label>
+  <button class="btn btn-primary" {{ 'disabled' if running }}>Run selftest</button>
+  <p class="muted small">Tick faults in the table to test only those; with none ticked, every fault that fits the lab and is not proven there yet runs in one import.</p>
+
+  <table class="grid">
+    <thead><tr><th></th><th>Fault</th><th>Category</th><th>Tier</th><th>Proven on</th><th>Latest selftest</th></tr></thead>
+    <tbody>
+    {% for f in faults %}
+      <tr>
+        <td><input type="checkbox" name="fault" value="{{ f.id }}" aria-label="Test {{ f.id }}" form="{{ 'none' if f.problems }}"></td>
+        <td><span class="mono">{{ f.id }}</span><br><span class="muted small">{{ f.title }}</span>
+          {% if f.problems %}<br><span class="warn small">Fails acceptance: {{ f.problems|join('; ') }}</span>{% endif %}</td>
+        <td>{{ f.category }}</td>
+        <td class="num">{{ f.tier }}</td>
+        <td>{% for lab in f.proven %}<span class="chip chip-green">{{ lab }}</span> {% else %}<span class="muted">none</span>{% endfor %}</td>
+        <td>{% for lab, r in f.tests|dictsort %}
+            <div class="small">
+              <span class="led {{ 'led-green' if r.passed else 'led-magenta' }}"></span>
+              lab {{ lab }}: {% for st in r.stages %}{{ st.stage }} {{ st.grade }}{{ '' if st.ok else ' (!)' }}{{ ', ' if not loop.last }}{% endfor %}
+              <span class="muted">{{ r.when }}</span>
+              {% if r.passed and lab not in f.proven %}
+                <button class="btn btn-quiet btn-small" formaction="{{ url_for('mark') }}" name="mark" value="{{ f.id }}|{{ lab }}">Mark proven on {{ lab }}</button>
+              {% endif %}
+            </div>
+          {% endfor %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</form>
+{% endblock %}

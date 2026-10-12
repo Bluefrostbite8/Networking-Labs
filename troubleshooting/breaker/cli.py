@@ -677,6 +677,16 @@ def cmd_clean(args) -> int:
     return 0
 
 
+def cmd_gui(args) -> int:
+    """Local web console over these same commands (build step 6)."""
+    try:
+        from .gui.app import serve
+    except ImportError as exc:
+        raise LabModelError(f"the GUI needs Flask and Markdown ({exc}); run: pip install -r requirements.txt")
+    serve(port=args.port)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="breaker", description="CML break-fix troubleshooting tool")
     sub = p.add_subparsers(dest="command", required=True)
@@ -733,6 +743,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--id", required=True, help="incident id of the running lab")
     s.add_argument("--lines", type=int, default=80, help="how many lines (default 80)")
 
+    s = sub.add_parser("gui", help="local web console: open http://localhost:5050 in the Windows browser")
+    s.add_argument("--port", type=int, default=5050, help="port on 127.0.0.1 (default 5050)")
+
     s = sub.add_parser("clean", help="stop and wipe incident labs only")
     s.add_argument("--id", help="only the lab with this incident id")
     s.add_argument("--remove", action="store_true", help="also delete the lab from the server")
@@ -742,7 +755,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 COMMANDS = {"list": cmd_list, "show": cmd_show, "doctor": cmd_doctor, "break": cmd_break, "start": cmd_start,
             "hint": cmd_hint, "grade": cmd_grade, "debrief": cmd_debrief, "selftest": cmd_selftest, "rebuild": cmd_rebuild,
-            "baseline": cmd_baseline, "console": cmd_console, "clean": cmd_clean}
+            "baseline": cmd_baseline, "console": cmd_console, "clean": cmd_clean, "gui": cmd_gui}
 
 
 def main(argv: list[str] | None = None) -> int:

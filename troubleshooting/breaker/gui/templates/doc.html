@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block main %}
+<p class="muted small mono">{{ rel }}</p>
+<article class="doc doc-wide"><div class="md">{{ body|safe }}</div></article>
+{% endblock %}
