@@ -63,6 +63,10 @@ class Checker:
         self.model = model
         self.profile = profile
         self._cache: dict[tuple[str, str], str] = {}
+        self.stale_leases: list[str] = []
+        # Sessions only (start and grade): hosts restarted by the grader can leave
+        # bindings behind. Healthy runs keep every binding as a target.
+        self.skip_stale_leases = False
         self.sleep: Callable[[float], None] = time.sleep  # replaced in offline tests
 
     def show(self, node: str, command: str) -> str:
@@ -335,12 +339,31 @@ class Checker:
                       [self._ev(n, cmd) for n in nodes])
 
     def leases(self) -> list[str]:
+        """Bindings on the DHCP server(s) that a host still holds. A host that moved
+        subnet during the session (a wrong access VLAN, fixed) leaves its old binding
+        behind until it expires; pinging that address would count as collateral."""
         servers = _as_list((self.profile.rebuild.get("renew_leases") or {}).get("dhcp_server"))
         found: list[str] = []
         for server in servers:
             raw = self.show(server, "show ip dhcp binding")
             found += [ip for ip in re.findall(r"^(\d{1,3}(?:\.\d{1,3}){3})\s+\S+", raw, re.M) if ip not in found]
-        return found
+        held = self._held_addresses() if self.skip_stale_leases else None
+        self.stale_leases = [ip for ip in found if held is not None and ip not in held]
+        return [ip for ip in found if ip not in self.stale_leases]
+
+    def _held_addresses(self) -> set[str] | None:
+        """IPv4 addresses the DHCP hosts hold now, or None when any host can't be
+        read (then every binding counts, as before)."""
+        hosts = _as_list((self.profile.rebuild.get("renew_leases") or {}).get("hosts"))
+        if not hosts:
+            return None
+        held: set[str] = set()
+        try:
+            for host in hosts:
+                held |= set(re.findall(r"inet (\d+\.\d+\.\d+\.\d+)/", self.show(host, "ip -4 addr")))
+        except Exception:
+            return None
+        return held
 
     def _target_ip(self, target: str) -> str:
         """A host label from host_addressing resolves to its test address."""
@@ -350,10 +373,14 @@ class Checker:
         return str(target)
 
     def check_ping(self, node: str, spec: dict) -> Result:
+        self.stale_leases = []
         targets = self.leases() if spec.get("to") == "leases" else [self._target_ip(t) for t in _as_list(spec["to"])]
         if not targets:
             return Result(f"ping from {node}", False, "no targets (no DHCP leases found)")
         host = self.model.has_node(node) and self.model.node(node).is_host
+        # onlink: the target must answer on the host's own segment, not through a
+        # router. A host in the wrong VLAN still reaches its real gateway routed.
+        onlink = bool(spec.get("onlink")) and host
         evidence, failed = [], []
         for ip in targets:
             cmd = f"ping -c 5 {ip}" if host else f"ping {ip}"
@@ -367,9 +394,17 @@ class Checker:
             if received < 3:
                 failed.append(f"{ip} ({received}/5)")
                 evidence += self._ping_diagnostics(node, ip, host)
-        detail = f"{len(targets) - len(failed)}/{len(targets)} reachable"
+            elif onlink:
+                neigh = self.run(node, "ip neigh")
+                evidence.append({"node": node, "command": "ip neigh", "output": neigh})
+                if not re.search(rf"^{re.escape(ip)}\s.*lladdr", neigh, re.M):
+                    failed.append(f"{ip} (answers, but through a router: not on {node}'s segment)")
+                    evidence += self._ping_diagnostics(node, ip, host)
+        detail = f"{len(targets) - len(failed)}/{len(targets)} reachable" + (" on-link" if onlink else "")
         if failed:
             detail += f"; failed: {', '.join(failed)}"
+        if self.stale_leases:
+            detail += f"; skipped stale binding(s) no host holds: {', '.join(self.stale_leases)}"
         return Result(f"ping from {node}", not failed, detail, evidence)
 
     PING_RETRY_S = 5

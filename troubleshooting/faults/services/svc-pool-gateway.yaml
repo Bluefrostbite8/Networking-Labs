@@ -48,6 +48,7 @@ selftest:
   workaround_saved: false
 
 debrief:
+  scope: "Every new lease in {subnet}: same-subnet traffic works, anything off-subnet fails"   # Where to look: who and what is affected
   methods: [divide_and_conquer, compare_known_good]
   reasoning: >
     Hosts lease addresses, so the path to the DHCP server works. They can't leave

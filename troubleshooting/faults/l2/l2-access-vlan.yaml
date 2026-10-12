@@ -4,7 +4,7 @@ category: l2
 tier: 1
 mode: static
 platforms: [iosvl2]
-selftest_passed: ["03"]                   # labs where selftest passed; break draws only these
+selftest_passed: ["03"]                   # re-proven with the on-link ping 2026-10-12; break draws only these
 applies_when:
   - feature: access
   - dhcp_hosts: true
@@ -29,7 +29,7 @@ checks:
   refresh: ["{host}"]
   functional:
     - host_lease: { on: "{host}", subnet: "{subnet}", wait_s: 90 }
-    - ping: { from: "{host}", to: ["{gateway}"] }
+    - ping: { from: "{host}", to: ["{gateway}"], onlink: true }   # routed from a wrong VLAN, so on-link only
   root_cause:
     - access_vlan: { on: "{switch}", interface: "{iface}", vlan: "{vlan}" }
   intent: []
@@ -48,6 +48,7 @@ selftest:
   workaround_saved: false
 
 debrief:
+  scope: "One host ({host}) has an address, but from the wrong subnet"   # Where to look: who and what is affected
   methods: [follow_the_path, compare_known_good]
   reasoning: >
     The host leases an address, so DHCP, the relay and routing all work. The address

@@ -2,10 +2,11 @@
 
     session.json    lab, tier, seed, incident id, fault count, times (no answers)
     broken.yaml     the lab as imported, faults included
-    ticket.md       what the user sees (plain until build step 5 renders it)
-    answers.json    the fault instances, base64-sealed until the debrief
+    ticket.md       what the user sees (report.render_ticket)
+    answers.sealed  the fault instances, base64-sealed; gitignored, never published
+    answers.json    the same instances in plain JSON, written by the debrief (published)
     hints.log       every hint taken, timestamped
-    baseline_before.json, grade.json, evidence/
+    baseline_before.json, grade.json, evidence/, debrief.md
 """
 
 from __future__ import annotations
@@ -20,6 +21,8 @@ from .faults import TIER_HINTS
 from .lab_model import TOOL_ROOT, LabModel, LabModelError, LabProfile
 
 SESSIONS_DIR = TOOL_ROOT / "sessions"
+SEALED = "answers.sealed"     # gitignored: the answer key while the session is open
+REVEALED = "answers.json"     # plain JSON, written by the debrief and published
 
 
 class SessionError(LabModelError):
@@ -36,7 +39,7 @@ def unseal(text: str) -> Any:
 
 class Session:
     def __init__(self, path: Path) -> None:
-        self.path = path
+        self.path = Path(path).resolve()
         meta = path / "session.json"
         if not meta.exists():
             raise SessionError(f"{path} is not a session folder (no session.json)")
@@ -46,7 +49,7 @@ class Session:
 
     @classmethod
     def create(cls, profile: LabProfile, broken: LabModel, instances: list[dict[str, Any]],
-               tier: int, seed: int, ticket: Callable[[str], str], base: Path = SESSIONS_DIR,
+               tier: int, seed: int, ticket: Callable[[str, Path], str], base: Path = SESSIONS_DIR,
                incident: str | None = None) -> "Session":
         stem = f"{datetime.now():%Y-%m-%d}_{profile.lab}_t{tier}_s{seed}"
         path = base / stem
@@ -62,8 +65,8 @@ class Session:
                 "created": datetime.now().isoformat(timespec="seconds")}
         (path / "session.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
         (path / "broken.yaml").write_text(broken.to_yaml(), encoding="utf-8")
-        (path / "answers.json").write_text(seal(instances), encoding="utf-8")
-        (path / "ticket.md").write_text(ticket(incident), encoding="utf-8")
+        (path / SEALED).write_text(seal(instances), encoding="utf-8")
+        (path / "ticket.md").write_text(ticket(incident, path), encoding="utf-8")
         (path / "hints.log").write_text("", encoding="utf-8")
         return cls(path)
 
@@ -98,7 +101,25 @@ class Session:
         return LabModel.load(self.path / "broken.yaml")
 
     def answers(self) -> list[dict[str, Any]]:
-        return unseal((self.path / "answers.json").read_text(encoding="utf-8"))
+        sealed = self.path / SEALED
+        if sealed.exists():
+            return unseal(sealed.read_text(encoding="utf-8"))
+        text = (self.path / REVEALED).read_text(encoding="utf-8")
+        # Sessions created before build step 5 sealed answers.json itself.
+        return json.loads(text) if text.lstrip().startswith("[") else unseal(text)
+
+    @property
+    def revealed(self) -> bool:
+        path = self.path / REVEALED
+        return path.exists() and path.read_text(encoding="utf-8").lstrip().startswith("[")
+
+    def reveal(self) -> Path:
+        """Write the answers in plain JSON for publishing; the sealed copy stays (ignored)."""
+        answers = self.answers()
+        sealed = self.path / SEALED
+        if not sealed.exists():  # pre step 5 session: keep the sealed text under its new name
+            sealed.write_text(seal(answers), encoding="utf-8")
+        return self.write_json(REVEALED, answers)
 
     def update(self, **fields: Any) -> None:
         self.meta.update(fields)
@@ -125,6 +146,8 @@ class Session:
         return taken
 
     def take_hint(self, fault: int) -> tuple[int, str]:
+        if self.meta.get("debriefed"):
+            raise SessionError("this session is debriefed: the answers are already revealed")
         answers = self.answers()
         if not 1 <= fault <= len(answers):
             raise SessionError(f"fault number must be 1 to {len(answers)}")
@@ -136,22 +159,3 @@ class Session:
         with (self.path / "hints.log").open("a", encoding="utf-8") as fh:
             fh.write(f"{datetime.now().isoformat(timespec='seconds')}\t{fault}\th{level}\t{text}\n")
         return level, text
-
-
-def plain_ticket(profile: LabProfile, model: LabModel, instances: list[dict[str, Any]],
-                 tier: int, seed: int, incident: str) -> str:
-    """Minimal ticket until report.py (build step 5) renders the full one."""
-    lines = [f"# Incident {incident}: {model.title}", "",
-             f"Lab {profile.lab} · Tier T{tier} · Faults: {len(instances)} · Seed {seed}", "",
-             "## Incident Report", ""]
-    lines += [f"{i['index']}. {i['ticket']}" for i in instances]
-    lines += ["", "## Scope & Rules", "",
-              "- Fix the problem on the devices. No wipes, re-imports or topology changes.",
-              "- Save your fixes: an unsaved fix grades Temporary.",
-              "- Keep the design: a fix that moves the design (roots, active gateways, areas) grades Off-design.",
-              "- The grader restarts affected hosts so they renew their DHCP lease.", "",
-              "## Getting Started", "", "```text",
-              f"python -m breaker start {incident}",
-              f"python -m breaker hint {incident} <fault#>     # unlocks the next hint, in order",
-              f"python -m breaker grade {incident}", "```", ""]
-    return "\n".join(lines)

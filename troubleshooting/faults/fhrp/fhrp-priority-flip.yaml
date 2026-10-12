@@ -47,6 +47,7 @@ selftest:
   workaround_saved: false
 
 debrief:
+  scope: "VLAN {vlan}'s first hop; users still have a working gateway"   # Where to look: who and what is affected
   methods: [compare_known_good, follow_the_path]
   reasoning: >
     Users still have a gateway, so this is not an outage: HSRP elected the other

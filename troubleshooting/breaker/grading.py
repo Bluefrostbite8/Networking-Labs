@@ -62,6 +62,25 @@ class Grader:
             self._configs[key] = IosConfig(self.run(node, f"show {which}-config"))
         return self._configs[key]
 
+    def _config_now(self, inst: dict[str, Any]) -> list[dict[str, Any]] | None:
+        """The faulted sections as they run now, against the broken and the original
+        config, so the debrief can show what the user changed. Not used to grade."""
+        broken = {(c["node"], c["section"]): c.get("after") or [] for c in inst.get("changes") or []}
+        out = []
+        try:
+            for node, header in inst["touched"]:
+                now = normalize(_section(self._config(node, "running"), header) or [])
+                was = normalize(broken.get((node, header), []))
+                orig = normalize(inst["original_sections"].get(node, {}).get(header, []))
+                out.append({"node": node, "section": header,
+                            "vs_broken": {"added": sorted(set(now) - set(was)), "removed": sorted(set(was) - set(now))},
+                            "vs_original": {"added": sorted(set(now) - set(orig)),
+                                            "removed": sorted(set(orig) - set(now))}})
+        except Exception as exc:  # a console hiccup here must never change a grade
+            self.log(f"fault {inst['index']}: could not read the running config for the debrief ({exc})")
+            return None
+        return out
+
     def _run_items(self, items: list[dict]) -> list[Result]:
         out: list[Result] = []
         for item in items or []:
@@ -93,6 +112,7 @@ class Grader:
 
         def done(grade: str, weight: float) -> dict[str, Any]:
             record.update(grade=grade, weight=round(weight, 3))
+            record["config_now"] = self._config_now(inst)  # for the debrief only, never the grade
             return record
 
         # 1. functional

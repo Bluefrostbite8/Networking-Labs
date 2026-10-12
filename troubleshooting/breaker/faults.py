@@ -175,6 +175,7 @@ class Fault:
             "category": r["category"],
             "state_only": bool(r.get("state_only")),
             "tier": self.tier,
+            "node": v[self.node_var],            # the node the fault changes (debrief: Device)
             "vars": v,
             "touched": [list(t) for t in result["touched"]],
             "changes": result["changes"],

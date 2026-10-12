@@ -48,6 +48,7 @@ selftest:
   workaround_saved: false
 
 debrief:
+  scope: "One host ({host}) is down; every other host works, so the fault is on its own path"   # Where to look: who and what is affected
   methods: [bottom_up, follow_the_path]
   reasoning: >
     One host is down and the others are fine, so the problem sits on that host's own

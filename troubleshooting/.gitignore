@@ -5,8 +5,11 @@ config.yaml
 __pycache__/
 *.pyc
 
-# Sealed answers stay local until the debrief reveals them
-sessions/*/answers.json
+# Sealed answers never leave this PC; the debrief writes answers.json in plain text
+sessions/*/answers.sealed
+
+# The tool's own console logs (may carry device banners); hints.log is published
+sessions/*/session*.log
 
 # Local evidence from healthy runs
 runs/

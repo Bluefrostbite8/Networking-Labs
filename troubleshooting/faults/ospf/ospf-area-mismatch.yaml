@@ -47,6 +47,7 @@ selftest:
   workaround_saved: false
 
 debrief:
+  scope: "One adjacency ({node} to {peer}); traffic still flows over the redundant path"   # Where to look: who and what is affected
   methods: [divide_and_conquer, compare_known_good]
   reasoning: >
     Traffic still flows over the redundant path, so this is lost redundancy, not an

@@ -1,7 +1,8 @@
 """Command line: python -m breaker <command>.
 
 Steps 2 and 3: list, show, doctor, start --healthy, rebuild, baseline, console, clean.
-Step 4: break, start <session>, hint, grade, selftest. debrief arrives in step 5.
+Step 4: break, start <session>, hint, grade, selftest.
+Step 5: debrief, and the full ticket (report.py).
 """
 
 from __future__ import annotations
@@ -201,9 +202,10 @@ def cmd_start(args) -> int:
 # --------------------------------------------------------------------------- sessions (step 4)
 
 
-def _healthy_baseline_passed(lab: str) -> str | None:
+def _healthy_baseline(lab: str) -> dict | None:
     """Engine rule 7: the healthy lab's baseline must have passed once before any
-    injection. Returns the run that proves it, or None."""
+    injection. Returns the newest passing healthy run (its results feed the
+    ticket's Known Good table), or None."""
     for path in sorted(RUNS_DIR.glob("*-baseline.json"), reverse=True):
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -211,26 +213,39 @@ def _healthy_baseline_passed(lab: str) -> str | None:
             continue
         if data.get("lab") == lab and data.get("total") and data.get("passed") == data.get("total") \
                 and "-healthy-" in str(data.get("incident", "")):
-            return data["incident"]
+            return data
     return None
+
+
+def _healthy_baseline_passed(lab: str) -> str | None:
+    data = _healthy_baseline(lab)
+    return data["incident"] if data else None
+
+
+def _ticket(profile, model, instances, tier: int, seed: int, healthy: dict | None):
+    from .report import render_ticket
+
+    return lambda incident, path: render_ticket(profile, model, instances, tier, seed, incident, path,
+                                                healthy=healthy)
 
 
 def cmd_break(args) -> int:
     import secrets
 
     from .faults import pick
-    from .session import Session, plain_ticket
+    from .session import Session
 
     profile = LabProfile.load(args.lab)
     model = profile.model()
-    proof = _healthy_baseline_passed(profile.lab)
+    healthy = _healthy_baseline(profile.lab)
+    proof = healthy["incident"] if healthy else None
     if not proof:
         raise LabModelError(f"no passing healthy baseline for {profile.lab} in runs/; "
                             f"run: python -m breaker start {args.lab} --healthy (engine rule 7)")
     seed = args.seed if args.seed is not None else 1000 + secrets.randbelow(9000)
     broken, instances = pick(model, profile, args.tier, seed, only=args.fault)
     session = Session.create(profile, broken, instances, args.tier, seed,
-                             lambda incident: plain_ticket(profile, model, instances, args.tier, seed, incident))
+                             _ticket(profile, model, instances, args.tier, seed, healthy))
     session.update(healthy_baseline=proof)
     print(f"Session {session.path.name}: tier T{args.tier}, {len(instances)} fault(s), seed {seed}")
     print(f"Ticket:  {session.path.relative_to(TOOL_ROOT)}/ticket.md")
@@ -256,10 +271,13 @@ def start_session(args, session=None, state: dict | None = None):
     lab, consoles = bring_up(profile, model, session.incident, state, log, strict=False)
     try:
         # Runtime faults would be pushed and saved here; the first five are all static.
+        state["stage"] = "broken state"
+        capture_broken_state(session, consoles, log)
         state["stage"] = "baseline before"
         log("recording the baseline the session starts from (collateral is judged against it)")
         checker = Checker(lambda node, cmd: consoles.run(node, cmd), _with_test_addresses(
             profile, profile.model(), lambda _m: None), profile)
+        checker.skip_stale_leases = True
         before = checker.baseline()
         session.write_json("baseline_before.json", [r.as_dict() for r in before])
         failing = [r for r in before if not r.ok and not r.optional]
@@ -274,6 +292,30 @@ def start_session(args, session=None, state: dict | None = None):
     log(f"session {session.incident} ready in {(time.monotonic() - t0) / 60:.1f} min. The clock is running.")
     print(f"Ticket: {session.path.relative_to(TOOL_ROOT)}/ticket.md")
     return 0
+
+
+def capture_broken_state(session, consoles, log) -> None:
+    """Before the clock: each fault's own show commands on the node it changed,
+    saved to evidence/broken-state-fault<N>.txt. The debrief quotes the key clue
+    from these files."""
+    from .faults import by_id
+
+    ev = session.path / "evidence"
+    ev.mkdir(exist_ok=True)
+    for inst in session.answers():
+        node = inst.get("node")
+        if not node:  # sessions broken before build step 5
+            node = inst["vars"].get(by_id(inst["id"]).node_var)
+        blocks = []
+        for cmd in (inst["debrief"].get("commands") or {}).get("show") or []:
+            try:
+                out = consoles.run(node, cmd)
+            except Exception as exc:  # evidence only: never stop the session for it
+                out = f"(failed: {type(exc).__name__}: {exc})"
+            blocks.append(f"## {node}# {cmd}\n{out.rstrip()}")
+        path = ev / f"broken-state-fault{inst['index']}.txt"
+        path.write_text("\n\n".join(blocks) + "\n", encoding="utf-8")
+    log(f"broken-state evidence saved for {len(session.answers())} fault(s) in evidence/")
 
 
 def cmd_hint(args) -> int:
@@ -292,6 +334,7 @@ def grade_session(session, lab, consoles, log, save: bool = True, collateral_che
     profile = session.profile()
     model = _with_test_addresses(profile, profile.model(), lambda _m: None)
     checker = Checker(lambda node, cmd: consoles.run(node, cmd), model, profile)
+    checker.skip_stale_leases = True
     grader = Grader(checker, lambda node, cmd: consoles.run(node, cmd),
                     lambda hosts: cml_api.restart_hosts(lab, consoles, hosts, log), log)
     answers = session.answers()
@@ -356,6 +399,60 @@ def cmd_grade(args) -> int:
     return 0
 
 
+def _check_clues(session, log) -> None:
+    """Selftest: every key clue must quote a line the broken lab really printed."""
+    from .report import evidence_blocks, find_clue
+
+    for inst in session.answers():
+        path = session.path / "evidence" / f"broken-state-fault{inst['index']}.txt"
+        text = path.read_text(encoding="utf-8") if path.exists() else ""
+        hit = find_clue(inst["debrief"].get("key_clue", ""), evidence_blocks(text))
+        log(f"key clue for {inst['id']}: " + (f"found in {hit[0]!r}: {hit[1].strip()}" if hit else
+                                               "NOT FOUND in the broken-state output; fix key_clue"))
+
+
+def cmd_debrief(args) -> int:
+    """Reveal the answers, sanitize, write debrief.md and update the session index."""
+    from .report import LabDoc, index_row, publish_issues, render_debrief, sanitize_session, update_index
+    from .session import SESSIONS_DIR, Session
+
+    session = Session.find(args.session)
+    grade = session.read_json("grade.json")
+    if not grade:
+        raise LabModelError(f"no grade.json in {session.path.name} yet; run: python -m breaker grade {session.incident}")
+    profile = session.profile()
+    answers = session.answers()
+    session.reveal()
+    for line in sanitize_session(session.path):
+        print(f"  sanitized {line}")
+    (session.path / "debrief.md").write_text(render_debrief(session.path, session.meta, profile, answers, grade),
+                                             encoding="utf-8")
+    session.update(debriefed=datetime.now().isoformat(timespec="seconds"))
+    publish = [session.path / n for n in ("ticket.md", "debrief.md", "broken.yaml", "grade.json",
+                                          "baseline_before.json", "answers.json", "hints.log")]
+    publish += sorted((session.path / "evidence").glob("*")) if (session.path / "evidence").exists() else []
+    issues = publish_issues(session.path, publish)
+    if issues:
+        print("Do not publish yet: banner or EULA text is still present in:")
+        for issue in issues:
+            print(f"  {issue}")
+        return 1
+    where = session.path.relative_to(TOOL_ROOT)
+    print(f"Debrief: {where}/debrief.md (score {grade.get('score', 0)}, "
+          f"{', '.join(r['grade'] for r in grade.get('faults') or [])})")
+    if session.path.parent.resolve() == SESSIONS_DIR.resolve():
+        row = index_row(session.path, session.meta, LabDoc(profile).name, grade)
+        if update_index(TOOL_ROOT / "README.md", row, session.path.name):
+            print("Session index: troubleshooting/README.md updated")
+        print("\nPublish from PowerShell, in the repo folder:\n")
+        print(f"  git add troubleshooting/{where.as_posix()} troubleshooting/README.md")
+        print("  git status")
+        print(f'  git commit -m "Publish break-fix session {session.incident}"')
+        print("  git push")
+    print(f"\nIf the incident lab is still on the server: python -m breaker clean --id {session.incident} --remove")
+    return 0
+
+
 def _push(consoles, changes: dict[str, list[str]], save: bool, log, what: str) -> None:
     for node, lines in changes.items():
         consoles.configure(node, lines)
@@ -372,7 +469,7 @@ def cmd_selftest(args) -> int:
     every workaround -> each Temporary. Faults never share a section or a host
     (engine rule 1), so they can be tested side by side."""
     from .faults import by_id, library, pick
-    from .session import Session, plain_ticket
+    from .session import Session
 
     log = cml_api.default_log
     profile = LabProfile.load(args.lab)
@@ -389,7 +486,8 @@ def cmd_selftest(args) -> int:
         problems = fault.problems()
         if problems:
             raise LabModelError(f"{fault.id} fails acceptance before any lab: {'; '.join(problems)}")
-    if not _healthy_baseline_passed(profile.lab):
+    healthy = _healthy_baseline(profile.lab)
+    if not healthy:
         raise LabModelError(f"no passing healthy baseline for {profile.lab} in runs/ (engine rule 7)")
     tier = max(max(f.tier for f in faults), 1)
     broken, instances = pick(model, profile, tier, args.seed, only=[f.id for f in faults])
@@ -397,7 +495,7 @@ def cmd_selftest(args) -> int:
     base.mkdir(parents=True, exist_ok=True)
     incident = f"{profile.lab[:2]}-st-{args.seed}"
     session = Session.create(profile, broken, instances, tier, args.seed,
-                             lambda i: plain_ticket(profile, model, instances, tier, args.seed, i),
+                             _ticket(profile, model, instances, tier, args.seed, healthy),
                              base=base, incident=incident)
     for inst in instances:
         log(f"selftest {inst['id']} on {profile.lab}: {', '.join(f'{n} {h}' for n, h in inst['touched'])}")
@@ -407,18 +505,10 @@ def cmd_selftest(args) -> int:
     t0 = time.monotonic()
     want = {"broken": {"Open", "Partial", "Temporary"}, "reference-fix": {"Exact"}, "workaround": {"Temporary"}}
     try:
+        # start_session saves each fault's broken-state show output in evidence/,
+        # where the key clue must be found (report.find_clue).
         lab, consoles = start_session(args, session=session, state=state)
-        # Evidence for each debrief key clue: the fault's show commands, broken state.
-        clue = []
-        for inst, fault in zip(instances, faults):
-            node = inst["vars"].get(fault.node_var)
-            for cmd in (inst["debrief"].get("commands") or {}).get("show") or []:
-                try:
-                    out = consoles.run(node, cmd)
-                except Exception as exc:
-                    out = f"(failed: {exc})"
-                clue.append(f"## fault {inst['index']} {inst['id']}: {node}# {cmd}\n{out}")
-        (session.path / "broken-state-show.txt").write_text("\n\n".join(clue) + "\n", encoding="utf-8")
+        _check_clues(session, log)
 
         def stage(name: str) -> None:
             log(f"selftest stage: {name} ({len(instances)} fault(s))")
@@ -610,6 +700,9 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("grade", help="grade the running session lab live and save evidence")
     s.add_argument("session", help="session incident id, e.g. 03-t2-s4127")
 
+    s = sub.add_parser("debrief", help="reveal the answers, sanitize, write debrief.md, update the session index")
+    s.add_argument("session", help="session incident id, e.g. 03-t2-s4127")
+
     s = sub.add_parser("selftest", help="acceptance test for faults on one lab, all in one import (cleans up)")
     s.add_argument("fault", nargs="*", help="fault ids, e.g. ospf-area-mismatch l1-shutdown")
     s.add_argument("--lab", required=True, help="lab folder or prefix, e.g. 03")
@@ -640,7 +733,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 COMMANDS = {"list": cmd_list, "show": cmd_show, "doctor": cmd_doctor, "break": cmd_break, "start": cmd_start,
-            "hint": cmd_hint, "grade": cmd_grade, "selftest": cmd_selftest, "rebuild": cmd_rebuild,
+            "hint": cmd_hint, "grade": cmd_grade, "debrief": cmd_debrief, "selftest": cmd_selftest, "rebuild": cmd_rebuild,
             "baseline": cmd_baseline, "console": cmd_console, "clean": cmd_clean}
 
 
