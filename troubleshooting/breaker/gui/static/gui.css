@@ -193,6 +193,8 @@ textarea { max-width: none; font-family: var(--mono); font-size: 0.85rem; resize
 .form-inline { max-width: none; }
 .form-inline .field { display: inline-block; margin-right: 16px; }
 .form-inline .grid { margin-top: 18px; }
+.panel.batch { margin: 0 0 28px; max-width: 980px; }
+.panel.batch .field input { max-width: 90px; }
 
 .flash { white-space: pre-wrap; font: 0.86rem/1.5 var(--mono); padding: 12px 14px; border-radius: var(--r-md); margin: 0 0 20px; border: 1px solid; background: var(--deep); }
 .flash-ok { border-color: rgba(99, 255, 173, 0.4); color: var(--ink); }

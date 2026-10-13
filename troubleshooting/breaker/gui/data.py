@@ -129,6 +129,7 @@ def labs() -> list[dict[str, Any]]:
                 if f.proven_on(d.name):
                     row["proven"].append(f.id)
         row["healthy"], row["healthy_latest"] = _healthy_runs(d.name)
+        row["untested"] = len(row["fit"]) - len(row["proven"])
         out.append(row)
     return out
 
@@ -161,25 +162,14 @@ def fault_rows() -> list[dict[str, Any]]:
 
 def mark_proven(fault_id: str, lab_number: str) -> str:
     """Add a lab to selftest_passed, only when that lab's newest selftest passed."""
-    from ..faults import by_id
+    from ..faults import by_id, mark_proven as mark
 
     result = selftest_results().get((fault_id, lab_number))
     if not result or not result.get("passed"):
         raise ValueError(f"no passing selftest of {fault_id} on lab {lab_number} in runs/")
     fault = by_id(fault_id)
-    text = fault.path.read_text(encoding="utf-8")
-    m = re.search(r"^selftest_passed:\s*\[(.*?)\](.*)$", text, re.M)
-    if not m:
-        raise ValueError(f"{fault.path.name} has no selftest_passed line")
-    labs_now = [x.strip().strip("'\"") for x in m.group(1).split(",") if x.strip()]
-    if lab_number in labs_now:
+    if not mark(fault, lab_number):
         return f"{fault_id} is already proven on lab {lab_number}"
-    labs_now = sorted(set(labs_now) | {lab_number})
-    new = "selftest_passed: [" + ", ".join(f'"{x}"' for x in labs_now) + "]"
-    comment = m.group(2)
-    if comment.strip():
-        new = new.ljust(42) + comment.strip()
-    fault.path.write_text(text[:m.start()] + new + text[m.end():], encoding="utf-8")
     return f"{fault_id} is now proven on lab {lab_number} ({fault.path.relative_to(TOOL_ROOT).as_posix()})"
 
 

@@ -1,0 +1,62 @@
+id: ospf-timers
+title: OSPF hello and dead timers differ on one end of a link
+category: ospf
+tier: 3
+mode: static
+platforms: [iosvl2, iosv, iol-xe]
+selftest_passed: []                       # labs where selftest passed; break draws only these
+applies_when:
+  - section: "router ospf"
+  - link_between_feature_nodes: ospf
+
+inject:
+  target: ospf_network_on_link_end
+  node_var: node
+  action: ospf_hello                      # hello 5 on one end; IOS derives dead 20
+  save: true
+
+ticket:
+  t1: "{node} and {peer} won't form an OSPF adjacency on {iface_short}, though the link is up."
+  t2: "Monitoring shows one of the redundant routed uplinks stopped carrying routes."
+  t3: "After last night's tuning work, one path to the server room seems unused."
+
+hints:
+  h1: "Hellos are being sent; ask whether both ends agree on how they are sent."
+  h2: "Compare OSPF on {node} {iface_short} with {peer} {peer_iface_short}."
+  h3: "Run 'show ip ospf interface' on both ends and compare the Timer intervals line."
+
+checks:
+  functional:
+    - ospf_neighbor: { on: "{node}", neighbor: "{peer_rid}", state: FULL, wait_s: 60 }
+  root_cause:
+    - cli_match: { on: "{node}", command: "show ip ospf interface {iface}", pattern: 'Hello {hello}, Dead {dead},', label: "{iface_short} OSPF timers" }
+  intent: [ospf_neighbors]
+  workaround_signatures:                  # the peer was changed to match instead
+    - cli_match: { on: "{peer}", command: "show ip ospf interface {peer_iface}", pattern: 'Hello {bad_hello}, Dead {bad_dead},', label: "{peer} timers changed to match" }
+
+reference_fix: |
+  interface {iface}
+   no ip ospf hello-interval
+
+selftest:
+  reinject:
+    "{node}": "interface {iface}\n ip ospf hello-interval {bad_hello}"
+  workaround:
+    "{peer}": "interface {peer_iface}\n ip ospf hello-interval {bad_hello}"
+  workaround_saved: false
+
+debrief:
+  scope: "One adjacency ({node} to {peer}); traffic still flows over the redundant path"
+  methods: [compare_known_good, divide_and_conquer]
+  reasoning: >
+    Traffic still flows, so this is lost redundancy. Both ends send hellos, but OSPF
+    only accepts a neighbor whose hello and dead intervals match its own exactly.
+    {node} sends every {bad_hello} s and gives up after {bad_dead} s; {peer} uses the
+    default {hello}/{dead}, so each side drops the other's hellos. Comparing the
+    timer line on both ends shows it at once.
+  commands:
+    show: ["show ip ospf interface {iface}", "show ip ospf neighbor", "show running-config interface {iface}",
+           "show ip protocols"]
+    debug: ["debug ip ospf hello (on {peer}: 'Mismatched hello parameters from {node}')"]
+  key_clue: "show ip ospf interface {iface} on {node}: 'Hello {bad_hello}, Dead {bad_dead}' while {peer} runs the default {hello}/{dead}"
+  better_fix_if_temporary: "Put {peer} back on the default timers and remove the hello-interval on {node}, then save both."

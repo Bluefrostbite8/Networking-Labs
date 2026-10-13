@@ -4,6 +4,20 @@
 <h1 class="page-title">Fault library</h1>
 <p class="lede">A fault joins a lab's library only after selftest proves it there: symptom present, the reference fix grades Exact, the workaround grades Temporary, and the key clue is found in real output.</p>
 
+<section class="panel batch">
+  <h2>Overnight batch</h2>
+  <p class="muted small">Every fault that fits the lab and is not proven there yet, one import each (about 25 minutes per fault), until the time budget runs out. Results land in <code>runs/batch-*.md</code>; follow it live on the Jobs page.</p>
+  <form method="post" class="form-inline" action="{{ url_for('batch_run') }}">
+    <input type="hidden" name="token" value="{{ token }}">
+    <label class="field">Lab
+      <select name="lab">{% for lab in labs %}<option value="{{ lab.lab }}" {{ 'disabled' if not lab.untested }} {{ 'selected' if lab.lab == best_lab }}>{{ lab.number }} {{ lab.name }}: {{ lab.untested }} to test{{ ' (needs a passing healthy run)' if lab.untested and not lab.healthy }}</option>{% endfor %}</select></label>
+    <label class="field">Hours
+      <input name="hours" value="9" inputmode="decimal" size="4"></label>
+    <label class="check"><input type="checkbox" name="mark" value="1" checked> Mark each passing fault proven</label>
+    <button class="btn btn-primary" {{ 'disabled' if running }}>Start overnight batch</button>
+  </form>
+</section>
+
 <form method="post" class="form form-inline" action="{{ url_for('selftest_run') }}">
   <input type="hidden" name="token" value="{{ token }}">
   <label class="field">Lab

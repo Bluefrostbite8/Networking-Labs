@@ -89,8 +89,12 @@ def create_app() -> Flask:
 
     @app.get("/selftest")
     def selftest():
-        return render_template("selftest.html", faults=data.fault_rows(),
-                               labs=[lab for lab in data.labs() if lab["profile"]])
+        labs = [lab for lab in data.labs() if lab["profile"]]
+        # Default: the lab with faults left to test where the most are already proven
+        # (its profile and quirks are the best known), then the most left to test.
+        ready = [lab for lab in labs if lab["untested"]]
+        best = max(ready, key=lambda lab: (len(lab["proven"]), lab["untested"]))["lab"] if ready else None
+        return render_template("selftest.html", faults=data.fault_rows(), labs=labs, best_lab=best)
 
     @app.get("/jobs")
     def jobs_page():
@@ -166,6 +170,15 @@ def create_app() -> Flask:
             args.append("--keep")
         title = f"Selftest {', '.join(faults) or 'all unproven'} on lab {lab[:2]}"
         return job_or_flash(args, title, f"selftest-{lab[:2]}", url_for("selftest"))
+
+    @app.post("/batch")
+    def batch_run():
+        lab = request.form.get("lab", "")
+        hours = request.form.get("hours", "9").strip() or "9"
+        args = ["batch", "--lab", lab, "--hours", hours]
+        if request.form.get("mark"):
+            args.append("--mark")
+        return job_or_flash(args, f"Overnight batch, lab {lab[:2]}", f"batch-{lab[:2]}", url_for("selftest"))
 
     @app.post("/selftest/mark")
     def mark():

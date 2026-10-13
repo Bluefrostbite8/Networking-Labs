@@ -1,0 +1,61 @@
+id: ospf-mtu
+title: IP MTU mismatch holds OSPF in EXSTART
+category: ospf
+tier: 3
+mode: static
+platforms: [iosv]                         # the router end: ip mtu on IOSv routed ports is certain
+selftest_passed: []                       # labs where selftest passed; break draws only these
+applies_when:
+  - section: "router ospf"
+  - link_between_feature_nodes: ospf
+
+inject:
+  target: ospf_network_on_link_end
+  node_var: node
+  action: ip_mtu                          # ip mtu 1400 on one end, 1500 on the other
+  save: true
+
+ticket:
+  t1: "{node} sees {peer} as an OSPF neighbor on {iface_short}, but it never reaches FULL."
+  t2: "Monitoring shows one of the redundant routed uplinks stopped carrying routes."
+  t3: "One path to the server room seems unused since the last change window."
+
+hints:
+  h1: "The neighbor is seen, so hellos work. Look at what happens after the hellos."
+  h2: "Check the state of {node}'s neighbor {peer} and what the two ends advertise in their database descriptions."
+  h3: "Run 'show ip ospf neighbor' and 'show ip interface {iface_short}' on {node}, then compare the MTU with {peer}."
+
+checks:
+  functional:
+    - ospf_neighbor: { on: "{node}", neighbor: "{peer_rid}", state: FULL, wait_s: 90 }
+  root_cause:
+    - cli_match: { on: "{node}", command: "show ip interface {iface}", pattern: 'MTU is {mtu} bytes', label: "{iface_short} IP MTU" }
+  intent: [ospf_neighbors]
+  workaround_signatures:
+    - unsaved_fix: true                   # selftest's workaround is 'ip ospf mtu-ignore' (FULL, MTU still wrong)
+
+reference_fix: |
+  interface {iface}
+   no ip mtu
+
+selftest:
+  reinject:
+    "{node}": "interface {iface}\n ip mtu {bad_mtu}"
+  workaround:
+    "{node}": "interface {iface}\n ip ospf mtu-ignore"
+  workaround_saved: false
+
+debrief:
+  scope: "One adjacency ({node} to {peer}); traffic still flows over the redundant path"
+  methods: [compare_known_good, divide_and_conquer]
+  reasoning: >
+    The neighbor appears, so hellos match, but it never reaches FULL: the routers
+    stall exchanging database descriptions. Each DBD carries the interface MTU, and
+    {node} rejects {peer}'s {mtu} because its own is {bad_mtu}. The state that sticks
+    (EXSTART or EXCHANGE) points straight at MTU.
+  commands:
+    show: ["show ip interface {iface}", "show ip ospf neighbor", "show ip ospf interface {iface}",
+           "show running-config interface {iface}"]
+    debug: ["debug ip ospf adj ('Nbr {peer_rid} has larger interface MTU')"]
+  key_clue: "show ip interface {iface} on {node}: 'MTU is {bad_mtu} bytes' while {peer} uses {mtu}"
+  better_fix_if_temporary: "Remove 'ip ospf mtu-ignore' and set the MTU back to {mtu} on {node}; mtu-ignore hides the mismatch instead of fixing it."

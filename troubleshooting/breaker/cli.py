@@ -407,16 +407,20 @@ def cmd_grade(args) -> int:
     return 0
 
 
-def _check_clues(session, log) -> None:
-    """Selftest: every key clue must quote a line the broken lab really printed."""
+def _check_clues(session, log) -> dict[str, str | None]:
+    """Selftest: every key clue must quote a line the broken lab really printed.
+    Returns {fault id: the quoted line, or None when it was not found}."""
     from .report import evidence_blocks, find_clue
 
+    found: dict[str, str | None] = {}
     for inst in session.answers():
         path = session.path / "evidence" / f"broken-state-fault{inst['index']}.txt"
         text = path.read_text(encoding="utf-8") if path.exists() else ""
         hit = find_clue(inst["debrief"].get("key_clue", ""), evidence_blocks(text))
+        found[inst["id"]] = f"{hit[0]}: {hit[1].strip()}" if hit else None
         log(f"key clue for {inst['id']}: " + (f"found in {hit[0]!r}: {hit[1].strip()}" if hit else
                                                "NOT FOUND in the broken-state output; fix key_clue"))
+    return found
 
 
 def cmd_debrief(args) -> int:
@@ -508,6 +512,7 @@ def cmd_selftest(args) -> int:
     for inst in instances:
         log(f"selftest {inst['id']} on {profile.lab}: {', '.join(f'{n} {h}' for n, h in inst['touched'])}")
     stages: list[dict] = []          # one entry per stage, with every fault's grade
+    clues: dict[str, str | None] = {}  # key clue found in the broken-state evidence
     state: dict = {"keep_open": True}
     consoles = None
     t0 = time.monotonic()
@@ -516,7 +521,7 @@ def cmd_selftest(args) -> int:
         # start_session saves each fault's broken-state show output in evidence/,
         # where the key clue must be found (report.find_clue).
         lab, consoles = start_session(args, session=session, state=state)
-        _check_clues(session, log)
+        clues.update(_check_clues(session, log))
 
         def stage(name: str) -> None:
             log(f"selftest stage: {name} ({len(instances)} fault(s))")
@@ -549,14 +554,16 @@ def cmd_selftest(args) -> int:
                      "ok": st["grades"][fault.id]["grade"] in want[st["stage"]],
                      "steps": st["grades"][fault.id]["steps"], "record": st["grades"][fault.id]}
                     for st in stages if fault.id in st["grades"]]
-            passed = len(mine) == 3 and all(m["ok"] for m in mine)
+            clue = clues.get(fault.id)
+            passed = len(mine) == 3 and all(m["ok"] for m in mine) and clue is not None
             all_passed &= passed
             result = {"fault": fault.id, "lab": profile.lab, "seed": args.seed, "passed": passed,
                       "minutes": minutes, "batch": [i["id"] for i in instances], "target": inst["touched"],
-                      "stages": mine, "session": str(session.path.relative_to(TOOL_ROOT))}
+                      "stages": mine, "key_clue_found": clue, "session": str(session.path.relative_to(TOOL_ROOT))}
             (RUNS_DIR / f"selftest-{fault.id}-{profile.lab[:2]}.json").write_text(json.dumps(result, indent=2),
                                                                                     encoding="utf-8")
             line = "  ".join(f"{m['stage']} {m['grade']}{'' if m['ok'] else ' (!)'}" for m in mine)
+            line += "  clue " + ("found" if clue else "NOT FOUND (!)")
             print(f"  {'PASS' if passed else 'FAIL'}  {fault.id:<22} {line}")
             if passed and not fault.proven_on(profile.lab):
                 print(f"        add {profile.lab[:2]!r} to selftest_passed in {fault.path.relative_to(TOOL_ROOT)}")
@@ -677,6 +684,128 @@ def cmd_clean(args) -> int:
     return 0
 
 
+def cmd_batch(args) -> int:
+    """Overnight acceptance run: selftest faults on one lab one import at a time,
+    each in its own process, within a time budget, writing a morning report.
+
+    One fault per import keeps a fault that breaks the whole lab from failing the
+    others. Before each run the tool deletes any leftover lab with the same
+    selftest incident id (only that incident lab, never anything else)."""
+    import os
+    import signal
+    import subprocess
+
+    from .faults import by_id, library, mark_proven
+
+    profile = LabProfile.load(args.lab)
+    model = profile.model()
+    lab2 = profile.lab[:2]
+    if args.fault:
+        faults = [by_id(fid) for fid in args.fault]
+    else:
+        faults = [f for f in library() if f.candidates(model, profile) and not f.problems()
+                  and (args.include_proven or not f.proven_on(profile.lab))]
+        faults.sort(key=lambda f: (f.tier, f.raw.get("category", ""), f.id))
+    bad = {f.id: f.problems() for f in faults if f.problems()}
+    if bad:
+        raise LabModelError("fails acceptance before any lab: " + "; ".join(f"{k}: {', '.join(v)}" for k, v in bad.items()))
+    if not faults:
+        print(f"Nothing to test on {profile.lab}: every fault that fits is proven (add --include-proven to retest).")
+        return 0
+    if not _healthy_baseline_passed(profile.lab):
+        raise LabModelError(f"no passing healthy baseline for {profile.lab} in runs/ (engine rule 7)")
+    cfg = cml_api.load_config()
+    cml_api.check_capacity(cml_api.connect(), model.licensed_node_count(), cfg["node_cap"])
+
+    stamp = f"{datetime.now():%Y%m%d-%H%M}"
+    RUNS_DIR.mkdir(exist_ok=True)
+    report_md = RUNS_DIR / f"batch-{stamp}-{lab2}.md"
+    deadline = time.monotonic() + args.hours * 3600
+    per_fault_s = args.minutes_each * 60
+    incident = f"{lab2}-st-{args.seed}"
+    rows: list[dict] = []
+
+    def write_report(done: bool, stopped: bool = False) -> None:
+        passed = sum(r["passed"] for r in rows)
+        lines = [f"# Batch selftest, lab {profile.lab}", "",
+                 f"Started {stamp}, {len(rows)} of {len(faults)} fault(s) run, {passed} passed"
+                 + ("" if done else " (running)") + ".", "",
+                 "| Fault | Result | Broken | Reference fix | Workaround | Key clue | Minutes | Log |",
+                 "|-------|--------|--------|---------------|------------|----------|---------|-----|"]
+        for r in rows:
+            st = {x["stage"]: x["grade"] + ("" if x["ok"] else " (!)") for x in r.get("stages", [])}
+            lines.append(f"| `{r['fault']}` | {'PASS' if r['passed'] else 'FAIL'}{' (marked)' if r.get('marked') else ''} | "
+                         f"{st.get('broken', '')} | {st.get('reference-fix', '')} | {st.get('workaround', '')} | "
+                         f"{'found' if r.get('key_clue_found') else 'NOT FOUND' if r.get('stages') else ''} | "
+                         f"{r.get('minutes', '')} | `{r['log']}` |")
+            if r.get("error"):
+                lines.append(f"|  | {r['error']} |  |  |  |  |  |  |")
+        skipped = [f.id for f in faults if f.id not in {r['fault'] for r in rows}]
+        if done and skipped:
+            why = "stopped by Ctrl+C; run the batch again to continue" if stopped else "time budget"
+            lines += ["", f"Not run ({why}): " + ", ".join(f"`{x}`" for x in skipped)]
+        report_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    print(f"Batch on {profile.lab}: {len(faults)} fault(s), one import each, budget {args.hours} h. "
+          f"Report: {report_md.relative_to(TOOL_ROOT)}", flush=True)
+    env = {**os.environ, "PYTHONUNBUFFERED": "1"}
+    for n, fault in enumerate(faults, 1):
+        if time.monotonic() + per_fault_s > deadline:
+            print(f"Time budget reached: {len(faults) - n + 1} fault(s) left for another night.", flush=True)
+            break
+        log_path = RUNS_DIR / f"batch-{stamp}-{lab2}-{fault.id}.log"
+        print(f"[{datetime.now():%H:%M}] {n}/{len(faults)} {fault.id}", flush=True)
+        subprocess.run([sys.executable, "-m", "breaker", "clean", "--id", incident, "--remove", "--yes"],
+                       cwd=TOOL_ROOT, env=env, stdin=subprocess.DEVNULL, capture_output=True, timeout=600)
+        t0 = time.monotonic()
+        result_path = RUNS_DIR / f"selftest-{fault.id}-{lab2}.json"
+        before = result_path.stat().st_mtime if result_path.exists() else 0
+        row: dict = {"fault": fault.id, "passed": False, "log": log_path.name}
+        with log_path.open("wb") as fh:
+            proc = subprocess.Popen([sys.executable, "-m", "breaker", "selftest", fault.id, "--lab", profile.lab,
+                                     "--seed", str(args.seed)], cwd=TOOL_ROOT, env=env, stdout=fh,
+                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
+            try:
+                proc.wait(timeout=args.timeout_min * 60)
+            except KeyboardInterrupt:  # Ctrl+C or the GUI's Stop: let the selftest clean up, then stop
+                os.killpg(proc.pid, signal.SIGINT)
+                proc.wait()
+                row["error"] = "stopped by Ctrl+C"
+                rows.append(row)
+                write_report(done=True, stopped=True)
+                print("Batch stopped. Report: " + str(report_md.relative_to(TOOL_ROOT)), flush=True)
+                return 130
+            except subprocess.TimeoutExpired:
+                os.killpg(proc.pid, signal.SIGINT)  # Ctrl+C: selftest's finally cleans its lab
+                try:
+                    proc.wait(timeout=300)
+                except subprocess.TimeoutExpired:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                    proc.wait()
+                row["error"] = f"stopped after {args.timeout_min} min"
+        row["minutes"] = round((time.monotonic() - t0) / 60, 1)
+        if result_path.exists() and result_path.stat().st_mtime > before:
+            data = json.loads(result_path.read_text(encoding="utf-8"))
+            row.update(passed=bool(data.get("passed")), stages=data.get("stages", []),
+                       key_clue_found=data.get("key_clue_found"))
+        elif "error" not in row:
+            tail = log_path.read_text(encoding="utf-8", errors="replace").strip().splitlines()[-1:] or ["no output"]
+            row["error"] = f"no result ({tail[0][:150]})"
+        if row["passed"] and args.mark:
+            row["marked"] = mark_proven(fault, lab2)
+        rows.append(row)
+        print(f"        {'PASS' if row['passed'] else 'FAIL'} in {row['minutes']} min"
+              + (f", marked proven on {lab2}" if row.get("marked") else "")
+              + (f" ({row['error']})" if row.get("error") else ""), flush=True)
+        write_report(done=False)
+    subprocess.run([sys.executable, "-m", "breaker", "clean", "--id", incident, "--remove", "--yes"],
+                   cwd=TOOL_ROOT, env=env, stdin=subprocess.DEVNULL, capture_output=True, timeout=600)
+    write_report(done=True)
+    passed = sum(r["passed"] for r in rows)
+    print(f"Batch done: {passed}/{len(rows)} passed. Report: {report_md.relative_to(TOOL_ROOT)}")
+    return 0 if passed == len(rows) else 1
+
+
 def cmd_gui(args) -> int:
     """Local web console over these same commands (build step 6)."""
     try:
@@ -743,6 +872,16 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--id", required=True, help="incident id of the running lab")
     s.add_argument("--lines", type=int, default=80, help="how many lines (default 80)")
 
+    s = sub.add_parser("batch", help="overnight: selftest faults on one lab, one import each, with a report")
+    s.add_argument("fault", nargs="*", help="fault ids (default: every fault that fits the lab and is not proven there)")
+    s.add_argument("--lab", required=True, help="lab folder or prefix, e.g. 03")
+    s.add_argument("--hours", type=float, default=9, help="time budget; no new fault starts after it (default 9)")
+    s.add_argument("--minutes-each", type=int, default=25, help="expected minutes per fault, for the budget (default 25)")
+    s.add_argument("--timeout-min", type=int, default=60, help="stop one selftest after this long (default 60)")
+    s.add_argument("--seed", type=int, default=1, help="target choice seed (default 1)")
+    s.add_argument("--include-proven", action="store_true", help="retest faults already proven on the lab")
+    s.add_argument("--mark", action="store_true", help="add the lab to selftest_passed for every fault that passes")
+
     s = sub.add_parser("gui", help="local web console: open http://localhost:5050 in the Windows browser")
     s.add_argument("--port", type=int, default=5050, help="port on 127.0.0.1 (default 5050)")
 
@@ -755,12 +894,99 @@ def build_parser() -> argparse.ArgumentParser:
 
 COMMANDS = {"list": cmd_list, "show": cmd_show, "doctor": cmd_doctor, "break": cmd_break, "start": cmd_start,
             "hint": cmd_hint, "grade": cmd_grade, "debrief": cmd_debrief, "selftest": cmd_selftest, "rebuild": cmd_rebuild,
-            "baseline": cmd_baseline, "console": cmd_console, "clean": cmd_clean, "gui": cmd_gui}
+            "baseline": cmd_baseline, "console": cmd_console, "clean": cmd_clean, "gui": cmd_gui,
+            "batch": cmd_batch}
+
+
+# One batch or selftest at a time, however it was started (terminal or GUI): they
+# share the <lab>-st-<seed> incident lab, and each run deletes a leftover one first,
+# so two at once delete each other's lab mid-boot.
+LOCKED_COMMANDS = {"batch", "selftest"}
+RUN_LOCK = RUNS_DIR / "run.lock"
+
+
+def _pid_alive(pid: int) -> bool:
+    import os
+
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def _take_run_lock(args):
+    """Take runs/run.lock, or refuse when another live batch or selftest holds it.
+    A selftest started by a batch runs under its parent's lock. Returns a release
+    function (None when the parent holds the lock)."""
+    import os
+
+    RUNS_DIR.mkdir(exist_ok=True)
+    me = {"pid": os.getpid(), "command": args.command, "lab": getattr(args, "lab", None),
+          "since": datetime.now().isoformat(timespec="seconds")}
+    for _ in range(2):
+        try:
+            fd = os.open(RUN_LOCK, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            try:
+                holder = json.loads(RUN_LOCK.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                holder = {}
+            pid = holder.get("pid")
+            if pid == os.getppid():
+                return None
+            if isinstance(pid, int) and _pid_alive(pid):
+                raise LabModelError(
+                    f"a {holder.get('command')} on {holder.get('lab')} is already running (pid {pid}, since "
+                    f"{holder.get('since')}). One at a time: stop it first (Ctrl+C in its window, or Stop on "
+                    f"the GUI's Jobs page). If nothing is running, delete {RUN_LOCK.relative_to(TOOL_ROOT)}.")
+            RUN_LOCK.unlink(missing_ok=True)  # left by a run that was killed
+            continue
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(me, fh)
+        break
+    else:
+        raise LabModelError(f"could not take {RUN_LOCK.relative_to(TOOL_ROOT)}; try again")
+
+    def release() -> None:
+        try:
+            if json.loads(RUN_LOCK.read_text(encoding="utf-8")).get("pid") == me["pid"]:
+                RUN_LOCK.unlink()
+        except (OSError, ValueError):
+            pass
+
+    return release
+
+
+def _refuse_clean_while_running(args) -> None:
+    """clean of a selftest lab (or of every incident lab) would delete the lab a
+    running batch or selftest is using. The batch's own clean-up runs as its child
+    and is allowed; a session lab (03-t2-s7011) can be cleaned at any time."""
+    import os
+
+    try:
+        holder = json.loads(RUN_LOCK.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    pid = holder.get("pid")
+    if pid in (os.getpid(), os.getppid()) or not isinstance(pid, int) or not _pid_alive(pid):
+        return
+    raise LabModelError(
+        f"a {holder.get('command')} on {holder.get('lab')} is running (pid {pid}, since {holder.get('since')}) "
+        f"and would lose its lab. Nothing touched. A batch clears leftover selftest labs itself; stop it first "
+        f"if you really mean to clean now.")
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    release = None
     try:
+        if args.command in LOCKED_COMMANDS:
+            release = _take_run_lock(args)
+        elif args.command == "clean" and (not args.id or "-st-" in args.id):
+            _refuse_clean_while_running(args)
         return COMMANDS[args.command](args)
     except (cml_api.CmlError, LabModelError) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -770,3 +996,6 @@ def main(argv: list[str] | None = None) -> int:
         print("\ninterrupted while in:", file=sys.stderr)
         traceback.print_exc(limit=-8, file=sys.stderr)
         return 130
+    finally:
+        if release:
+            release()

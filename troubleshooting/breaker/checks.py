@@ -553,6 +553,28 @@ class Checker:
     # ---- fault checks (step 4): live state for functional, root-cause and
     # workaround checks. Every spec is already rendered from the fault file.
 
+    def check_cli_match(self, node: str, spec: dict) -> Result:
+        """Generic state check: a regex against one show command's output, read
+        live (never the config file). ``expect: false`` passes when nothing
+        matches. Used where no Genie parser fits a single counter or flag:
+        passive interfaces, OSPF timers, IP MTU, helper addresses, bridge priority."""
+        cmd, rx = spec["command"], re.compile(str(spec["pattern"]), re.M)
+        want = bool(spec.get("expect", True))
+        label = spec.get("label") or f"/{spec['pattern']}/ in {cmd}"
+
+        def attempt() -> Result:
+            raw = self.run(node, cmd)  # never cached: a poll must re-read the device
+            m = rx.search(raw)
+            line = raw[raw.rfind("\n", 0, m.start()) + 1: raw.find("\n", m.end()) % (len(raw) + 1)].strip() if m else ""
+            ok = bool(m) == want
+            if m:
+                detail = f"{node}: {line[:120]!r}" + ("" if want else " (should not be there)")
+            else:
+                detail = f"{node}: no line matches" + (" (expected one)" if want else ", as expected")
+            return Result(f"{label} {node}", ok, detail, [{"node": node, "command": cmd, "output": raw}])
+
+        return self._poll(spec, attempt)
+
     def _poll(self, spec: dict, attempt: Callable[[], Result]) -> Result:
         """Retry a state check for up to ``wait_s`` seconds until it passes, re-reading
         the device each time (convergence after a fix takes a few seconds)."""

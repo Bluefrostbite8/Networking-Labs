@@ -160,7 +160,9 @@ class Fault:
         original = {}
         for node, header in result["touched"]:
             s = healthy.node(node).config.section(header)
-            original.setdefault(node, {})[header] = list(s.children) if s else []
+            # None = absent in the healthy lab; a global line counts as its own header.
+            original.setdefault(node, {})[header] = (None if s is None else
+                                                     list(s.children) if s.children else [s.header])
         r = self.raw
         tier_key = f"t{min(max(session_tier, 1), 3)}"
         checks = render(r["checks"], v)
@@ -276,3 +278,24 @@ def pick(model: LabModel, profile: LabProfile, tier: int, seed: int,
         raise FaultError(f"no fault that passed selftest on {profile.lab} fits tier {tier} "
                          f"(run: python -m breaker selftest <fault> --lab {profile.lab[:2]})")
     return broken, chosen
+
+
+def mark_proven(fault: Fault, lab_number: str) -> bool:
+    """Add a lab to the fault's selftest_passed line (keeps the line's comment).
+    Returns False when it was already there. Callers check the selftest result."""
+    import re
+
+    text = fault.path.read_text(encoding="utf-8")
+    m = re.search(r"^selftest_passed:\s*\[(.*?)\](.*)$", text, re.M)
+    if not m:
+        raise FaultError(f"{fault.path.name} has no selftest_passed line")
+    labs = [x.strip().strip("'\"") for x in m.group(1).split(",") if x.strip()]
+    if lab_number in labs:
+        return False
+    labs = sorted(set(labs) | {lab_number})
+    new = "selftest_passed: [" + ", ".join(f'"{x}"' for x in labs) + "]"
+    if m.group(2).strip():
+        new = new.ljust(42) + m.group(2).strip()
+    fault.path.write_text(text[:m.start()] + new + text[m.end():], encoding="utf-8")
+    fault.raw["selftest_passed"] = labs
+    return True

@@ -1,0 +1,62 @@
+id: l3-wrong-subnet
+title: Routed interface moved off its link subnet
+category: l3
+tier: 2
+mode: static
+platforms: [iosvl2, iosv, iol-xe]
+selftest_passed: ["03"]                   # labs where selftest passed; break draws only these
+applies_when:
+  - section: "router ospf"
+  - link_between_feature_nodes: ospf
+
+inject:
+  target: ospf_network_on_link_end        # a routed link whose subnet OSPF covers exactly
+  node_var: node
+  action: move_subnet                     # the first free subnet of the same size in the same /24
+  save: true
+
+ticket:
+  t1: "{node} lost its OSPF neighbor on {iface_short}. The link to {peer} is up."
+  t2: "Monitoring shows one of the redundant routed uplinks is no longer carrying traffic."
+  t3: "After last night's readdressing work, one path to the server room seems unused."
+
+hints:
+  h1: "The link is up, so check whether both ends can actually talk at Layer 3."
+  h2: "Compare the addresses on {node} {iface_short} and {peer} {peer_iface_short}."
+  h3: "Run 'show ip interface brief' on both ends, or 'show cdp neighbors {iface_short} detail' on {node}."
+
+checks:
+  functional:
+    - ospf_neighbor: { on: "{node}", neighbor: "{peer_rid}", state: FULL, wait_s: 60 }
+  root_cause:
+    - cli_match: { on: "{node}", command: "show ip interface {iface}", pattern: 'Internet address is {ip}/{prefixlen}\s*$', label: "{iface_short} address" }
+  intent: [ospf_neighbors]
+  workaround_signatures:
+    - unsaved_fix: true
+
+reference_fix: |
+  interface {iface}
+   ip address {ip} {mask}
+
+selftest:
+  reinject:
+    "{node}": "interface {iface}\n ip address {bad_ip} {mask}"
+  workaround:
+    "{node}": "interface {iface}\n ip address {ip} {mask}"
+  workaround_saved: false
+
+debrief:
+  scope: "One adjacency ({node} to {peer}); traffic still flows over the redundant path"
+  methods: [bottom_up, compare_known_good]
+  reasoning: >
+    The link is up at Layer 1 and 2, yet OSPF has no neighbor. Working up the stack,
+    {node}'s address {bad_ip} is outside {peer}'s subnet {subnet}, so the two ends
+    are on different networks and OSPF's network statement no longer covers the
+    interface. CDP still shows the peer and its real address, which makes the
+    mismatch obvious.
+  commands:
+    show: ["show ip interface {iface}", "show ip interface brief", "show cdp neighbors {iface_short} detail",
+           "show ip ospf interface brief"]
+    debug: ["debug ip ospf hello (on {peer}: no hellos from {node} arrive on {peer_iface_short})"]
+  key_clue: "show ip interface {iface} on {node}: 'Internet address is {bad_ip}/{prefixlen}', outside {peer}'s {subnet}"
+  better_fix_if_temporary: "Save the fix with 'write memory' on {node}."

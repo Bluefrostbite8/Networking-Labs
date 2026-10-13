@@ -1,0 +1,61 @@
+id: ospf-passive
+title: OSPF passive on a neighbor-facing interface
+category: ospf
+tier: 2
+mode: static
+platforms: [iosvl2, iosv, iol-xe]
+selftest_passed: []                       # labs where selftest passed; break draws only these
+applies_when:
+  - section: "router ospf"
+  - link_between_feature_nodes: ospf
+
+inject:
+  target: ospf_network_on_link_end
+  node_var: node
+  action: ospf_passive
+  save: true
+
+ticket:
+  t1: "{node} has no OSPF neighbor on {iface_short}. The link to {peer} is up and pings."
+  t2: "Monitoring shows the network lost one of its redundant routing paths. Users haven't noticed."
+  t3: "The network feels less resilient than it should; one path isn't being used."
+
+hints:
+  h1: "The link works, so the routing protocol isn't talking on it."
+  h2: "Look at OSPF on {node}'s {iface_short}, the side facing {peer}."
+  h3: "Run 'show ip ospf interface {iface_short}' on {node} and read every line."
+
+checks:
+  functional:
+    - ospf_neighbor: { on: "{node}", neighbor: "{peer_rid}", state: FULL, wait_s: 60 }
+  root_cause:
+    - cli_match: { on: "{node}", command: "show ip ospf interface {iface}", pattern: 'No Hellos \(Passive interface\)', expect: false, label: "{iface_short} passive" }
+  intent: [ospf_neighbors]
+  workaround_signatures:
+    - unsaved_fix: true
+
+reference_fix: |
+  {ospf_header}
+   no passive-interface {iface}
+
+selftest:
+  reinject:
+    "{node}": "{ospf_header}\n passive-interface {iface}"
+  workaround:
+    "{node}": "{ospf_header}\n no passive-interface {iface}"
+  workaround_saved: false
+
+debrief:
+  scope: "One adjacency ({node} to {peer}); traffic still flows over the redundant path"
+  methods: [divide_and_conquer, compare_known_good]
+  reasoning: >
+    Traffic still flows, so this is lost redundancy. The link between {node} and
+    {peer} is up and pings, yet {peer} never hears a hello from {node}. A passive
+    interface still advertises its subnet but sends no hellos, so no neighbor can
+    form. Compare with the working link: its interface is not passive.
+  commands:
+    show: ["show ip ospf interface {iface}", "show ip ospf neighbor", "show ip protocols",
+           "show running-config | section router ospf"]
+    debug: ["debug ip ospf hello (on {peer}: hellos from {node} never arrive)"]
+  key_clue: "show ip ospf interface {iface} on {node}: 'No Hellos (Passive interface)'"
+  better_fix_if_temporary: "Save the fix with 'write memory' on {node}."

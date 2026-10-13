@@ -1,0 +1,59 @@
+id: stp-root-moved
+title: A non-root switch claims the spanning-tree root
+category: stp
+tier: 2
+mode: static
+platforms: [iosvl2]
+selftest_passed: []                       # labs where selftest passed; break draws only these
+applies_when:
+  - profile_intent: stp_root
+
+inject:
+  target: stp_nonroot_switch              # a switch with no priority of its own for that VLAN
+  node_var: node
+  action: stp_root_priority               # spanning-tree vlan N priority 0 (a global line)
+  save: true
+
+ticket:
+  t1: "{node} is the spanning-tree root for VLAN {vlan}; the design says {root}."
+  t2: "Monitoring shows VLAN {vlan} traffic taking a longer Layer 2 path than the design."
+  t3: "Some users say the network got slower overnight. Nothing is down."
+
+hints:
+  h1: "Layer 2: who is the spanning-tree root for VLAN {vlan}, and who should be?"
+  h2: "Compare the bridge priorities for VLAN {vlan} on {root} and {node}."
+  h3: "Run 'show spanning-tree vlan {vlan}' on {node} and read the Root ID and Bridge ID lines."
+
+checks:
+  functional:
+    - cli_match: { on: "{root}", command: "show spanning-tree vlan {vlan}", pattern: 'This bridge is the root', label: "{root} root of VLAN {vlan}", wait_s: 30 }
+  root_cause:
+    - cli_match: { on: "{node}", command: "show spanning-tree vlan {vlan}", pattern: 'Bridge ID\s+Priority\s+{original_bridge_priority}\b', label: "{node} bridge priority, VLAN {vlan}" }
+  intent: [stp_root]
+  workaround_signatures:
+    - unsaved_fix: true
+
+reference_fix: |
+  no spanning-tree vlan {vlan} priority {bad_priority}
+
+selftest:
+  reinject:
+    "{node}": "spanning-tree vlan {vlan} priority {bad_priority}"
+  workaround:
+    "{node}": "no spanning-tree vlan {vlan} priority {bad_priority}"
+  workaround_saved: false
+
+debrief:
+  scope: "VLAN {vlan} only: traffic flows, but along a different Layer 2 path"
+  methods: [spot_the_difference, compare_known_good]
+  reasoning: >
+    Nothing is down, so compare the live tree with the design. The design puts the
+    VLAN {vlan} root on {root}, and the lab README says why. {node} now
+    advertises priority {bad_priority}, the lowest possible, so it wins the election
+    and every switch rebuilds its path toward it. Removing the line puts {node} back
+    on the default priority and {root} wins again.
+  commands:
+    show: ["show spanning-tree vlan {vlan}", "show spanning-tree root", "show running-config | include spanning-tree"]
+    debug: ["debug spanning-tree events (on {root}: it hears a superior BPDU and stops being root)"]
+  key_clue: "show spanning-tree vlan {vlan} on {node}: 'This bridge is the root', with bridge priority {bad_priority} plus the VLAN number"
+  better_fix_if_temporary: "Save the fix with 'write memory' on {node}."

@@ -259,11 +259,103 @@ def target_hsrp_design_active(model: LabModel, profile: LabProfile) -> list[Vars
     return out
 
 
+def target_hsrp_active_svi(model: LabModel, profile: LabProfile) -> list[Vars]:
+    """The SVI of each VLAN's design-active HSRP router (any peer setup)."""
+    intent = (profile.raw.get("intent") or {}).get("hsrp_active") or {}
+    out = []
+    for vlan, node_label in sorted(intent.items(), key=lambda kv: int(kv[0])):
+        svi = f"Vlan{vlan}"
+        children = model.node(node_label).config.interface(svi) or []
+        groups = _hsrp_groups(children)
+        if not groups or " shutdown" in children:
+            continue
+        group, g = next(iter(groups.items()))
+        peer = next((n.label for n in model.ios_nodes() if n.label != node_label
+                     and _hsrp_groups(n.config.interface(svi) or []).get(group)), None)
+        if not peer:
+            continue
+        out.append({"node": node_label, "svi": svi, "vlan": int(vlan), "group": group, "vip": g["vip"],
+                    "peer": peer, "subnet": str(_primary_ip(children).network) if _primary_ip(children) else ""})
+    return out
+
+
+def target_portsec_max1_host_port(model: LabModel, profile: LabProfile) -> list[Vars]:
+    """Host ports with port security at the default maximum of 1 (a second,
+    configured address leaves no room for the real host)."""
+    out = []
+    for t in target_host_access_port(model, profile):
+        children = model.node(t["switch"]).config.interface(t["iface"]) or []
+        if " switchport port-security" not in children:
+            continue
+        if any(c.startswith(" switchport port-security maximum ") and c.split()[-1] != "1" for c in children):
+            continue
+        out.append(t)
+    return out
+
+
+def target_vlan_relays(model: LabModel, profile: LabProfile) -> list[Vars]:
+    """A VLAN whose DHCP hosts lease through relays (ip helper-address on every
+    SVI of the VLAN): breaking all its relays takes the whole VLAN off DHCP."""
+    out = []
+    for pool in target_dhcp_pool(model, profile):
+        vlan = pool["vlan"]
+        if vlan is None:
+            continue
+        svi = f"Vlan{vlan}"
+        nodes = [n.label for n in model.ios_nodes() if _primary_ip(n.config.interface(svi) or [])]
+        helpers = {n: [c.split()[-1] for c in model.node(n).config.interface(svi) or []
+                       if c.startswith(" ip helper-address ")] for n in nodes}
+        if not nodes or not all(helpers.values()):
+            continue
+        server_ips = sorted({str(ip.ip) for ch in model.node(pool["server"]).config.interfaces().values()
+                             if (ip := _primary_ip(ch))})
+        if not all(set(h) <= set(server_ips) for h in helpers.values()):
+            continue
+        if len(nodes) != 2 or any(len(h) != 1 for h in helpers.values()):
+            continue  # the fault file's fix names two relays with one helper each (lab 03's cores)
+        a, b = sorted(nodes)
+        out.append({**pool, "svi": svi, "relays": [a, b], "relay_a": a, "relay_b": b,
+                    "helper_a": helpers[a][0], "helper_b": helpers[b][0],
+                    "server_ips_regex": "|".join(re.escape(x) for x in server_ips)})
+    return out
+
+
+def target_stp_nonroot_switch(model: LabModel, profile: LabProfile) -> list[Vars]:
+    """An L2 switch with no priority of its own for a VLAN whose root the design fixes."""
+    roots = (profile.raw.get("intent") or {}).get("stp_root") or {}
+    out = []
+    for vlan, root in sorted(roots.items(), key=lambda kv: int(kv[0])):
+        vlan = int(vlan)
+        for node in model.switches():
+            if node.label == root or node.label in profile.never_touch:
+                continue
+            own = [line for line in node.config.global_lines()
+                   if (m := re.match(r"^spanning-tree vlan (\S+) priority \d+$", line))
+                   and vlan in _vlan_list(m.group(1))]
+            if own:
+                continue
+            out.append({"node": node.label, "vlan": vlan, "root": root,
+                        "original_priority": 32768, "original_bridge_priority": 32768 + vlan})
+    return out
+
+
+def _vlan_list(text: str) -> set[int]:
+    out: set[int] = set()
+    for part in text.split(","):
+        a, _, b = part.partition("-")
+        out |= set(range(int(a), int(b or a) + 1))
+    return out
+
+
 TARGETS: dict[str, Callable[[LabModel, LabProfile], list[Vars]]] = {
     "host_access_port": target_host_access_port,
     "dhcp_pool_with_hosts": target_dhcp_pool,
     "ospf_network_on_link_end": target_ospf_link_end,
     "hsrp_design_active": target_hsrp_design_active,
+    "hsrp_active_svi": target_hsrp_active_svi,
+    "portsec_max1_host_port": target_portsec_max1_host_port,
+    "vlan_relays": target_vlan_relays,
+    "stp_nonroot_switch": target_stp_nonroot_switch,
 }
 
 
@@ -382,10 +474,145 @@ def action_hsrp_priority_flip(model: LabModel, v: Vars, rng: random.Random) -> d
     return {"vars": {}, "touched": touched, "changes": changes}
 
 
+def _add_line(header_node: str, header: str, line: str, model: LabModel, before_prefix: str | None = None) -> dict:
+    def edit(children: list[str]) -> list[str]:
+        if line in children:
+            raise InjectError(f"{header_node}: {line.strip()!r} already in {header}")
+        idx = next((i for i, c in enumerate(children) if before_prefix and c.startswith(before_prefix)), len(children))
+        return children[:idx] + [line] + children[idx:]
+    return _edit(model, header_node, header, edit)
+
+
+def action_shutdown_svi(model: LabModel, v: Vars, rng: random.Random) -> dict:
+    header = f"interface {v['svi']}"
+    ch = _edit(model, v["node"], header, lambda c: [x for x in c if x.strip() != "no shutdown"] + [" shutdown"])
+    return {"vars": {}, "touched": [(v["node"], header)], "changes": [ch]}
+
+
+BOGUS_MAC = "0200.1234.5678"  # locally administered: no real NIC carries it
+
+
+def action_portsec_bogus_mac(model: LabModel, v: Vars, rng: random.Random) -> dict:
+    header = f"interface {v['iface']}"
+    ch = _add_line(v["switch"], header, f" switchport port-security mac-address {BOGUS_MAC}", model,
+                   before_prefix=" switchport port-security mac-address sticky")
+    return {"vars": {"bad_mac": BOGUS_MAC}, "touched": [(v["switch"], header)], "changes": [ch]}
+
+
+def _unused_excluded(model: LabModel, server: str, subnet: str) -> str:
+    """Highest address of the server's excluded ranges, inside the subnet, that
+    no device in the lab uses (the same rule as change_default_router)."""
+    used = used_addresses(model)
+    net = ipaddress.IPv4Network(subnet)
+    best = None
+    for line in model.node(server).config.global_lines():
+        m = re.match(r"^ip dhcp excluded-address (\S+)(?: (\S+))?$", line)
+        if not m:
+            continue
+        for i in range(int(ipaddress.IPv4Address(m.group(1))), int(ipaddress.IPv4Address(m.group(2) or m.group(1))) + 1):
+            a = ipaddress.IPv4Address(i)
+            if a in net and str(a) not in used and a != net.network_address:
+                best = a if best is None or a > best else best
+    if best is None:
+        raise InjectError(f"{server}: no unused excluded address in {subnet}")
+    return str(best)
+
+
+def action_wrong_helpers(model: LabModel, v: Vars, rng: random.Random) -> dict:
+    """Every relay of the VLAN points at an address that answers nobody."""
+    bad = _unused_excluded(model, v["server"], v["subnet"])
+    header = f"interface {v['svi']}"
+    changes, touched = [], []
+    for node in v["relays"]:
+        changes.append(_edit(model, node, header, lambda c: [f" ip helper-address {bad}" if x.startswith(" ip helper-address ")
+                                                             else x for x in c]))
+        touched.append((node, header))
+    return {"vars": {"bad_helper": bad}, "touched": touched, "changes": changes}
+
+
+def action_ospf_passive(model: LabModel, v: Vars, rng: random.Random) -> dict:
+    ch = _add_line(v["node"], v["ospf_header"], f" passive-interface {v['iface']}", model,
+                   before_prefix=" network ")
+    return {"vars": {}, "touched": [(v["node"], v["ospf_header"])], "changes": [ch]}
+
+
+def action_ospf_hello(model: LabModel, v: Vars, rng: random.Random) -> dict:
+    """Hello 5 on one end: IOS derives dead 20, so neither timer matches the peer's 10/40."""
+    header = f"interface {v['iface']}"
+    if any(c.startswith(" ip ospf hello-interval") or c.startswith(" ip ospf dead-interval")
+           for c in model.node(v["node"]).config.interface(v["iface"]) or []):
+        raise InjectError(f"{v['node']} {v['iface']} already sets OSPF timers")
+    ch = _add_line(v["node"], header, " ip ospf hello-interval 5", model)
+    return {"vars": {"bad_hello": 5, "bad_dead": 20, "hello": 10, "dead": 40},
+            "touched": [(v["node"], header)], "changes": [ch]}
+
+
+def action_ip_mtu(model: LabModel, v: Vars, rng: random.Random) -> dict:
+    header = f"interface {v['iface']}"
+    if any(c.startswith(" ip mtu ") for c in model.node(v["node"]).config.interface(v["iface"]) or []):
+        raise InjectError(f"{v['node']} {v['iface']} already sets ip mtu")
+    ch = _add_line(v["node"], header, " ip mtu 1400", model)
+    return {"vars": {"bad_mtu": 1400, "mtu": 1500}, "touched": [(v["node"], header)], "changes": [ch]}
+
+
+def action_move_subnet(model: LabModel, v: Vars, rng: random.Random) -> dict:
+    """Move one end to the first free subnet of the same size in the same /24,
+    keeping its host position: the link is up but the ends no longer share a subnet."""
+    node = model.node(v["node"])
+    children = node.config.interface(v["iface"]) or []
+    ip = _primary_ip(children)
+    if ip is None:
+        raise InjectError(f"{v['node']} {v['iface']} has no address")
+    used = used_addresses(model)
+    node_nets = [p.network for ch in node.config.interfaces().values() if (p := _primary_ip(ch))]
+    offset = int(ip.ip) - int(ip.network.network_address)
+    parent = ipaddress.IPv4Network(f"{ip.network.network_address}/24", strict=False)
+    for net in parent.subnets(new_prefix=ip.network.prefixlen):
+        if net == ip.network or any(net.overlaps(n) for n in node_nets):
+            continue
+        if any(ipaddress.IPv4Address(a) in net for a in used):
+            continue
+        bad = ipaddress.IPv4Interface(f"{net.network_address + offset}/{net.prefixlen}")
+        break
+    else:
+        raise InjectError(f"no free /{ip.network.prefixlen} in {parent} for {v['node']}")
+    header = f"interface {v['iface']}"
+    old = f" ip address {ip.ip} {ip.netmask}"
+    ch = _edit(model, v["node"], header, lambda c: [f" ip address {bad.ip} {bad.netmask}" if x == old else x for x in c])
+    return {"vars": {"ip": str(ip.ip), "mask": str(ip.netmask), "prefixlen": ip.network.prefixlen,
+                     "bad_ip": str(bad.ip), "bad_subnet": str(bad.network)},
+            "touched": [(v["node"], header)], "changes": [ch]}
+
+
+def action_stp_root_priority(model: LabModel, v: Vars, rng: random.Random) -> dict:
+    """A global line: the switch claims the root with priority 0."""
+    node = model.node(v["node"])
+    cfg = node.config
+    line = f"spanning-tree vlan {v['vlan']} priority 0"
+    if cfg.section(line):
+        raise InjectError(f"{v['node']} already has {line!r}")
+    after = next((s for s in reversed(cfg.sections()) if s.header.startswith("spanning-tree ")), None)
+    if after is None:
+        raise InjectError(f"{v['node']} has no spanning-tree global lines")
+    cfg.lines[after.end:after.end] = [line]
+    node.save_config(cfg)
+    return {"vars": {"bad_priority": 0},
+            "touched": [(v["node"], line)],
+            "changes": [{"node": v["node"], "section": line, "before": [], "after": [line]}]}
+
+
 ACTIONS: dict[str, Callable[[LabModel, Vars, random.Random], dict]] = {
     "shutdown": action_shutdown,
     "change_access_vlan": action_change_access_vlan,
     "change_default_router": action_change_default_router,
     "change_area": action_change_area,
     "hsrp_priority_flip": action_hsrp_priority_flip,
+    "shutdown_svi": action_shutdown_svi,
+    "portsec_bogus_mac": action_portsec_bogus_mac,
+    "wrong_helpers": action_wrong_helpers,
+    "ospf_passive": action_ospf_passive,
+    "ospf_hello": action_ospf_hello,
+    "ip_mtu": action_ip_mtu,
+    "move_subnet": action_move_subnet,
+    "stp_root_priority": action_stp_root_priority,
 }

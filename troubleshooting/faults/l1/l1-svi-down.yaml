@@ -1,0 +1,61 @@
+id: l1-svi-down
+title: Gateway SVI administratively down on the active router
+category: l1
+tier: 1
+mode: static
+platforms: [iosvl2, iosv, iol-xe]
+selftest_passed: ["03"]                   # labs where selftest passed; break draws only these
+applies_when:
+  - feature: hsrp
+  - profile_intent: hsrp_active
+
+inject:
+  target: hsrp_active_svi                 # the SVI of each VLAN's design-active HSRP router
+  node_var: node
+  action: shutdown_svi
+  save: true
+
+ticket:
+  t1: "{node} {svi} is down, so {peer} is the only gateway left for VLAN {vlan}."
+  t2: "Monitoring shows VLAN {vlan}'s gateway running with no backup since this morning. Users haven't noticed."
+  t3: "Monitoring keeps warning about lost redundancy, but nobody is complaining."
+
+hints:
+  h1: "Users still have a gateway, so ask which of the two gateway interfaces for VLAN {vlan} is actually up."
+  h2: "Look at {svi} on {node}."
+  h3: "Run 'show ip interface brief' on {node} and read the Status column for {svi}."
+
+checks:
+  functional:
+    - hsrp_state: { on: "{node}", vlan: "{vlan}", state: Active, wait_s: 60 }
+  root_cause:
+    - interface_state: { on: "{node}", interface: "{svi}", state: up, wait_s: 30 }
+  intent: [hsrp_active]
+  workaround_signatures:
+    - unsaved_fix: true                   # nothing else brings the SVI back; Temporary = not saved
+
+reference_fix: |
+  interface {svi}
+   no shutdown
+
+selftest:
+  reinject:
+    "{node}": "interface {svi}\n shutdown"
+  workaround:
+    "{node}": "interface {svi}\n no shutdown"
+  workaround_saved: false
+
+debrief:
+  scope: "VLAN {vlan}'s first hop: users still have a gateway, now with no backup"
+  methods: [compare_known_good, bottom_up]
+  reasoning: >
+    Nothing is down for users, so this is lost redundancy. HSRP moved VLAN {vlan} to
+    {peer} because the design-active router dropped out of the group. Starting at the
+    bottom on {node}, the SVI itself is administratively down: a configured state,
+    so the fix is one command, saved.
+  commands:
+    show: ["show interfaces {svi}", "show ip interface brief", "show standby brief",
+           "show running-config interface {svi}"]
+    debug: ["debug standby events (on {peer}: it never hears hellos from {node} for group {group})"]
+  key_clue: "show interfaces {svi} on {node}: '{svi} is administratively down, line protocol is down'"
+  better_fix_if_temporary: "Save the fix with 'write memory' on {node}, or {svi} comes back down after a reload."

@@ -26,7 +26,7 @@ from ..lab_model import TOOL_ROOT
 JOBS_DIR = TOOL_ROOT / "runs" / "gui-jobs"
 ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 # Commands that drive the CML server: one at a time (node cap, shared consoles).
-CML_COMMANDS = {"start", "grade", "selftest", "clean", "baseline", "rebuild", "doctor"}
+CML_COMMANDS = {"start", "grade", "selftest", "batch", "clean", "baseline", "rebuild", "doctor"}
 
 _lock = threading.Lock()
 

@@ -32,9 +32,9 @@ COLLATERAL_PENALTY = 15
 VOLATILE = [re.compile(r"^switchport port-security mac-address sticky [0-9a-f.]+$")]
 
 
-def normalize(children: list[str]) -> list[str]:
+def normalize(children: list[str] | None) -> list[str]:
     out = set()
-    for c in children:
+    for c in children or []:
         line = c.strip()
         if not line or line == "!" or any(rx.match(line) for rx in VOLATILE):
             continue
@@ -43,8 +43,13 @@ def normalize(children: list[str]) -> list[str]:
 
 
 def _section(cfg: IosConfig, header: str) -> list[str] | None:
+    """A section's lines, or None when it is absent. A global line with no
+    children (spanning-tree vlan 10 priority 0) counts as its own header, so its
+    presence is compared like any other line."""
     s = cfg.section(header)
-    return list(s.children) if s else None
+    if s is None:
+        return None
+    return list(s.children) if s.children else [s.header]
 
 
 class Grader:
@@ -71,7 +76,7 @@ class Grader:
             for node, header in inst["touched"]:
                 now = normalize(_section(self._config(node, "running"), header) or [])
                 was = normalize(broken.get((node, header), []))
-                orig = normalize(inst["original_sections"].get(node, {}).get(header, []))
+                orig = normalize(inst["original_sections"].get(node, {}).get(header))
                 out.append({"node": node, "section": header,
                             "vs_broken": {"added": sorted(set(now) - set(was)), "removed": sorted(set(was) - set(now))},
                             "vs_original": {"added": sorted(set(now) - set(orig)),
@@ -142,7 +147,7 @@ class Grader:
         for node, header in inst["touched"]:
             run_sec = _section(self._config(node, "running"), header)
             start_sec = _section(self._config(node, "startup"), header)
-            if normalize(run_sec or []) != normalize(start_sec or []):
+            if normalize(run_sec) != normalize(start_sec):
                 unsaved.append(f"{node} {header}")
         ok = not unsaved
         steps.append({"question": "saved", "ok": ok,
@@ -163,7 +168,7 @@ class Grader:
         differs = []
         for node, header in inst["touched"]:
             now = normalize(_section(self._config(node, "running"), header) or [])
-            orig = normalize(inst["original_sections"].get(node, {}).get(header, []))
+            orig = normalize(inst["original_sections"].get(node, {}).get(header))
             if now != orig:
                 differs.append({"node": node, "section": header,
                                 "added": sorted(set(now) - set(orig)), "removed": sorted(set(orig) - set(now))})

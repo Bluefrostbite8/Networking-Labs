@@ -23,7 +23,7 @@ ticket:
 hints:
   h1: "The hosts have addresses, so look at what else DHCP gives them."
   h2: "Compare the default gateway {host} received with the gateway VLAN {vlan} actually uses."
-  h3: "On {server}, run 'show running-config | section ip dhcp pool {pool}' and check default-router against the HSRP virtual IP."
+  h3: "On {server}, run 'show running-config | section ip dhcp pool {pool}' and check default-router against the VLAN's gateway, {gateway}."
 
 checks:
   refresh: ["{host}"]
@@ -53,11 +53,12 @@ debrief:
   reasoning: >
     Hosts lease addresses, so the path to the DHCP server works. They can't leave
     their subnet, which points at the first hop. The lease names a default gateway
-    no device owns; compare the pool's default-router with the VLAN's HSRP virtual IP.
+    no device owns; compare the pool's default-router with the VLAN's real gateway
+    (the HSRP virtual IP where the lab runs HSRP, otherwise the SVI address).
   commands:
     show: ["show running-config | section ip dhcp pool {pool}", "show ip dhcp binding",
            "show ip dhcp pool {pool}"]
     debug: ["debug ip dhcp server packet (the OFFER carries the router option)"]
   # Verified on lab 03 (selftest 2026-10-12), R1 in the broken state:
-  key_clue: "show running-config | section ip dhcp pool {pool} on {server}: ' default-router {bad_gateway}' while the VLAN's HSRP virtual IP is {gateway}"
+  key_clue: "show running-config | section ip dhcp pool {pool} on {server}: ' default-router {bad_gateway}' while the VLAN's gateway is {gateway}"
   better_fix_if_temporary: "Remove the borrowed address and correct default-router in pool {pool} on {server}."

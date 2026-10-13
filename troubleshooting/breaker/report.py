@@ -273,7 +273,9 @@ def render_ticket(profile: LabProfile, model: LabModel, instances: list[dict[str
         lines += ["### Node Inventory", ""] + inv + [""]
     addressing = profile.raw.get("host_addressing") or {}
     if addressing:
-        hosts = ", ".join(f"{h} `{v['address']}` via `{v['gateway']}`" for h, v in addressing.items())
+        # A gateway is optional: a pure L2 lab (01, 05) gives its desktops an address only.
+        hosts = ", ".join(f"{h} `{v['address']}`" + (f" via `{v['gateway']}`" if v.get("gateway") else "")
+                          for h, v in addressing.items())
         lines += [f"> [!NOTE]\n> **Harness addition, not part of the lab design.** The export gives these "
                   f"desktops no addressing, so the tool adds static test addresses on import: {hosts}.", ""]
 
