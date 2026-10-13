@@ -1,0 +1,9 @@
+# ospf_neighbors Core1: PASS (4 FULL of 4 (expected 4))
+
+## Core1# show ip ospf neighbor
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+1.1.1.1           0   FULL/  -        00:00:39    192.168.1.1     GigabitEthernet1/0
+3.3.3.3           1   FULL/DR         00:00:34    10.1.30.2       Vlan30
+3.3.3.3           1   FULL/DR         00:00:31    10.1.20.2       Vlan20
+3.3.3.3           1   FULL/DR         00:00:33    10.1.10.2       Vlan10

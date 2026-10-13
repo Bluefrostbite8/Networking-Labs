@@ -55,6 +55,7 @@ Credentials come only from `VIRL2_URL`, `VIRL2_USER`, `VIRL2_PASS` and `CML_CA_B
 | `python -m breaker debrief <incident>` | Reveal the answers (`answers.json` in plain text), sanitize, write `debrief.md`, add the session to the index below |
 | `python -m breaker selftest <fault> [<fault> ...] --lab 03` or `--all` | Acceptance test, all faults in one import: inject, symptoms, reference fixes grade Exact, workarounds grade Temporary, then clean up |
 | `python -m breaker clean [--id <id>] [--remove]` | Stop and wipe incident labs only (optionally delete them) |
+| `python -m breaker batch --lab 03 --mark [--hours 9]` | Overnight: selftest every unproven fault that fits the lab, one import each, in a time budget; writes `runs/batch-*.md` and marks passing faults proven. Also on the GUI's Fault library page |
 | `python -m breaker gui [--port 5050]` | Local web console: open `http://localhost:5050` in the Windows browser. Sessions, ticket and debrief, Start/Hint/Grade/Debrief/Clean buttons with a live log, the fault library with selftest |
 
 ## Healthy Baselines
@@ -115,6 +116,7 @@ Published break-fix sessions, newest first. Each links to its debrief.
 
 | Date | Session | Lab | Tier | Faults | Score | Grades |
 |------|---------|-----|------|--------|-------|--------|
+| 2026-10-12 | [03-t2-s7566](sessions/2026-10-12_03-switching-redundancy_t2_s7566/debrief.md) | 03 Redundant Campus Access Layer | T2 | 1 | 100 | Exact |
 | 2026-10-12 | [03-t2-s7011](sessions/2026-10-12_03-switching-redundancy_t2_s7011/debrief.md) | 03 Redundant Campus Access Layer | T2 | 1 | 100 | Exact |
 | 2026-10-12 | [03-t2-s1984](sessions/2026-10-12_03-switching-redundancy_t2_s1984/debrief.md) | 03 Redundant Campus Access Layer | T2 | 1 | 100 | Equivalent |
 

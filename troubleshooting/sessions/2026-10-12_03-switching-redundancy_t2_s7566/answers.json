@@ -1,0 +1,151 @@
+[
+  {
+    "index": 1,
+    "id": "ospf-area-mismatch",
+    "title": "OSPF area mismatch on one end of a link",
+    "category": "ospf",
+    "state_only": false,
+    "tier": 2,
+    "node": "R1",
+    "vars": {
+      "node": "R1",
+      "iface": "GigabitEthernet0/1",
+      "iface_short": "Gi0/1",
+      "peer": "Core1",
+      "peer_iface": "GigabitEthernet1/0",
+      "peer_iface_short": "Gi1/0",
+      "pid": "1",
+      "net": "192.168.1.0",
+      "wild": "0.0.0.3",
+      "original_area": "0",
+      "node_rid": "1.1.1.1",
+      "peer_rid": "2.2.2.2",
+      "peer_pid": "1",
+      "peer_ip": "192.168.1.2",
+      "peer_net": "192.168.1.0",
+      "peer_wild": "0.0.0.3",
+      "subnet": "192.168.1.0/30",
+      "ospf_header": "router ospf 1",
+      "peer_ospf_header": "router ospf 1",
+      "bad_area": "1",
+      "n": 1
+    },
+    "touched": [
+      [
+        "R1",
+        "router ospf 1"
+      ]
+    ],
+    "changes": [
+      {
+        "node": "R1",
+        "section": "router ospf 1",
+        "before": [
+          " router-id 1.1.1.1",
+          " network 192.168.1.0 0.0.0.3 area 0",
+          " network 192.168.1.4 0.0.0.3 area 0"
+        ],
+        "after": [
+          " router-id 1.1.1.1",
+          " network 192.168.1.0 0.0.0.3 area 1",
+          " network 192.168.1.4 0.0.0.3 area 0"
+        ]
+      }
+    ],
+    "original_sections": {
+      "R1": {
+        "router ospf 1": [
+          " router-id 1.1.1.1",
+          " network 192.168.1.0 0.0.0.3 area 0",
+          " network 192.168.1.4 0.0.0.3 area 0"
+        ]
+      }
+    },
+    "ticket": "Monitoring shows the network lost one of its redundant routing paths overnight. Users haven't noticed yet.",
+    "hints": [
+      "The problem is above Layer 2. The link itself is healthy.",
+      "Look at the adjacency between R1 and Core1.",
+      "Run 'debug ip ospf adj' on R1 and read the reject reason."
+    ],
+    "checks": {
+      "functional": [
+        {
+          "ospf_neighbor": {
+            "on": "R1",
+            "neighbor": "2.2.2.2",
+            "state": "FULL",
+            "wait_s": 60
+          }
+        }
+      ],
+      "root_cause": [
+        {
+          "ospf_interface_area": {
+            "on": "R1",
+            "interface": "GigabitEthernet0/1",
+            "area": "0"
+          }
+        }
+      ],
+      "intent": [
+        "ospf_neighbors"
+      ],
+      "workaround_signatures": [
+        {
+          "ospf_interface_area": {
+            "on": "Core1",
+            "interface": "GigabitEthernet1/0",
+            "area": "1"
+          }
+        }
+      ]
+    },
+    "reference_fix": {
+      "R1": [
+        "router ospf 1",
+        " no network 192.168.1.0 0.0.0.3 area 1",
+        " network 192.168.1.0 0.0.0.3 area 0"
+      ]
+    },
+    "selftest": {
+      "reinject": {
+        "R1": [
+          "router ospf 1",
+          " no network 192.168.1.0 0.0.0.3 area 0",
+          " network 192.168.1.0 0.0.0.3 area 1"
+        ]
+      },
+      "workaround": {
+        "Core1": [
+          "router ospf 1",
+          " no network 192.168.1.0 0.0.0.3 area 0",
+          " network 192.168.1.0 0.0.0.3 area 1"
+        ]
+      },
+      "workaround_saved": false
+    },
+    "debrief": {
+      "scope": "One adjacency (R1 to Core1); traffic still flows over the redundant path",
+      "methods": [
+        "divide_and_conquer",
+        "compare_known_good"
+      ],
+      "reasoning": "Traffic still flows over the redundant path, so this is lost redundancy, not an outage. The link between R1 and Core1 is up and pings, but there is no neighbor: hellos arrive and are rejected, so compare the hello parameters on both ends.\n",
+      "commands": {
+        "show": [
+          "show ip ospf neighbor",
+          "show ip ospf interface brief",
+          "show ip protocols",
+          "show running-config | section router ospf",
+          "show logging | include OSPF"
+        ],
+        "debug": [
+          "debug ip ospf adj",
+          "debug ip ospf hello"
+        ]
+      },
+      "key_clue": "R1 logs '%OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1'",
+      "better_fix_if_temporary": "Put the peer back in area 0 and correct the area on R1."
+    }
+  }
+]

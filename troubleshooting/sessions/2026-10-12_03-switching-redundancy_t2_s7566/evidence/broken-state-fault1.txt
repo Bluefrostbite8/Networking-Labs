@@ -1,0 +1,72 @@
+## R1# show ip ospf neighbor
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+3.3.3.3           0   FULL/  -        00:00:33    192.168.1.6     GigabitEthernet0/0
+
+## R1# show ip ospf interface brief
+Interface    PID   Area            IP Address/Mask    Cost  State Nbrs F/C
+Gi0/0        1     0               192.168.1.5/30     1     P2P   1/1
+Gi0/1        1     1               192.168.1.1/30     1     P2P   0/0
+
+## R1# show ip protocols
+*** IP Routing is NSF aware ***
+
+Routing Protocol is "application"
+  Sending updates every 0 seconds
+  Invalid after 0 seconds, hold down 0, flushed after 0
+  Outgoing update filter list for all interfaces is not set
+  Incoming update filter list for all interfaces is not set
+  Maximum path: 32
+  Routing for Networks:
+  Routing Information Sources:
+    Gateway         Distance      Last Update
+  Distance: (default is 4)
+
+Routing Protocol is "ospf 1"
+  Outgoing update filter list for all interfaces is not set
+  Incoming update filter list for all interfaces is not set
+  Router ID 1.1.1.1
+  It is an area border router
+  Number of areas in this router is 2. 2 normal 0 stub 0 nssa
+  Maximum path: 4
+  Routing for Networks:
+    192.168.1.0 0.0.0.3 area 1
+    192.168.1.4 0.0.0.3 area 0
+  Routing Information Sources:
+    Gateway         Distance      Last Update
+    3.3.3.3              110      00:01:10
+  Distance: (default is 110)
+
+## R1# show running-config | section router ospf
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.1.0 0.0.0.3 area 1
+ network 192.168.1.4 0.0.0.3 area 0
+
+## R1# show logging | include OSPF
+*Oct 13 02:24:56.126: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:25:01.011: %OSPF-5-ADJCHG: Process 1, Nbr 3.3.3.3 on GigabitEthernet0/0 from LOADING to FULL, Loading Done
+*Oct 13 02:25:07.220: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:25:20.739: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:25:33.302: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:25:46.392: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:25:59.541: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:26:11.748: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:26:24.109: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:26:37.025: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:26:49.832: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:27:02.709: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:27:15.890: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:27:27.890: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:27:39.912: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:27:52.020: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:28:02.691: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:28:14.324: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:28:26.343: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:28:38.812: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:28:51.590: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:29:04.041: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:29:16.883: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:29:29.426: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:29:41.327: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
+*Oct 13 02:29:53.375: %OSPF-4-ERRRCV: Received invalid packet: mismatched area ID from backbone area from 192.168.1.2, GigabitEthernet0/1
