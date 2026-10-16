@@ -4,7 +4,7 @@ category: stp
 tier: 2
 mode: static
 platforms: [iosvl2]
-selftest_passed: []                       # labs where selftest passed; break draws only these
+selftest_passed: ["01", "03"]             # labs where selftest passed; break draws only these
 applies_when:
   - profile_intent: stp_root
 
