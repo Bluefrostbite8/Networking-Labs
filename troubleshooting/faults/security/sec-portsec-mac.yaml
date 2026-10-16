@@ -4,7 +4,7 @@ category: security
 tier: 2
 mode: static
 platforms: [iosvl2]
-selftest_passed: []                       # labs where selftest passed; break draws only these
+selftest_passed: ["03"]                   # labs where selftest passed; break draws only these
 applies_when:
   - feature: access
   - dhcp_hosts: true
@@ -36,8 +36,12 @@ checks:
   workaround_signatures:
     - cli_match: { on: "{switch}", command: "show port-security interface {iface}", pattern: 'Maximum MAC Addresses\s*:\s*([2-9]|\d\d)', label: "port-security maximum raised" }
 
+# IOSvL2 15.2 quirk (verified by hand on lab 03 A2, 2026-10-15): the first
+# 'no switchport port-security mac-address <mac>' is accepted without an error
+# but leaves the line in place; the second removes it. Sent twice on purpose.
 reference_fix: |
   interface {iface}
+   no switchport port-security mac-address {bad_mac}
    no switchport port-security mac-address {bad_mac}
 
 selftest:
@@ -61,4 +65,4 @@ debrief:
            "show running-config interface {iface}", "show mac address-table interface {iface}"]
     debug: ["debug port-security (shows the violations as {host} retries DHCP)"]
   key_clue: "show port-security address on {switch}: a configured secure address '{bad_mac}' on {iface_short} that no host owns"
-  better_fix_if_temporary: "Remove the configured address instead of raising the maximum, then save with 'write memory' on {switch}."
+  better_fix_if_temporary: "Remove the configured address instead of raising the maximum, then save with 'write memory' on {switch}. On IOSvL2 the first 'no switchport port-security mac-address {bad_mac}' is accepted without an error but leaves the address in place: run it again and confirm with 'show running-config interface {iface}' before saving."
