@@ -1,0 +1,372 @@
+[
+  {
+    "index": 1,
+    "id": "svc-helper-wrong",
+    "title": "DHCP relays point at an address nobody answers",
+    "category": "services",
+    "state_only": false,
+    "tier": 2,
+    "node": "Core1",
+    "vars": {
+      "server": "R1",
+      "pool": "VLAN10",
+      "pool_header": "ip dhcp pool VLAN10",
+      "network": "10.1.10.0",
+      "mask": "255.255.255.0",
+      "subnet": "10.1.10.0/24",
+      "gateway": "10.1.10.3",
+      "hosts": [
+        "E-1",
+        "E-2"
+      ],
+      "host": "E-1",
+      "vlan": 10,
+      "server_ip": "192.168.1.5",
+      "gateway_node": "Core1",
+      "svi": "Vlan10",
+      "relays": [
+        "Core1",
+        "Core2"
+      ],
+      "relay_a": "Core1",
+      "relay_b": "Core2",
+      "helper_a": "192.168.1.1",
+      "helper_b": "192.168.1.5",
+      "server_ips_regex": "192\\.168\\.1\\.1|192\\.168\\.1\\.5",
+      "bad_helper": "10.1.10.10",
+      "n": 1
+    },
+    "touched": [
+      [
+        "Core1",
+        "interface Vlan10"
+      ],
+      [
+        "Core2",
+        "interface Vlan10"
+      ]
+    ],
+    "changes": [
+      {
+        "node": "Core1",
+        "section": "interface Vlan10",
+        "before": [
+          " ip address 10.1.10.1 255.255.255.0",
+          " ip helper-address 192.168.1.1",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 255",
+          " standby 0 preempt"
+        ],
+        "after": [
+          " ip address 10.1.10.1 255.255.255.0",
+          " ip helper-address 10.1.10.10",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 255",
+          " standby 0 preempt"
+        ]
+      },
+      {
+        "node": "Core2",
+        "section": "interface Vlan10",
+        "before": [
+          " ip address 10.1.10.2 255.255.255.0",
+          " ip helper-address 192.168.1.5",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 1"
+        ],
+        "after": [
+          " ip address 10.1.10.2 255.255.255.0",
+          " ip helper-address 10.1.10.10",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 1"
+        ]
+      }
+    ],
+    "original_sections": {
+      "Core1": {
+        "interface Vlan10": [
+          " ip address 10.1.10.1 255.255.255.0",
+          " ip helper-address 192.168.1.1",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 255",
+          " standby 0 preempt"
+        ]
+      },
+      "Core2": {
+        "interface Vlan10": [
+          " ip address 10.1.10.2 255.255.255.0",
+          " ip helper-address 192.168.1.5",
+          " standby 0 ip 10.1.10.3",
+          " standby 0 priority 1"
+        ]
+      }
+    },
+    "ticket": "Nobody on the VLAN 10 floor can get on the network this morning.",
+    "hints": [
+      "The hosts never get an address, so follow the DHCP request: who forwards it off the VLAN?",
+      "Check the DHCP relay on the VLAN 10 gateways, Core1 and Core2.",
+      "Run 'show ip interface Vlan10' on Core1 and Core2 and read the Helper address line."
+    ],
+    "checks": {
+      "refresh": [
+        "E-1"
+      ],
+      "functional": [
+        {
+          "host_lease": {
+            "on": "E-1",
+            "subnet": "10.1.10.0/24",
+            "wait_s": 90
+          }
+        },
+        {
+          "ping": {
+            "from": "E-1",
+            "to": [
+              "192.168.1.5"
+            ]
+          }
+        }
+      ],
+      "root_cause": [
+        {
+          "cli_match": {
+            "on": [
+              "Core1",
+              "Core2"
+            ],
+            "command": "show ip interface Vlan10",
+            "pattern": "Helper address is (192\\.168\\.1\\.1|192\\.168\\.1\\.5)\\s*$",
+            "label": "DHCP relay on Vlan10"
+          }
+        }
+      ],
+      "intent": [],
+      "workaround_signatures": [
+        {
+          "unsaved_fix": true
+        }
+      ]
+    },
+    "reference_fix": {
+      "Core1": [
+        "interface Vlan10",
+        " no ip helper-address 10.1.10.10",
+        " ip helper-address 192.168.1.1"
+      ],
+      "Core2": [
+        "interface Vlan10",
+        " no ip helper-address 10.1.10.10",
+        " ip helper-address 192.168.1.5"
+      ]
+    },
+    "selftest": {
+      "reinject": {
+        "Core1": [
+          "interface Vlan10",
+          " no ip helper-address 192.168.1.1",
+          " ip helper-address 10.1.10.10"
+        ],
+        "Core2": [
+          "interface Vlan10",
+          " no ip helper-address 192.168.1.5",
+          " ip helper-address 10.1.10.10"
+        ]
+      },
+      "workaround": {
+        "Core1": [
+          "interface Vlan10",
+          " no ip helper-address 10.1.10.10",
+          " ip helper-address 192.168.1.1"
+        ],
+        "Core2": [
+          "interface Vlan10",
+          " no ip helper-address 10.1.10.10",
+          " ip helper-address 192.168.1.5"
+        ]
+      },
+      "workaround_saved": false
+    },
+    "debrief": {
+      "scope": "Every host in VLAN 10: no address at all, other VLANs fine",
+      "methods": [
+        "follow_the_path",
+        "compare_known_good"
+      ],
+      "reasoning": "Only one VLAN is affected and its hosts get no address at all, so DHCP never completes. The server sits on another subnet, so each DISCOVER depends on the VLAN's gateways relaying it. Both relays point at 10.1.10.10, an address inside the VLAN that no device owns, so the requests go nowhere. Compare with a VLAN that works: its helper is the server's address.\n",
+      "commands": {
+        "show": [
+          "show ip interface Vlan10",
+          "show running-config interface Vlan10",
+          "show ip interface brief",
+          "show standby brief"
+        ],
+        "debug": [
+          "debug ip dhcp server packet (on R1: no DISCOVER arrives from VLAN 10)"
+        ]
+      },
+      "key_clue": "show ip interface Vlan10 on Core1: 'Helper address is 10.1.10.10' where the server is 192.168.1.1",
+      "better_fix_if_temporary": "Point both relays back at the DHCP server and save with 'write memory' on Core1 and Core2."
+    }
+  },
+  {
+    "index": 2,
+    "id": "l2-access-vlan",
+    "title": "Host port in the wrong access VLAN",
+    "category": "l2",
+    "state_only": false,
+    "tier": 1,
+    "node": "A2",
+    "vars": {
+      "switch": "A2",
+      "iface": "GigabitEthernet0/0",
+      "iface_short": "Gi0/0",
+      "host": "M-1",
+      "vlan": 20,
+      "subnet": "10.1.20.0/24",
+      "gateway": "10.1.20.3",
+      "dhcp": true,
+      "bad_vlan": 30,
+      "bad_subnet": "10.1.30.0/24",
+      "n": 2
+    },
+    "touched": [
+      [
+        "A2",
+        "interface GigabitEthernet0/0"
+      ]
+    ],
+    "changes": [
+      {
+        "node": "A2",
+        "section": "interface GigabitEthernet0/0",
+        "before": [
+          " switchport access vlan 20",
+          " switchport mode access",
+          " switchport nonegotiate",
+          " switchport port-security violation restrict",
+          " switchport port-security mac-address sticky",
+          " switchport port-security mac-address sticky 5254.006a.6308",
+          " switchport port-security",
+          " negotiation auto",
+          " spanning-tree portfast edge",
+          " spanning-tree bpduguard enable"
+        ],
+        "after": [
+          " switchport access vlan 30",
+          " switchport mode access",
+          " switchport nonegotiate",
+          " switchport port-security violation restrict",
+          " switchport port-security mac-address sticky",
+          " switchport port-security mac-address sticky 5254.006a.6308",
+          " switchport port-security",
+          " negotiation auto",
+          " spanning-tree portfast edge",
+          " spanning-tree bpduguard enable"
+        ]
+      }
+    ],
+    "original_sections": {
+      "A2": {
+        "interface GigabitEthernet0/0": [
+          " switchport access vlan 20",
+          " switchport mode access",
+          " switchport nonegotiate",
+          " switchport port-security violation restrict",
+          " switchport port-security mac-address sticky",
+          " switchport port-security mac-address sticky 5254.006a.6308",
+          " switchport port-security",
+          " negotiation auto",
+          " spanning-tree portfast edge",
+          " spanning-tree bpduguard enable"
+        ]
+      }
+    },
+    "ticket": "M-1 is online, but it's sitting in the wrong department's network.",
+    "hints": [
+      "Layer 2: the host has link and an address, so which VLAN is its port in?",
+      "Check the access port on A2 that M-1 uses.",
+      "Run 'show interfaces Gi0/0 switchport' on A2 and compare Access Mode VLAN with the design."
+    ],
+    "checks": {
+      "refresh": [
+        "M-1"
+      ],
+      "functional": [
+        {
+          "host_lease": {
+            "on": "M-1",
+            "subnet": "10.1.20.0/24",
+            "wait_s": 90
+          }
+        },
+        {
+          "ping": {
+            "from": "M-1",
+            "to": [
+              "10.1.20.3"
+            ],
+            "onlink": true
+          }
+        }
+      ],
+      "root_cause": [
+        {
+          "access_vlan": {
+            "on": "A2",
+            "interface": "GigabitEthernet0/0",
+            "vlan": 20
+          }
+        }
+      ],
+      "intent": [],
+      "workaround_signatures": [
+        {
+          "unsaved_fix": true
+        }
+      ]
+    },
+    "reference_fix": {
+      "A2": [
+        "interface GigabitEthernet0/0",
+        " switchport access vlan 20"
+      ]
+    },
+    "selftest": {
+      "reinject": {
+        "A2": [
+          "interface GigabitEthernet0/0",
+          " switchport access vlan 30"
+        ]
+      },
+      "workaround": {
+        "A2": [
+          "interface GigabitEthernet0/0",
+          " switchport access vlan 20"
+        ]
+      },
+      "workaround_saved": false
+    },
+    "debrief": {
+      "scope": "One host (M-1) has an address, but from the wrong subnet",
+      "methods": [
+        "follow_the_path",
+        "compare_known_good"
+      ],
+      "reasoning": "The host leases an address, so DHCP, the relay and routing all work. The address comes from another VLAN's pool, which means the port drops the host into the wrong broadcast domain. Comparing the port with the design, or with a working host port, shows the access VLAN differs.\n",
+      "commands": {
+        "show": [
+          "show interfaces Gi0/0 switchport",
+          "show vlan brief",
+          "show mac address-table interface Gi0/0",
+          "show running-config interface GigabitEthernet0/0"
+        ],
+        "debug": [
+          "debug ip dhcp server packet (on the DHCP server: the DISCOVER arrives via the VLAN 30 relay address)"
+        ]
+      },
+      "key_clue": "show interfaces Gi0/0 switchport on A2: 'Access Mode VLAN: 30' where the design says 20",
+      "better_fix_if_temporary": "Save the fix with 'write memory' on A2."
+    }
+  }
+]

@@ -1,0 +1,76 @@
+## Core1# show ip interface Vlan10
+Vlan10 is up, line protocol is up
+  Internet address is 10.1.10.1/24
+  Broadcast address is 255.255.255.255
+  Address determined by configuration file
+  MTU is 1500 bytes
+  Helper address is 10.1.10.10
+  Directed broadcast forwarding is disabled
+  Multicast reserved groups joined: 224.0.0.2 224.0.0.5 224.0.0.6
+  Outgoing access list is not set
+  Inbound  access list is not set
+  Proxy ARP is enabled
+  Local Proxy ARP is disabled
+  Security level is default
+  Split horizon is enabled
+  ICMP redirects are always sent
+  ICMP unreachables are always sent
+  ICMP mask replies are never sent
+  IP fast switching is enabled
+  IP Flow switching is disabled
+  IP CEF switching is enabled
+  IP CEF switching turbo vector
+  IP Null turbo vector
+  IP multicast fast switching is enabled
+  IP multicast distributed fast switching is disabled
+  IP route-cache flags are Fast, CEF
+  Router Discovery is disabled
+  IP output packet accounting is disabled
+  IP access violation accounting is disabled
+  TCP/IP header compression is disabled
+  RTP/IP header compression is disabled
+  Probe proxy name replies are disabled
+  Policy routing is disabled
+  Network address translation is disabled
+  BGP Policy Mapping is disabled
+  Input features: MCI Check
+  IPv4 WCCP Redirect outbound is disabled
+  IPv4 WCCP Redirect inbound is disabled
+  IPv4 WCCP Redirect exclude is disabled
+
+## Core1# show running-config interface Vlan10
+Building configuration...
+
+Current configuration : 158 bytes
+!
+interface Vlan10
+ ip address 10.1.10.1 255.255.255.0
+ ip helper-address 10.1.10.10 
+ standby 0 ip 10.1.10.3
+ standby 0 priority 255
+ standby 0 preempt
+end
+
+## Core1# show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/0     unassigned      YES unset  up                    up      
+GigabitEthernet0/1     unassigned      YES unset  up                    up      
+GigabitEthernet0/2     unassigned      YES unset  up                    up      
+GigabitEthernet0/3     unassigned      YES unset  up                    up      
+GigabitEthernet1/0     192.168.1.2     YES TFTP   up                    up      
+GigabitEthernet1/1     unassigned      YES unset  up                    up      
+GigabitEthernet1/2     unassigned      YES unset  up                    up      
+Port-channel1          unassigned      YES unset  up                    up      
+Port-channel2          unassigned      YES unset  up                    up      
+Port-channel3          unassigned      YES unset  up                    up      
+Vlan10                 10.1.10.1       YES TFTP   up                    up      
+Vlan20                 10.1.20.1       YES TFTP   up                    up      
+Vlan30                 10.1.30.1       YES TFTP   up                    up
+
+## Core1# show standby brief
+                     P indicates configured to preempt.
+                     |
+Interface   Grp  Pri P State   Active          Standby         Virtual IP
+Vl10        0    255 P Active  local           10.1.10.2       10.1.10.3
+Vl20        1    1     Standby 10.1.20.2       local           10.1.20.3
+Vl30        2    255 P Active  local           10.1.30.2       10.1.30.3

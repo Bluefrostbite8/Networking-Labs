@@ -1,0 +1,13 @@
+# ping from E-1: PASS (1/1 reachable)
+
+## E-1# ping -c 5 192.168.1.5
+PING 192.168.1.5 (192.168.1.5): 56 data bytes
+64 bytes from 192.168.1.5: seq=0 ttl=42 time=11.585 ms
+64 bytes from 192.168.1.5: seq=1 ttl=42 time=9.468 ms
+64 bytes from 192.168.1.5: seq=2 ttl=42 time=5.987 ms
+64 bytes from 192.168.1.5: seq=3 ttl=42 time=5.034 ms
+64 bytes from 192.168.1.5: seq=4 ttl=42 time=5.981 ms
+
+--- 192.168.1.5 ping statistics ---
+5 packets transmitted, 5 packets received, 0% packet loss
+round-trip min/avg/max = 5.034/7.611/11.585 ms

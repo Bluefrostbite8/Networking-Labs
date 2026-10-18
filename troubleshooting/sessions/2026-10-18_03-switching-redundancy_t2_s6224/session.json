@@ -1,0 +1,12 @@
+{
+  "session": "2026-10-18_03-switching-redundancy_t2_s6224",
+  "lab": "03-switching-redundancy",
+  "tier": 2,
+  "seed": 6224,
+  "incident": "03-t2-s6224",
+  "faults": 2,
+  "hint_levels": 3,
+  "created": "2026-10-18T16:06:39",
+  "healthy_baseline": "03-healthy-1735",
+  "debriefed": "2026-10-18T16:35:34"
+}

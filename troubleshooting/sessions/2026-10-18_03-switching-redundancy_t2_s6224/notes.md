@@ -1,0 +1,5 @@
+1. Started at a host on the VLAN 10 floor. `ip a` showed no IPv4 address at all, only a link-local IPv6 one, so the host never got a DHCP lease.
+2. Checked the DHCP server first. `show run | s dhcp` on R1 showed the VLAN 10 pool intact (network `10.1.10.0/24`, gateway `10.1.10.3`), so the problem sat between the host and the server: the relay.
+3. `show run | s Vlan` on Core1 showed Vlan10 relaying to `10.1.10.10`, while Vlan20 and Vlan30 relay to R1 at `192.168.1.1`. Added `ip helper-address 192.168.1.1` and removed `ip helper-address 10.1.10.10` on Vlan10.
+4. For complaint 2, `ip a` on M-1 showed `10.1.30.12/24`, an address from VLAN 30's subnet. M-1's port, A2 Gi0/0, was in access VLAN 30. Changed it to `switchport access vlan 20` and saved.
+5. What I missed: the relay fault was on both cores. Core2's Vlan10 also pointed at `10.1.10.10` instead of its own R1 address, `192.168.1.5`. VLAN 10 worked again because Core1 is the HSRP active gateway, but a failover to Core2 would have broken DHCP again. In a redundant pair, after finding a bug on one peer, check its twin before calling it fixed.
