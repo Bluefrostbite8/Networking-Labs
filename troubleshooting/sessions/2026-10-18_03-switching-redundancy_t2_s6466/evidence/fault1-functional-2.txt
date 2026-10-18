@@ -1,0 +1,17 @@
+# ping from E-2: PASS (1/1 reachable on-link)
+
+## E-2# ping -c 5 10.1.10.3
+PING 10.1.10.3 (10.1.10.3): 56 data bytes
+64 bytes from 10.1.10.3: seq=0 ttl=42 time=7.306 ms
+64 bytes from 10.1.10.3: seq=1 ttl=42 time=3.502 ms
+64 bytes from 10.1.10.3: seq=2 ttl=42 time=3.344 ms
+64 bytes from 10.1.10.3: seq=3 ttl=42 time=3.295 ms
+64 bytes from 10.1.10.3: seq=4 ttl=42 time=3.494 ms
+
+--- 10.1.10.3 ping statistics ---
+5 packets transmitted, 5 packets received, 0% packet loss
+round-trip min/avg/max = 3.295/4.188/7.306 ms
+
+## E-2# ip neigh
+10.1.10.3 dev eth0 lladdr 00:00:0c:07:ac:00 ref 1 used 0/0/0 probes 4 REACHABLE
+10.1.10.2 dev eth0 lladdr 52:54:00:26:80:0a ref 1 used 0/0/0 probes 4 REACHABLE

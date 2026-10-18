@@ -1,0 +1,638 @@
+{
+  "session": "2026-10-18_03-switching-redundancy_t2_s6466",
+  "incident": "03-t2-s6466",
+  "graded": "2026-10-18T16:00:36",
+  "minutes_since_start": 8.5,
+  "score": 100,
+  "collateral": [],
+  "faults": [
+    {
+      "index": 1,
+      "id": "l2-access-vlan",
+      "title": "Host port in the wrong access VLAN",
+      "steps": [
+        {
+          "question": "functional",
+          "ok": true,
+          "detail": "2/2 pass"
+        },
+        {
+          "question": "root_cause",
+          "ok": true,
+          "detail": "A3 GigabitEthernet0/3 access VLAN 10 (want 10)"
+        },
+        {
+          "question": "saved",
+          "ok": true,
+          "detail": "running matches startup"
+        },
+        {
+          "question": "intent",
+          "ok": true,
+          "detail": "intact"
+        },
+        {
+          "question": "original",
+          "ok": true,
+          "detail": "matches the original"
+        }
+      ],
+      "functional": [
+        {
+          "name": "host_lease E-2",
+          "ok": true,
+          "detail": "E-2 has 10.1.10.12",
+          "optional": false,
+          "evidence": [
+            {
+              "node": "E-2",
+              "command": "ip -4 addr show dev eth0",
+              "output": "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000\r\n    inet 10.1.10.12/24 scope global eth0\r\n       valid_lft forever preferred_lft forever"
+            }
+          ]
+        },
+        {
+          "name": "ping from E-2",
+          "ok": true,
+          "detail": "1/1 reachable on-link",
+          "optional": false,
+          "evidence": [
+            {
+              "node": "E-2",
+              "command": "ping -c 5 10.1.10.3",
+              "output": "PING 10.1.10.3 (10.1.10.3): 56 data bytes\r\n64 bytes from 10.1.10.3: seq=0 ttl=42 time=7.306 ms\r\n64 bytes from 10.1.10.3: seq=1 ttl=42 time=3.502 ms\r\n64 bytes from 10.1.10.3: seq=2 ttl=42 time=3.344 ms\r\n64 bytes from 10.1.10.3: seq=3 ttl=42 time=3.295 ms\r\n64 bytes from 10.1.10.3: seq=4 ttl=42 time=3.494 ms\r\n\r\n--- 10.1.10.3 ping statistics ---\r\n5 packets transmitted, 5 packets received, 0% packet loss\r\nround-trip min/avg/max = 3.295/4.188/7.306 ms"
+            },
+            {
+              "node": "E-2",
+              "command": "ip neigh",
+              "output": "10.1.10.3 dev eth0 lladdr 00:00:0c:07:ac:00 ref 1 used 0/0/0 probes 4 REACHABLE\r\n10.1.10.2 dev eth0 lladdr 52:54:00:26:80:0a ref 1 used 0/0/0 probes 4 REACHABLE"
+            }
+          ]
+        }
+      ],
+      "root_cause": [
+        {
+          "name": "access_vlan A3 GigabitEthernet0/3",
+          "ok": true,
+          "detail": "A3 GigabitEthernet0/3 access VLAN 10 (want 10)",
+          "optional": false,
+          "evidence": [
+            {
+              "node": "A3",
+              "command": "show interfaces GigabitEthernet0/3 switchport",
+              "output": "Name: Gi0/3\r\nSwitchport: Enabled\r\nAdministrative Mode: static access\r\nOperational Mode: static access\r\nAdministrative Trunking Encapsulation: negotiate\r\nOperational Trunking Encapsulation: native\r\nNegotiation of Trunking: Off\r\nAccess Mode VLAN: 10 (Employees)\r\nTrunking Native Mode VLAN: 1 (default)\r\nAdministrative Native VLAN tagging: enabled\r\nVoice VLAN: none\r\nAdministrative private-vlan host-association: none \r\nAdministrative private-vlan mapping: none \r\nAdministrative private-vlan trunk native VLAN: none\r\nAdministrative private-vlan trunk Native VLAN tagging: enabled\r\r\nAdministrative private-vlan trunk encapsulation: dot1q\r\nAdministrative private-vlan trunk normal VLANs: none\r\nAdministrative private-vlan trunk associations: none\r\nAdministrative private-vlan trunk mappings: none\r\nOperational private-vlan: none\r\nTrunking VLANs Enabled: ALL\r\nPruning VLANs Enabled: 2-1001\r\nCapture Mode Disabled\r\nCapture VLANs Allowed: ALL\r\n\r\nProtected: false\r\nAppliance trust: none"
+            }
+          ]
+        }
+      ],
+      "intent": [],
+      "original_diff": [],
+      "grade": "Exact",
+      "weight": 1.0,
+      "config_now": [
+        {
+          "node": "A3",
+          "section": "interface GigabitEthernet0/3",
+          "vs_broken": {
+            "added": [
+              "switchport access vlan 10"
+            ],
+            "removed": [
+              "switchport access vlan 30"
+            ]
+          },
+          "vs_original": {
+            "added": [],
+            "removed": []
+          }
+        }
+      ],
+      "hints": 0,
+      "score": 100
+    }
+  ],
+  "baseline_after": [
+    {
+      "name": "stp_root vlan 10",
+      "ok": true,
+      "detail": "Core1 is root",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show spanning-tree vlan 10",
+          "output": "\r\nVLAN0010\r\n  Spanning tree enabled protocol rstp\r\n  Root ID    Priority    4106\r\n             Address     5254.002a.25d8\r\n             This bridge is the root\r\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\r\n\r\n  Bridge ID  Priority    4106   (priority 4096 sys-id-ext 10)\r\n             Address     5254.002a.25d8\r\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\r\n             Aging Time  300 sec\r\n\r\nInterface           Role Sts Cost      Prio.Nbr Type\r\n------------------- ---- --- --------- -------- --------------------------------\r\nPo1                 Desg FWD 3         128.65   P2p \r\nPo2                 Desg FWD 3         128.66   P2p \r\nPo3                 Desg FWD 3         128.67   P2p"
+        }
+      ]
+    },
+    {
+      "name": "stp_root vlan 20",
+      "ok": true,
+      "detail": "Core2 is root",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core2",
+          "command": "show spanning-tree vlan 20",
+          "output": "\r\nVLAN0020\r\n  Spanning tree enabled protocol rstp\r\n  Root ID    Priority    4116\r\n             Address     5254.0026.d06b\r\n             This bridge is the root\r\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\r\n\r\n  Bridge ID  Priority    4116   (priority 4096 sys-id-ext 20)\r\n             Address     5254.0026.d06b\r\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\r\n             Aging Time  300 sec\r\n\r\nInterface           Role Sts Cost      Prio.Nbr Type\r\n------------------- ---- --- --------- -------- --------------------------------\r\nPo1                 Desg FWD 3         128.65   P2p \r\nPo2                 Desg FWD 3         128.66   P2p \r\nPo3                 Desg FWD 3         128.67   P2p"
+        }
+      ]
+    },
+    {
+      "name": "stp_root vlan 30",
+      "ok": true,
+      "detail": "Core1 is root",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show spanning-tree vlan 30",
+          "output": "\r\nVLAN0030\r\n  Spanning tree enabled protocol rstp\r\n  Root ID    Priority    4126\r\n             Address     5254.002a.25d8\r\n             This bridge is the root\r\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\r\n\r\n  Bridge ID  Priority    4126   (priority 4096 sys-id-ext 30)\r\n             Address     5254.002a.25d8\r\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\r\n             Aging Time  300 sec\r\n\r\nInterface           Role Sts Cost      Prio.Nbr Type\r\n------------------- ---- --- --------- -------- --------------------------------\r\nPo1                 Desg FWD 3         128.65   P2p \r\nPo2                 Desg FWD 3         128.66   P2p \r\nPo3                 Desg FWD 3         128.67   P2p"
+        }
+      ]
+    },
+    {
+      "name": "hsrp_active vlan 10",
+      "ok": true,
+      "detail": "Core1 Vlan10 is Active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show standby brief",
+          "output": "                     P indicates configured to preempt.\r\n                     |\r\nInterface   Grp  Pri P State   Active          Standby         Virtual IP\r\nVl10        0    255 P Active  local           10.1.10.2       10.1.10.3\r\nVl20        1    1     Standby 10.1.20.2       local           10.1.20.3\r\nVl30        2    255 P Active  local           10.1.30.2       10.1.30.3"
+        }
+      ]
+    },
+    {
+      "name": "hsrp_active vlan 20",
+      "ok": true,
+      "detail": "Core2 Vlan20 is Active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core2",
+          "command": "show standby brief",
+          "output": "                     P indicates configured to preempt.\r\n                     |\r\nInterface   Grp  Pri P State   Active          Standby         Virtual IP\r\nVl10        0    1     Standby 10.1.10.1       local           10.1.10.3\r\nVl20        1    255 P Active  local           10.1.20.1       10.1.20.3\r\nVl30        2    1     Standby 10.1.30.1       local           10.1.30.3"
+        }
+      ]
+    },
+    {
+      "name": "hsrp_active vlan 30",
+      "ok": true,
+      "detail": "Core1 Vlan30 is Active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show standby brief",
+          "output": "                     P indicates configured to preempt.\r\n                     |\r\nInterface   Grp  Pri P State   Active          Standby         Virtual IP\r\nVl10        0    255 P Active  local           10.1.10.2       10.1.10.3\r\nVl20        1    1     Standby 10.1.20.2       local           10.1.20.3\r\nVl30        2    255 P Active  local           10.1.30.2       10.1.30.3"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors R1",
+      "ok": true,
+      "detail": "2 FULL of 2 (expected 2)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "R1",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n3.3.3.3           0   FULL/  -        00:00:36    192.168.1.6     GigabitEthernet0/0\r\n2.2.2.2           0   FULL/  -        00:00:34    192.168.1.2     GigabitEthernet0/1"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors Core1",
+      "ok": true,
+      "detail": "4 FULL of 4 (expected 4)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n1.1.1.1           0   FULL/  -        00:00:30    192.168.1.1     GigabitEthernet1/0\r\n3.3.3.3           1   FULL/DR         00:00:34    10.1.30.2       Vlan30\r\n3.3.3.3           1   FULL/DR         00:00:35    10.1.20.2       Vlan20\r\n3.3.3.3           1   FULL/DR         00:00:39    10.1.10.2       Vlan10"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors Core2",
+      "ok": true,
+      "detail": "4 FULL of 4 (expected 4)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core2",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n1.1.1.1           0   FULL/  -        00:00:31    192.168.1.5     GigabitEthernet1/0\r\n2.2.2.2           1   FULL/BDR        00:00:39    10.1.30.1       Vlan30\r\n2.2.2.2           1   FULL/BDR        00:00:32    10.1.20.1       Vlan20\r\n2.2.2.2           1   FULL/BDR        00:00:39    10.1.10.1       Vlan10"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Core1 Po1",
+      "ok": true,
+      "detail": "Po1 up, lacp, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 3\r\nNumber of aggregators:           3\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi0/3(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/0(P)    Gi1/2(P)    \r\n3      Po3(SU)          -        Gi0/1(P)    Gi0/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Core1 Po2",
+      "ok": true,
+      "detail": "Po2 up, pagp, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 3\r\nNumber of aggregators:           3\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi0/3(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/0(P)    Gi1/2(P)    \r\n3      Po3(SU)          -        Gi0/1(P)    Gi0/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Core1 Po3",
+      "ok": true,
+      "detail": "Po3 up, on, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 3\r\nNumber of aggregators:           3\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi0/3(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/0(P)    Gi1/2(P)    \r\n3      Po3(SU)          -        Gi0/1(P)    Gi0/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Core2 Po1",
+      "ok": true,
+      "detail": "Po1 up, lacp, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core2",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 3\r\nNumber of aggregators:           3\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi0/3(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/0(P)    Gi1/2(P)    \r\n3      Po3(SU)          -        Gi0/1(P)    Gi0/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Core2 Po2",
+      "ok": true,
+      "detail": "Po2 up, pagp, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core2",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 3\r\nNumber of aggregators:           3\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi0/3(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/0(P)    Gi1/2(P)    \r\n3      Po3(SU)          -        Gi0/1(P)    Gi0/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Core2 Po3",
+      "ok": true,
+      "detail": "Po3 up, on, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core2",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 3\r\nNumber of aggregators:           3\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi0/3(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/0(P)    Gi1/2(P)    \r\n3      Po3(SU)          -        Gi0/1(P)    Gi0/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Dist1 Po1",
+      "ok": true,
+      "detail": "Po1 up, lacp, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Dist1",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 2\r\nNumber of aggregators:           2\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi1/0(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/3(P)    Gi1/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Dist1 Po2",
+      "ok": true,
+      "detail": "Po2 up, pagp, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Dist1",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 2\r\nNumber of aggregators:           2\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi1/0(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/3(P)    Gi1/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Dist2 Po1",
+      "ok": true,
+      "detail": "Po1 up, lacp, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Dist2",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 2\r\nNumber of aggregators:           2\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi1/0(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/3(P)    Gi1/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "etherchannel Dist2 Po2",
+      "ok": true,
+      "detail": "Po2 up, pagp, 2 members",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Dist2",
+          "command": "show etherchannel summary",
+          "output": "Flags:  D - down        P - bundled in port-channel\r\n        I - stand-alone s - suspended\r\n        H - Hot-standby (LACP only)\r\n        R - Layer3      S - Layer2\r\n        U - in use      N - not in use, no aggregation\r\n        f - failed to allocate aggregator\r\n\r\n        M - not in use, minimum links not met\r\n        m - not in use, port not aggregated due to minimum links not met\r\n        u - unsuitable for bundling\r\n        w - waiting to be aggregated\r\n        d - default port\r\n\r\n        A - formed by Auto LAG\r\n\r\n\r\nNumber of channel-groups in use: 2\r\nNumber of aggregators:           2\r\n\r\nGroup  Port-channel  Protocol    Ports\r\n------+-------------+-----------+-----------------------------------------------\r\n1      Po1(SU)         LACP      Gi1/0(P)    Gi1/1(P)    \r\n2      Po2(SU)         PAgP      Gi0/3(P)    Gi1/2(P)"
+        }
+      ]
+    },
+    {
+      "name": "vtp Core1",
+      "ok": true,
+      "detail": "v3 ROMANVTP primary server",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show vtp status",
+          "output": "VTP Version capable             : 1 to 3\r\nVTP version running             : 3\r\nVTP Domain Name                 : ROMANVTP\r\nVTP Pruning Mode                : Disabled\r\nVTP Traps Generation            : Disabled\r\nDevice ID                       : 5254.002a.8000\r\n\r\nFeature VLAN:\r\n--------------\r\nVTP Operating Mode                : Primary Server\r\nNumber of existing VLANs          : 9\r\nNumber of existing extended VLANs : 0\r\nMaximum VLANs supported locally   : 4096\r\nConfiguration Revision            : 2\r\nPrimary ID                        : 5254.002a.8000\r\nPrimary Description               : Core1\r\nMD5 digest                        : 0x43 0x27 0x29 0xC0 0x10 0x6B 0x10 0x19 \r\n                                    0x1C 0xE5 0x07 0x11 0x71 0x66 0x5E 0xBC \r\n\r\n\r\nFeature MST:\r\n--------------\r\nVTP Operating Mode                : Transparent\r\n\r\n\r\nFeature UNKNOWN:\r\n--------------\r\nVTP Operating Mode                : Transparent"
+        }
+      ]
+    },
+    {
+      "name": "vtp Core2",
+      "ok": true,
+      "detail": "v3 ROMANVTP client",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core2",
+          "command": "show vtp status",
+          "output": "VTP Version capable             : 1 to 3\r\nVTP version running             : 3\r\nVTP Domain Name                 : ROMANVTP\r\nVTP Pruning Mode                : Disabled\r\nVTP Traps Generation            : Disabled\r\nDevice ID                       : 5254.0026.8000\r\n\r\nFeature VLAN:\r\n--------------\r\nVTP Operating Mode                : Client\r\nNumber of existing VLANs          : 9\r\nNumber of existing extended VLANs : 0\r\r\nMaximum VLANs supported locally   : 4096\r\nConfiguration Revision            : 2\r\nPrimary ID                        : 5254.002a.8000\r\nPrimary Description               : Core1\r\nMD5 digest                        : 0x43 0x27 0x29 0xC0 0x10 0x6B 0x10 0x19 \r\n                                    0x1C 0xE5 0x07 0x11 0x71 0x66 0x5E 0xBC \r\n\r\n\r\nFeature MST:\r\n--------------\r\nVTP Operating Mode                : Transparent\r\n\r\n\r\nFeature UNKNOWN:\r\n--------------\r\nVTP Operating Mode                : Transparent"
+        }
+      ]
+    },
+    {
+      "name": "vtp Dist1",
+      "ok": true,
+      "detail": "v3 ROMANVTP client",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Dist1",
+          "command": "show vtp status",
+          "output": "VTP Version capable             : 1 to 3\r\nVTP version running             : 3\r\nVTP Domain Name                 : ROMANVTP\r\nVTP Pruning Mode                : Disabled\r\nVTP Traps Generation            : Disabled\r\nDevice ID                       : 5254.00d5.8000\r\n\r\nFeature VLAN:\r\n--------------\r\nVTP Operating Mode                : Client\r\nNumber of existing VLANs          : 9\r\nNumber of existing extended VLANs : 0\r\nMaximum VLANs supported locally   : 4096\r\nConfiguration Revision            : 2\r\nPrimary ID                        : 5254.002a.8000\r\nPrimary Description               : Core1\r\nMD5 digest                        : 0x43 0x27 0x29 0xC0 0x10 0x6B 0x10 0x19 \r\n                                    0x1C 0xE5 0x07 0x11 0x71 0x66 0x5E 0xBC \r\n\r\n\r\nFeature MST:\r\n--------------\r\nVTP Operating Mode                : Transparent\r\n\r\n\r\nFeature UNKNOWN:\r\n--------------\r\nVTP Operating Mode                : Transparent"
+        }
+      ]
+    },
+    {
+      "name": "vtp Dist2",
+      "ok": true,
+      "detail": "v3 ROMANVTP client",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Dist2",
+          "command": "show vtp status",
+          "output": "VTP Version capable             : 1 to 3\r\nVTP version running             : 3\r\nVTP Domain Name                 : ROMANVTP\r\nVTP Pruning Mode                : Disabled\r\nVTP Traps Generation            : Disabled\r\nDevice ID                       : 5254.0043.8000\r\n\r\nFeature VLAN:\r\n--------------\r\nVTP Operating Mode                : Client\r\nNumber of existing VLANs          : 9\r\nNumber of existing extended VLANs : 0\r\r\nMaximum VLANs supported locally   : 4096\r\nConfiguration Revision            : 2\r\nPrimary ID                        : 5254.002a.8000\r\nPrimary Description               : Core1\r\nMD5 digest                        : 0x43 0x27 0x29 0xC0 0x10 0x6B 0x10 0x19 \r\n                                    0x1C 0xE5 0x07 0x11 0x71 0x66 0x5E 0xBC \r\n\r\n\r\nFeature MST:\r\n--------------\r\nVTP Operating Mode                : Transparent\r\n\r\n\r\nFeature UNKNOWN:\r\n--------------\r\nVTP Operating Mode                : Transparent"
+        }
+      ]
+    },
+    {
+      "name": "vtp A1",
+      "ok": true,
+      "detail": "v3 ROMANVTP client",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A1",
+          "command": "show vtp status",
+          "output": "VTP Version capable             : 1 to 3\r\nVTP version running             : 3\r\nVTP Domain Name                 : ROMANVTP\r\nVTP Pruning Mode                : Disabled\r\nVTP Traps Generation            : Disabled\r\nDevice ID                       : 5254.0045.8000\r\n\r\nFeature VLAN:\r\n--------------\r\nVTP Operating Mode                : Client\r\nNumber of existing VLANs          : 9\r\nNumber of existing extended VLANs : 0\r\nMaximum VLANs supported locally   : 4096\r\nConfiguration Revision            : 2\r\nPrimary ID                        : 5254.002a.8000\r\nPrimary Description               : Core1\r\nMD5 digest                        : 0x43 0x27 0x29 0xC0 0x10 0x6B 0x10 0x19 \r\n                                    0x1C 0xE5 0x07 0x11 0x71 0x66 0x5E 0xBC \r\n\r\n\r\r\nFeature MST:\r\n--------------\r\nVTP Operating Mode                : Transparent\r\n\r\n\r\nFeature UNKNOWN:\r\n--------------\r\nVTP Operating Mode                : Transparent"
+        }
+      ]
+    },
+    {
+      "name": "vtp A2",
+      "ok": true,
+      "detail": "v3 ROMANVTP client",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A2",
+          "command": "show vtp status",
+          "output": "VTP Version capable             : 1 to 3\r\nVTP version running             : 3\r\nVTP Domain Name                 : ROMANVTP\r\nVTP Pruning Mode                : Disabled\r\nVTP Traps Generation            : Disabled\r\nDevice ID                       : 5254.008d.8000\r\n\r\nFeature VLAN:\r\n--------------\r\nVTP Operating Mode                : Client\r\nNumber of existing VLANs          : 9\r\nNumber of existing extended VLANs : 0\r\r\nMaximum VLANs supported locally   : 4096\r\nConfiguration Revision            : 2\r\nPrimary ID                        : 5254.002a.8000\r\nPrimary Description               : Core1\r\nMD5 digest                        : 0x43 0x27 0x29 0xC0 0x10 0x6B 0x10 0x19 \r\n                                    0x1C 0xE5 0x07 0x11 0x71 0x66 0x5E 0xBC \r\n\r\n\r\nFeature MST:\r\n--------------\r\nVTP Operating Mode                : Transparent\r\n\r\n\r\nFeature UNKNOWN:\r\n--------------\r\nVTP Operating Mode                : Transparent"
+        }
+      ]
+    },
+    {
+      "name": "vtp A3",
+      "ok": true,
+      "detail": "v3 ROMANVTP client",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A3",
+          "command": "show vtp status",
+          "output": "VTP Version capable             : 1 to 3\r\nVTP version running             : 3\r\nVTP Domain Name                 : ROMANVTP\r\nVTP Pruning Mode                : Disabled\r\nVTP Traps Generation            : Disabled\r\nDevice ID                       : 5254.0082.8000\r\n\r\nFeature VLAN:\r\n--------------\r\nVTP Operating Mode                : Client\r\nNumber of existing VLANs          : 9\r\nNumber of existing extended VLANs : 0\r\nMaximum VLANs supported locally   : 4096\r\nConfiguration Revision            : 2\r\nPrimary ID                        : 5254.002a.8000\r\nPrimary Description               : Core1\r\nMD5 digest                        : 0x43 0x27 0x29 0xC0 0x10 0x6B 0x10 0x19 \r\n                                    0x1C 0xE5 0x07 0x11 0x71 0x66 0x5E 0xBC \r\n\r\n\r\nFeature MST:\r\n--------------\r\nVTP Operating Mode                : Transparent\r\n\r\n\r\nFeature UNKNOWN:\r\n--------------\r\nVTP Operating Mode                : Transparent"
+        }
+      ]
+    },
+    {
+      "name": "vlans A1",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A1",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    Gi0/3\r\n10   Employees                        active    Gi0/0\r\n20   Management                       active    \r\n30   Service                          active    \r\n99   VLAN0099                         active    \r\n1002 fddi-default                     act/unsup \r\n1003 trcrf-default                    act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trbrf-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n30   enet  100030     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 trcrf 101003     4472  1005   3276   -        -    srb      0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trbrf 101005     4472  -      -      15       ibm  -        0      0   \r\n\r\n\r\nVLAN AREHops STEHops Backup CRF\r\n---- ------- ------- ----------\r\n1003 7       7       off\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans A2",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A2",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    Gi0/3\r\n10   Employees                        active    \r\n20   Management                       active    Gi0/0\r\n30   Service                          active    \r\n99   VLAN0099                         active    \r\n1002 fddi-default                     act/unsup \r\n1003 trcrf-default                    act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trbrf-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n30   enet  100030     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 trcrf 101003     4472  1005   3276   -        -    srb      0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trbrf 101005     4472  -      -      15       ibm  -        0      0   \r\n\r\n\r\nVLAN AREHops STEHops Backup CRF\r\n---- ------- ------- ----------\r\n1003 7       7       off\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans A3",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A3",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    \r\n10   Employees                        active    Gi0/3\r\n20   Management                       active    \r\n30   Service                          active    Gi0/0\r\n99   VLAN0099                         active    \r\n1002 fddi-default                     act/unsup \r\n1003 trcrf-default                    act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trbrf-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n30   enet  100030     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 trcrf 101003     4472  1005   3276   -        -    srb      0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trbrf 101005     4472  -      -      15       ibm  -        0      0   \r\n\r\n\r\nVLAN AREHops STEHops Backup CRF\r\n---- ------- ------- ----------\r\n1003 7       7       off\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans Dist1",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Dist1",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    \r\n10   Employees                        active    \r\n20   Management                       active    \r\n30   Service                          active    \r\n99   VLAN0099                         active    \r\n1002 fddi-default                     act/unsup \r\n1003 trcrf-default                    act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trbrf-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n30   enet  100030     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 trcrf 101003     4472  1005   3276   -        -    srb      0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trbrf 101005     4472  -      -      15       ibm  -        0      0   \r\n\r\n\r\nVLAN AREHops STEHops Backup CRF\r\n---- ------- ------- ----------\r\n1003 7       7       off\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans Dist2",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Dist2",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    \r\n10   Employees                        active    \r\n20   Management                       active    \r\n30   Service                          active    \r\n99   VLAN0099                         active    \r\n1002 fddi-default                     act/unsup \r\n1003 trcrf-default                    act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trbrf-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n30   enet  100030     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 trcrf 101003     4472  1005   3276   -        -    srb      0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trbrf 101005     4472  -      -      15       ibm  -        0      0   \r\n\r\n\r\nVLAN AREHops STEHops Backup CRF\r\n---- ------- ------- ----------\r\n1003 7       7       off\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans Core2",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core2",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    \r\n10   Employees                        active    \r\n20   Management                       active    \r\n30   Service                          active    \r\n99   VLAN0099                         active    \r\n1002 fddi-default                     act/unsup \r\n1003 trcrf-default                    act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trbrf-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n30   enet  100030     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 trcrf 101003     4472  1005   3276   -        -    srb      0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trbrf 101005     4472  -      -      15       ibm  -        0      0   \r\n\r\n\r\nVLAN AREHops STEHops Backup CRF\r\n---- ------- ------- ----------\r\n1003 7       7       off\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans Core1",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "Core1",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    \r\n10   Employees                        active    \r\n20   Management                       active    \r\n30   Service                          active    \r\n99   VLAN0099                         active    \r\n1002 fddi-default                     act/unsup \r\n1003 trcrf-default                    act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trbrf-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n30   enet  100030     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 trcrf 101003     4472  1005   3276   -        -    srb      0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trbrf 101005     4472  -      -      15       ibm  -        0      0   \r\n\r\n\r\nVLAN AREHops STEHops Backup CRF\r\n---- ------- ------- ----------\r\n1003 7       7       off\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "port_security A1 GigabitEthernet0/0",
+      "ok": true,
+      "detail": "Secure-up, 1 sticky",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A1",
+          "command": "show port-security interface GigabitEthernet0/0",
+          "output": "Port Security              : Enabled\r\nPort Status                : Secure-up\r\nViolation Mode             : Restrict\r\nAging Time                 : 0 mins\r\nAging Type                 : Absolute\r\nSecureStatic Address Aging : Disabled\r\nMaximum MAC Addresses      : 1\r\nTotal MAC Addresses        : 1\r\nConfigured MAC Addresses   : 0\r\nSticky MAC Addresses       : 1\r\nLast Source Address:Vlan   : 5254.0016.449d:10\r\nSecurity Violation Count   : 72"
+        }
+      ]
+    },
+    {
+      "name": "port_security A2 GigabitEthernet0/0",
+      "ok": true,
+      "detail": "Secure-up, 1 sticky",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A2",
+          "command": "show port-security interface GigabitEthernet0/0",
+          "output": "Port Security              : Enabled\r\nPort Status                : Secure-up\r\nViolation Mode             : Restrict\r\nAging Time                 : 0 mins\r\nAging Type                 : Absolute\r\nSecureStatic Address Aging : Disabled\r\nMaximum MAC Addresses      : 1\r\nTotal MAC Addresses        : 1\r\nConfigured MAC Addresses   : 0\r\nSticky MAC Addresses       : 1\r\nLast Source Address:Vlan   : 5254.006e.4558:20\r\nSecurity Violation Count   : 72"
+        }
+      ]
+    },
+    {
+      "name": "port_security A3 GigabitEthernet0/0",
+      "ok": true,
+      "detail": "Secure-up, 1 sticky",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A3",
+          "command": "show port-security interface GigabitEthernet0/0",
+          "output": "Port Security              : Enabled\r\nPort Status                : Secure-up\r\nViolation Mode             : Restrict\r\nAging Time                 : 0 mins\r\nAging Type                 : Absolute\r\nSecureStatic Address Aging : Disabled\r\nMaximum MAC Addresses      : 2\r\nTotal MAC Addresses        : 0\r\nConfigured MAC Addresses   : 0\r\nSticky MAC Addresses       : 1\r\nLast Source Address:Vlan   : 5254.00b5.c8ae:30\r\nSecurity Violation Count   : 0"
+        }
+      ]
+    },
+    {
+      "name": "port_security A3 GigabitEthernet0/3",
+      "ok": true,
+      "detail": "Secure-up, 1 sticky",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A3",
+          "command": "show port-security interface GigabitEthernet0/3",
+          "output": "Port Security              : Enabled\r\nPort Status                : Secure-up\r\nViolation Mode             : Restrict\r\nAging Time                 : 0 mins\r\nAging Type                 : Absolute\r\nSecureStatic Address Aging : Disabled\r\nMaximum MAC Addresses      : 2\r\nTotal MAC Addresses        : 1\r\nConfigured MAC Addresses   : 0\r\nSticky MAC Addresses       : 1\r\nLast Source Address:Vlan   : 5254.0012.fbba:10\r\nSecurity Violation Count   : 0"
+        }
+      ]
+    },
+    {
+      "name": "dhcp_bindings R1",
+      "ok": true,
+      "detail": "4 bindings (need 4)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "R1",
+          "command": "show ip dhcp binding",
+          "output": "Bindings from all pools not associated with VRF:\r\nIP address          Client-ID/\t \t    Lease expiration        Type\r\n\t\t    Hardware address/\r\n\t\t    User name\r\n10.1.10.11          0152.5400.1644.9d       Oct 19 2026 08:49 PM    Automatic\r\n10.1.10.12          0152.5400.12fb.ba       Oct 19 2026 08:59 PM    Automatic\r\n10.1.20.11          0152.5400.6e45.58       Oct 19 2026 08:49 PM    Automatic\r\n10.1.30.11          0152.5400.b5c8.ae       Oct 19 2026 08:49 PM    Automatic"
+        }
+      ]
+    },
+    {
+      "name": "ping from R1",
+      "ok": true,
+      "detail": "4/4 reachable",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "R1",
+          "command": "ping 10.1.10.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.1.10.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 4/4/5 ms"
+        },
+        {
+          "node": "R1",
+          "command": "ping 10.1.10.12",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.1.10.12, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 3/3/4 ms"
+        },
+        {
+          "node": "R1",
+          "command": "ping 10.1.20.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.1.20.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 5/5/6 ms"
+        },
+        {
+          "node": "R1",
+          "command": "ping 10.1.30.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.1.30.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 4/4/5 ms"
+        }
+      ]
+    }
+  ]
+}
