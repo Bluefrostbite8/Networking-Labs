@@ -4,7 +4,7 @@ category: fhrp
 tier: 2
 mode: static
 platforms: [iosvl2, iosv, iol-xe]
-selftest_passed: ["03"]                   # labs where selftest passed; break draws only these
+selftest_passed: ["03", "04"]             # labs where selftest passed; break draws only these
 applies_when:
   - feature: hsrp
   - profile_intent: hsrp_active

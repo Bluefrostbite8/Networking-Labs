@@ -4,7 +4,7 @@ category: services
 tier: 2
 mode: static
 platforms: [iosv, iosvl2, iol-xe]
-selftest_passed: ["03"]                   # labs where selftest passed; break draws only these
+selftest_passed: ["02", "03"]             # labs where selftest passed; break draws only these
 applies_when:
   - feature: dhcp_server
   - dhcp_hosts: true
