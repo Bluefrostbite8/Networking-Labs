@@ -179,19 +179,48 @@ class Grader:
         return done("Equivalent" if differs else "Exact", WEIGHTS["Equivalent" if differs else "Exact"])
 
 
+_IP = r"\d{1,3}(?:\.\d{1,3}){3}"
+
+
+def _ping_targets(evidence: list[dict[str, str]]) -> set[str]:
+    """Addresses a ping check sent echoes to, read from its evidence commands."""
+    return {m.group(1) for e in evidence or []
+            if (m := re.match(rf"^ping (?:-c \d+ )?({_IP})$", e.get("command", "")))}
+
+
+def _failed_targets(detail: str) -> set[str]:
+    """Addresses in the 'failed: ...' part of a ping check's detail."""
+    _, _, failed = detail.partition("failed: ")
+    return set(re.findall(rf"({_IP}) \(", failed.split(";")[0]))
+
+
 def collateral(before: list[dict[str, Any]], after: list[Result]) -> list[str]:
-    """Baseline checks that passed when the session started and fail now."""
+    """Baseline checks that passed when the session started and fail now.
+
+    A ping check that pings every DHCP lease grows when the grader restarts a host
+    to renew its lease: that host is pinged for the first time at grading, and if
+    the fault it belongs to is still unfixed it fails. That failure is the fault's
+    own symptom (already graded), not damage the student did, so a ping check
+    whose only failures are addresses it never pinged at session start is excused."""
     def keyed(items):
         seen: dict[str, int] = {}
         out = {}
-        for name, ok, detail in items:
+        for name, ok, detail, evidence in items:
             n = seen[name] = seen.get(name, 0) + 1
-            out[f"{name}#{n}"] = (ok, detail)
+            out[f"{name}#{n}"] = (ok, detail, evidence)
         return out
 
-    b = keyed((r["name"], r["ok"], r["detail"]) for r in before if not r.get("optional"))
-    a = keyed((r.name, r.ok, r.detail) for r in after if not r.optional)
-    return [f"{k.split('#')[0]}: {a[k][1]}" for k in a if k in b and b[k][0] and not a[k][0]]
+    b = keyed((r["name"], r["ok"], r["detail"], r.get("evidence")) for r in before if not r.get("optional"))
+    a = keyed((r.name, r.ok, r.detail, r.evidence) for r in after if not r.optional)
+    lost = []
+    for k, (ok, detail, evidence) in a.items():
+        if k not in b or not b[k][0] or ok:
+            continue
+        failed = _failed_targets(detail)
+        if failed and not failed & _ping_targets(b[k][2]):
+            continue  # only new targets fail: a renewed host, not collateral
+        lost.append(f"{k.split('#')[0]}: {detail}")
+    return lost
 
 
 def score(record: dict[str, Any], hints: int, collateral_count: int) -> int:

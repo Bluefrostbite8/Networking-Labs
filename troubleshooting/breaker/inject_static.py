@@ -189,10 +189,75 @@ def _ospf_statements(cfg: IosConfig) -> list[dict[str, str]]:
     return out
 
 
+def _ospf_passive_ifaces(section_children: list[str]) -> tuple[bool, set[str], set[str]]:
+    """(passive by default, passive interfaces, interfaces exempted by 'no passive-interface')."""
+    default = " passive-interface default" in section_children
+    on = {canonical_ifname(c.split()[-1]) for c in section_children if c.startswith(" passive-interface ")
+          and not c.endswith(" default")}
+    off = {canonical_ifname(c.split()[-1]) for c in section_children if c.startswith(" no passive-interface ")}
+    return default, on, off
+
+
+def _ospf_segments(model: LabModel) -> dict[ipaddress.IPv4Network, set[str]]:
+    """{subnet: routers that run OSPF on it and send hellos there}, read from the
+    configs: an interface counts when a network statement (or 'ip ospf <pid> area')
+    covers its primary address and it is not passive."""
+    seg: dict[ipaddress.IPv4Network, set[str]] = {}
+    for node in model.ios_nodes():
+        cfg = node.config
+        statements = _ospf_statements(cfg)
+        passive = {s.header: _ospf_passive_ifaces(list(s.children)) for s in cfg.find(r"router ospf \d+")}
+        for name, children in cfg.interfaces().items():
+            ip = _primary_ip(children)
+            if ip is None or any(c.strip() == "shutdown" for c in children):
+                continue
+            iface = canonical_ifname(name)
+            headers = [st["header"] for st in statements if _wildcard_covers(st["net"], st["wild"], str(ip.ip))]
+            headers += [f"router ospf {c.split()[2]}" for c in children if re.match(r"^ ip ospf \d+ area ", c)]
+            for h in headers:
+                default, on, off = passive.get(h, (False, set(), set()))
+                if (default and iface not in off) or iface in on:
+                    continue
+                seg.setdefault(ip.network, set()).add(node.label)
+                break
+    return seg
+
+
+def _ospf_components(seg: dict[ipaddress.IPv4Network, set[str]]) -> int:
+    nodes = {n for members in seg.values() for n in members}
+    parent = {n: n for n in nodes}
+
+    def find(n: str) -> str:
+        while parent[n] != n:
+            parent[n] = parent[parent[n]]
+            n = parent[n]
+        return n
+
+    for members in seg.values():
+        first, *rest = sorted(members)
+        for other in rest:
+            parent[find(other)] = find(first)
+    return len({find(n) for n in nodes})
+
+
+def _redundant(model: LabModel, node: str, subnet: ipaddress.IPv4Network) -> bool:
+    """True when OSPF stays in one piece after ``node`` stops forming adjacencies on
+    ``subnet``: another path carries the routes, so users don't notice."""
+    seg = _ospf_segments(model)
+    before = _ospf_components(seg)
+    cut = {net: (members - {node} if net == subnet else members) for net, members in seg.items()}
+    cut = {net: m for net, m in cut.items() if m}
+    still_there = {n for m in cut.values() for n in m}
+    if node not in still_there:  # its only OSPF interface: it would drop out of OSPF entirely
+        return False
+    return _ospf_components(cut) == before
+
+
 def target_ospf_link_end(model: LabModel, profile: LabProfile) -> list[Vars]:
     """One end of a cabled routed link between two OSPF routers, where a single
     network statement covers exactly that interface (so changing its area moves
-    nothing else)."""
+    nothing else), and OSPF has another path around the link (every fault on this
+    target is written as lost redundancy, not an outage)."""
     out = []
     for link in model.links:
         ends = [(link.a, link.b), (link.b, link.a)]
@@ -213,6 +278,8 @@ def target_ospf_link_end(model: LabModel, profile: LabProfile) -> list[Vars]:
             covered = [ip for ip in _all_ips(a.config) if _wildcard_covers(mine[0]["net"], mine[0]["wild"], ip)]
             if covered != [str(a_ip.ip)]:
                 continue
+            if not _redundant(model, here.node, a_ip.network):
+                continue  # the only OSPF path: breaking it is an outage, not the lost redundancy every ticket describes
             st, ps = mine[0], peer[0]
             out.append({"node": here.node, "iface": a_if, "iface_short": short_ifname(a_if),
                         "peer": there.node, "peer_iface": b_if, "peer_iface_short": short_ifname(b_if),

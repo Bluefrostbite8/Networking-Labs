@@ -4,7 +4,7 @@ category: ospf
 tier: 2
 mode: static
 platforms: [iosvl2, iosv, iol-xe]
-selftest_passed: ["02", "03"]             # labs where selftest passed; break draws only these
+selftest_passed: ["03"]                   # labs where selftest passed; break draws only these
 applies_when:
   - section: "router ospf"
   - link_between_feature_nodes: ospf
