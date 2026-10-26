@@ -31,6 +31,14 @@ COLLATERAL_PENALTY = 15
 # learns a new host MAC after every import or host restart.
 VOLATILE = [re.compile(r"^switchport port-security mac-address sticky [0-9a-f.]+$")]
 
+# Lines the device prints differently from the config file it booted with, as
+# {how the running config shows it: how the lab's file writes it}. Compared in the
+# file's form so the original-section check doesn't call a faithful fix Equivalent.
+# - IOSvL2 on lab 04 (global 'no cdp run'): the file's ' no cdp enable' under an
+#   interface reads back as ' no cdp tlv app' from the first boot on (A-1 Gi0/0,
+#   broken and fixed stages alike, lab 04 batch 2026-10-16).
+RENDERED_AS = {"no cdp tlv app": "no cdp enable"}
+
 
 def normalize(children: list[str] | None) -> list[str]:
     out = set()
@@ -38,7 +46,7 @@ def normalize(children: list[str] | None) -> list[str]:
         line = c.strip()
         if not line or line == "!" or any(rx.match(line) for rx in VOLATILE):
             continue
-        out.add(line)
+        out.add(RENDERED_AS.get(line, line))
     return sorted(out)
 
 

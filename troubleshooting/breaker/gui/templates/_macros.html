@@ -1,13 +1,26 @@
-{% macro stepper(s) -%}
+{% macro stepper(s, phase='') -%}
+{# phase 'starting' or 'grading' marks the step being worked on right now #}
 <ol class="stepper" aria-label="Session progress">
   {% for st in states %}
-    <li class="{{ 'done' if loop.index0 < s.state_index else 'now' if loop.index0 == s.state_index else '' }}">{{ st|capitalize }}</li>
+    {% set i = loop.index0 %}
+    {% set working = (phase == 'starting' and st == 'started') or (phase == 'grading' and st == 'graded') %}
+    <li class="{{ 'working' if working else 'done' if i < s.state_index else 'now' if i == s.state_index else '' }}">{{ st|capitalize }}</li>
   {% endfor %}
 </ol>
 {%- endmacro %}
 
 {% macro grade_chip(g) -%}
 <span class="chip chip-{{ {'Exact':'green','Equivalent':'green','Off-design':'amber','Temporary':'amber','Partial':'magenta','Open':'magenta'}.get(g, 'muted') }}">{{ g }}</span>
+{%- endmacro %}
+
+{% macro progress_bar(job_id, progress) -%}
+{% set p = progress or {'pct': 0, 'stage': 'Starting'} %}
+<div class="progress" data-progress-for="{{ job_id }}">
+  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ p.pct }}" aria-label="Start progress">
+    <span style="width: {{ p.pct }}%"></span>
+  </div>
+  <p class="progress-line"><span data-role="stage">{{ p.stage }}</span><span class="progress-pct" data-role="pct">{{ p.pct }}%</span></p>
+</div>
 {%- endmacro %}
 
 {% macro console(job, height='') -%}
@@ -17,8 +30,30 @@
     <span class="console-title">{{ job.title }}</span>
     <span class="console-status" data-role="status">{{ job.status }}</span>
     <span class="console-clock" data-role="clock" data-started="{{ job.started }}" data-ended="{{ job.ended or '' }}"></span>
-    {% if job.status == 'running' %}<button type="button" class="btn btn-quiet" data-role="stop">Stop (Ctrl+C)</button>{% endif %}
+    {% if job.status == 'running' %}<button type="button" class="btn btn-quiet btn-small" data-role="stop">Stop (Ctrl+C)</button>{% endif %}
   </header>
   <pre class="console-body" data-role="log" tabindex="0"></pre>
+</section>
+{%- endmacro %}
+
+{% macro cml_panel(full=true) -%}
+{# Filled in by gui.js from /api/cml; the server never blocks a page on CML. #}
+<section class="panel cml {{ 'cml-full' if full else 'cml-compact' }}" data-cml data-full="{{ 1 if full else 0 }}" aria-live="polite">
+  <div class="cml-head">
+    <h2>CML</h2>
+    <button type="button" class="btn btn-quiet btn-small" data-role="cml-refresh" title="Read the server again">Refresh</button>
+  </div>
+  <div class="meter" data-role="meter" aria-label="Running nodes against the licence cap">
+    <div class="meter-bar"><span style="width: 0%"></span></div>
+    <p class="meter-line"><span data-role="meter-text">Reading CML…</span></p>
+  </div>
+  {% if full %}
+    <div data-role="cml-labs"></div>
+    <form method="post" action="{{ url_for('cml_clean') }}" data-role="clean-all" hidden
+          data-confirm="Stop, wipe and delete every lab whose title ends in [incident …]? Labs without that suffix are never touched. Session files stay.">
+      <input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="back" value="{{ request.path }}">
+      <button class="btn btn-danger btn-small" {{ 'disabled' if running }}>Delete all incident labs</button>
+    </form>
+  {% endif %}
 </section>
 {%- endmacro %}

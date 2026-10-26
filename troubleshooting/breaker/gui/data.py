@@ -191,3 +191,85 @@ def servable(path: Path) -> tuple[bool, str]:
         if not meta.get("debriefed") and path.name not in OPEN_SESSION_FILES:
             return False, "hidden until the debrief"
     return True, ""
+
+
+# --------------------------------------------------------------------------- start progress
+
+# Milestones a start (or healthy run, or selftest) prints, in order, with the share
+# of the whole run done when each appears. Read from the job's own log, so the bar
+# shows what really happened, not a timer.
+_MILESTONES = [
+    (r"capacity ok", 2, "Checked the node cap"),
+    (r"\bimported .+ as lab", 5, "Imported the lab into CML"),
+    (r"all \d+ nodes booted", 50, "All nodes booted"),
+    (r"VTP v\d domain", 66, "Rebuilding VTP and VLANs"),
+    (r"VLANs [\d, ]+ active", 70, "VLANs active"),
+    (r"spanning tree settled", 74, "Spanning tree settled"),
+    (r"restarted \d+ host\(s\)", 78, "Restarting hosts for fresh DHCP leases"),
+    (r"DHCP bindings", 84, "Checked DHCP leases"),
+    (r"saved running config", 87, "Saved the rebuilt configs"),
+    (r"broken-state evidence saved", 90, "Captured the broken-state evidence"),
+    (r"recording the baseline", 92, "Recording the starting baseline (about 2 minutes)"),
+    (r"session baseline:|baseline not recorded", 98, "Baseline recorded"),
+    (r"session \S+ ready in|healthy lab ready", 100, "Ready"),
+]
+
+
+def job_progress(text: str) -> dict[str, Any]:
+    """{pct, stage, ready, failed, error} for a start-like job, from its log."""
+    pct, stage = 0, "Starting"
+    total = None
+    consoles = 0
+    for line in text.splitlines():
+        m = re.search(r"waiting for (\d+) node\(s\) to boot", line)
+        if m:
+            left = int(m.group(1))
+            total = total or left
+            if pct < 50:
+                done = total - left
+                pct, stage = max(pct, 5 + int(45 * done / max(total, 1))), f"Booting nodes: {done} of {total} up"
+            continue
+        if "console ready:" in line and pct < 66:
+            consoles += 1
+            pct, stage = max(pct, min(65, 50 + 2 * consoles)), f"Connecting to consoles ({consoles} ready)"
+            continue
+        for rx, share, label in _MILESTONES:
+            if re.search(rx, line) and share >= pct:
+                pct, stage = share, label
+    error = last_error(text)
+    return {"pct": pct, "stage": stage, "ready": pct >= 100, "failed": bool(error) and pct < 100, "error": error}
+
+
+def last_error(text: str) -> str | None:
+    """The line that explains why a job failed ('error: ...' or a Python exception)."""
+    for line in reversed(text.splitlines()):
+        s = line.strip()
+        if s.startswith("error:") or re.match(r"^[\w.]+(Error|Exception|NotFound|Failure): ", s):
+            return s
+    return None
+
+
+# --------------------------------------------------------------------------- discarding a session
+
+DISCARD_DIR = RUNS_DIR / "discarded-sessions"
+
+
+def discard_session(name: str) -> str:
+    """Move an unpublished session out of sessions/ into runs/discarded-sessions/
+    (gitignored). Nothing is deleted: moving it back restores it."""
+    import shutil
+
+    s = find_session(name)
+    if not s:
+        raise ValueError(f"no session {name}")
+    if s["state"] == "debriefed":
+        raise ValueError(f"{s['incident']} has a debrief (it is published or ready to publish); "
+                         "discard only works on unpublished sessions")
+    DISCARD_DIR.mkdir(parents=True, exist_ok=True)
+    target = DISCARD_DIR / name
+    n = 1
+    while target.exists():
+        n += 1
+        target = DISCARD_DIR / f"{name}-{n}"
+    shutil.move(str(s["path"]), str(target))
+    return target.relative_to(TOOL_ROOT).as_posix()

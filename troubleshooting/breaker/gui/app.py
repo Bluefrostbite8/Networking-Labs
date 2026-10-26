@@ -17,7 +17,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from ..lab_model import REPO_ROOT, LabModelError
 from ..report import TIER_NAMES
-from . import data, jobs
+from . import cml_status, data, jobs
 from .render import render_file
 
 HERE = Path(__file__).resolve().parent
@@ -41,6 +41,7 @@ def create_app() -> Flask:
     def job_or_flash(args: list[str], title: str, target: str | None, back: str):
         try:
             jobs.start(args, title, target)
+            cml_status.invalidate()
         except jobs.Busy as exc:
             flash(str(exc), "error")
         return redirect(back)
@@ -49,8 +50,10 @@ def create_app() -> Flask:
 
     @app.get("/")
     def index():
-        return render_template("index.html", sessions=data.sessions(), labs=data.labs(),
-                               recent=jobs.all_jobs(8))
+        sessions = data.sessions()
+        for s in sessions:
+            s["job"] = jobs.latest_for(s["incident"])
+        return render_template("index.html", sessions=sessions, labs=data.labs(), recent=jobs.all_jobs(8))
 
     @app.get("/new")
     def new():
@@ -84,7 +87,18 @@ def create_app() -> Flask:
             view = "ticket"
         doc = s["path"] / f"{view}.md"
         body = render_file(doc) if doc.exists() else ""
-        return render_template("session.html", s=s, view=view, body=body, job=jobs.latest_for(s["incident"]),
+        job = jobs.latest_for(s["incident"])
+        log = jobs.read(job["id"]).get("text", "") if job else ""
+        progress = data.job_progress(log) if job and job["command"] == "start" else None
+        # Why the last job for this session failed, in one line, for the next-step card.
+        failure = data.last_error(log) if job and job["status"] == "failed" else None
+        # A start that imported the lab and then failed leaves a running lab behind
+        # a session still marked "created" (03-t2-s6224, 2026-10-18): offer Grade and
+        # Delete instead of only a Start that would refuse on the node cap.
+        orphan_lab = bool(s["state"] == "created" and job and job["command"] == "start"
+                          and job["status"] == "failed" and "imported " in jobs.read(job["id"]).get("text", ""))
+        return render_template("session.html", s=s, view=view, body=body, job=job, orphan_lab=orphan_lab,
+                               progress=progress, failure=failure,
                                where=s["path"].relative_to(REPO_ROOT).as_posix())
 
     @app.get("/selftest")
@@ -142,6 +156,15 @@ def create_app() -> Flask:
             flash("Notes saved." + (" Run the debrief again to include them." if s["state"] == "debriefed" else ""),
                   "ok")
             return redirect(back + "#notes")
+        if action == "discard":
+            try:
+                moved = data.discard_session(name)
+            except ValueError as exc:
+                flash(str(exc), "error")
+                return redirect(back)
+            flash(f"Discarded {inc}: moved to {moved} (gitignored). Move the folder back into sessions/ to "
+                  "restore it.", "ok")
+            return redirect(url_for("index"))
         if action == "debrief":
             code, out = jobs.run_now(["debrief", inc])
             flash(out.strip(), "ok" if code == 0 else "error")
@@ -154,6 +177,21 @@ def create_app() -> Flask:
     def healthy(lab: str):
         return job_or_flash(["start", lab, "--healthy", "--clean-after"], f"Healthy run, lab {lab[:2]}", lab,
                             url_for("index"))
+
+    @app.post("/cml/clean")
+    def cml_clean():
+        """Delete one incident lab, or every incident lab. The CLI re-reads each title
+        from the server and refuses any lab without the ' [incident <id>]' suffix."""
+        incident = request.form.get("incident", "").strip()
+        back = request.form.get("back") or url_for("index")
+        if not back.startswith("/"):
+            back = url_for("index")
+        if incident:
+            if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", incident):
+                abort(400)
+            return job_or_flash(["clean", "--id", incident, "--remove", "--yes"], f"Delete lab {incident}",
+                                incident, back)
+        return job_or_flash(["clean", "--remove", "--yes"], "Delete all incident labs", None, back)
 
     @app.post("/doctor")
     def doctor():
@@ -193,7 +231,32 @@ def create_app() -> Flask:
 
     @app.get("/api/jobs/<job_id>")
     def job_api(job_id: str):
-        return jsonify(jobs.read(job_id, int(request.args.get("offset", 0))))
+        out = jobs.read(job_id, int(request.args.get("offset", 0)))
+        meta = jobs.load(job_id)
+        if meta and meta.get("command") == "start":
+            out["progress"] = data.job_progress(jobs.read(job_id).get("text", ""))
+        return jsonify(out)
+
+    @app.get("/api/cml")
+    def cml_api_status():
+        st = cml_status.status(force=bool(request.args.get("refresh")))
+        known = {s["incident"]: s for s in data.sessions()}
+        for lab in st.get("labs") or []:
+            s = known.get(lab.get("incident") or "")
+            lab["session"] = s["name"] if s else None
+            lab["session_state"] = s["state"] if s else None
+            # Safe to delete: an incident lab whose session is finished or gone, or a
+            # selftest / healthy lab nothing is running against.
+            lab["leftover"] = bool(lab.get("incident")) and (s is None or s["state"] == "debriefed")
+        busy = jobs.running_cml_job()
+        if busy:
+            # A selftest or batch labels its lab "<lab>-st-<n>", and a healthy run "<lab>-healthy-…":
+            # while any CML job runs, never call those (or the job's own incident) safe to delete.
+            for lab in st.get("labs") or []:
+                if lab["kind"] in ("selftest", "healthy") or lab.get("incident") == busy.get("target"):
+                    lab["leftover"] = False
+        st["busy"] = busy["title"] if busy else None
+        return jsonify(st)
 
     @app.post("/api/jobs/<job_id>/stop")
     def job_stop(job_id: str):

@@ -7,31 +7,41 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='gui.css') }}">
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <div class="shell">
   <nav class="rail" aria-label="Main">
     <a class="mark" href="{{ url_for('index') }}"><span class="mark-glyph" aria-hidden="true"></span>Breaker</a>
-    <a href="{{ url_for('index') }}" class="{{ 'on' if request.endpoint == 'index' }}">Sessions</a>
+    <a href="{{ url_for('index') }}" class="{{ 'on' if request.endpoint in ('index', 'session') }}">Sessions</a>
     <a href="{{ url_for('new') }}" class="{{ 'on' if request.endpoint == 'new' }}">New incident</a>
     <a href="{{ url_for('selftest') }}" class="{{ 'on' if request.endpoint == 'selftest' }}">Fault library</a>
     <a href="{{ url_for('jobs_page') }}" class="{{ 'on' if request.endpoint in ('jobs_page', 'job_page') }}">Jobs</a>
     <div class="rail-foot">
+      <div class="rail-meter" data-cml data-full="0" aria-live="polite">
+        <p class="rail-label">CML nodes</p>
+        <div class="meter" data-role="meter"><div class="meter-bar"><span style="width: 0%"></span></div>
+          <p class="meter-line"><span data-role="meter-text">Reading…</span></p></div>
+      </div>
       {% if running %}
-        <a class="busy" href="{{ url_for('job_page', job_id=running.id) }}"><span class="led led-amber led-blink"></span>{{ running.title }}</a>
+        <a class="busy" href="{{ url_for('job_page', job_id=running.id) }}"><span class="led led-amber led-blink"></span><span>{{ running.title }}</span></a>
       {% else %}
-        <span class="idle"><span class="led led-green"></span>CML idle</span>
+        <span class="idle"><span class="led led-green"></span>No CML job running</span>
       {% endif %}
     </div>
   </nav>
-  <main class="main">
+  <main class="main" id="main">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for cat, msg in messages %}
-        <pre class="flash flash-{{ cat }}" role="status">{{ msg }}</pre>
+        <div class="flash flash-{{ cat }}" role="status">
+          <span class="led {{ 'led-green' if cat == 'ok' else 'led-magenta' }}"></span>
+          <pre class="flash-text">{{ msg }}</pre>
+          <button type="button" class="flash-close" aria-label="Dismiss" data-role="dismiss">×</button>
+        </div>
       {% endfor %}
     {% endwith %}
     {% block main %}{% endblock %}
   </main>
 </div>
-<script>window.BREAKER_TOKEN = "{{ token }}";</script>
+<script>window.BREAKER_TOKEN = "{{ token }}"; window.BREAKER_CLEAN_URL = "{{ url_for('cml_clean') }}"; window.BREAKER_PATH = "{{ request.path }}"; window.BREAKER_BUSY = {{ 'true' if running else 'false' }};</script>
 <script src="{{ url_for('static', filename='gui.js') }}"></script>
 </body>
 </html>

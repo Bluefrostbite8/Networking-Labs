@@ -360,7 +360,33 @@ class Consoles:
                 device.connections["a"].setdefault("settings", {}).update(overrides)
 
     def run(self, node: str, command: str, confirm: bool = False) -> str:
-        """Exec-mode command. ``confirm`` answers IOS [confirm] prompts."""
+        """Exec-mode command. ``confirm`` answers IOS [confirm] prompts.
+
+        The console line is shared with anyone who opens it in CML. A console left
+        in config mode, or someone typing on it at the same moment, makes IOS
+        answer a show command with '% Invalid input' (lab 03 session 03-t2-s6224,
+        2026-10-18: start died on R1's 'show ip ospf neighbor'). So a rejected
+        command gets one retry after 'end', which returns to privileged EXEC from
+        any config mode; a command IOS really doesn't know still fails, twice."""
+        try:
+            return self._run_once(node, command, confirm)
+        except CmlError as first:
+            if node in self.hosts or " rejected '" not in str(first):
+                raise
+            default_log(f"{node}: '{command}' was rejected ({first}); sending 'end' and retrying once")
+            try:
+                self.pyats.run_command(node, "end", init_exec_commands=SAFE_INIT_EXEC,
+                                       init_config_commands=SAFE_INIT_CONFIG)
+            except Exception:
+                pass  # in EXEC mode 'end' is itself invalid: nothing to undo
+            time.sleep(2)
+            try:
+                return self._run_once(node, command, confirm)
+            except CmlError as second:
+                raise CmlError(f"{second} (also after 'end' and a retry: if anyone has {node}'s console "
+                               f"open in CML, leave it at the {node}# prompt until the tool is done)") from first
+
+    def _run_once(self, node: str, command: str, confirm: bool) -> str:
         kwargs = {}
         if confirm:
             from unicon.eal.dialogs import Dialog, Statement

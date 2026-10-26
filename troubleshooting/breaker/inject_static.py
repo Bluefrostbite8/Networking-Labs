@@ -83,6 +83,48 @@ def vlan_subnets(model: LabModel) -> dict[int, dict[str, str]]:
     return out
 
 
+def _switched(model: LabModel, label: str, iface: str) -> bool:
+    """A switch port that carries VLANs: on an L2-capable IOS node, no address, not shut."""
+    node = model.node(label)
+    if not node.is_ios:
+        return False
+    children = node.config.interface(canonical_ifname(iface)) or []
+    return (_primary_ip(children) is None and " no switchport" not in children
+            and not any(c.strip() == "shutdown" for c in children))
+
+
+def domain_vlan_subnets(model: LabModel, switch: str, fallback: bool = True) -> dict[int, dict[str, str]]:
+    """Like vlan_subnets, but only the SVIs reachable from ``switch`` over switched
+    links. Two sites can reuse a VLAN ID with different subnets (lab 02: VLAN 10 is
+    10.1.10.0/24 in the Office and 10.2.10.0/24 in the Warehouse), so a host's
+    subnet comes from the SVI in its own switched domain, not the first one in the
+    lab. With ``fallback``, a VLAN with no SVI in reach comes from the lab-wide map."""
+    seen, queue = {switch}, [switch]
+    while queue:
+        here = queue.pop()
+        for link in model.links_of(here):
+            mine, theirs = (link.a, link.b) if link.a.node == here else (link.b, link.a)
+            if theirs.node in seen or not model.has_node(theirs.node):
+                continue
+            if _switched(model, here, mine.interface) and _switched(model, theirs.node, theirs.interface):
+                seen.add(theirs.node)
+                queue.append(theirs.node)
+    local: dict[int, dict[str, str]] = {}
+    for label in sorted(seen):
+        node = model.node(label)
+        for name, children in node.config.interfaces().items():
+            m = re.match(r"^Vlan(\d+)$", name)
+            ip = _primary_ip(children)
+            if not m or ip is None:
+                continue
+            groups = _hsrp_groups(children)
+            gateway = next(iter(groups.values()))["vip"] if groups else str(ip.ip)
+            entry = local.setdefault(int(m.group(1)), {"subnet": str(ip.network), "gateway": gateway})
+            if groups:
+                entry["gateway"] = gateway
+    return {**vlan_subnets(model), **local} if fallback else local
+
+
 def used_addresses(model: LabModel) -> set[str]:
     """Every interface address, secondary address and HSRP VIP in the lab."""
     used: set[str] = set()
@@ -111,7 +153,6 @@ def _dhcp_hosts(profile: LabProfile) -> list[str]:
 
 def target_host_access_port(model: LabModel, profile: LabProfile) -> list[Vars]:
     """Every host cabled to a switch access port in a VLAN that has a gateway."""
-    subnets = vlan_subnets(model)
     dhcp = set(_dhcp_hosts(profile))
     out = []
     # DHCP clients only: the functional checks prove the fix by the host leasing
@@ -129,6 +170,7 @@ def target_host_access_port(model: LabModel, profile: LabProfile) -> list[Vars]:
             m = next((re.match(r"^ switchport access vlan (\d+)$", c) for c in children
                       if c.startswith(" switchport access vlan")), None)
             vlan = int(m.group(1)) if m else 1
+            subnets = domain_vlan_subnets(model, end.node)
             if vlan not in subnets:
                 continue
             out.append({"switch": end.node, "iface": iface, "iface_short": short_ifname(iface),
@@ -157,7 +199,10 @@ def target_dhcp_pool(model: LabModel, profile: LabProfile) -> list[Vars]:
             hosts = sorted(hosts_by_subnet.get(subnet, []))
             if not hosts:
                 continue
-            vlan = next((v for v, info in vlan_subnets(model).items() if info["subnet"] == subnet), None)
+            # The VLAN whose SVI sits in this subnet (any site: VLAN IDs repeat across sites, subnets don't).
+            vlan = next((int(m.group(1)) for n in model.ios_nodes() for name, ch in n.config.interfaces().items()
+                         if (m := re.match(r"^Vlan(\d+)$", name)) and (ip := _primary_ip(ch))
+                         and str(ip.network) == subnet), None)
             # An address on the server outside the pool: reaching it needs the gateway.
             server_ip = next((str(ip.ip) for name, ch in sorted(cfg.interfaces().items())
                               if (ip := _primary_ip(ch)) and " shutdown" not in ch
@@ -458,7 +503,7 @@ def action_shutdown(model: LabModel, v: Vars, rng: random.Random) -> dict:
 
 
 def action_change_access_vlan(model: LabModel, v: Vars, rng: random.Random) -> dict:
-    subnets = vlan_subnets(model)
+    subnets = domain_vlan_subnets(model, v["switch"], fallback=False)  # a VLAN with a gateway on this site
     choices = sorted(vlan for vlan in subnets if vlan != v["vlan"])
     if not choices:
         raise InjectError(f"no other VLAN with a gateway for {v['switch']} {v['iface']}")

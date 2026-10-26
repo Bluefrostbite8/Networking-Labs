@@ -276,6 +276,8 @@ def start_session(args, session=None, state: dict | None = None):
     state = state if state is not None else {}
     keep_open = state.get("keep_open", False)
     print(f"\nIf anything below fails, clean up with:\n  python -m breaker clean --id {session.incident}\n", flush=True)
+    log("leave the lab's consoles in CML closed until this reports the session ready: "
+        "the tool is still typing on them")
     lab, consoles = bring_up(profile, model, session.incident, state, log, strict=False)
     try:
         # Runtime faults would be pushed and saved here; the first five are all static.
@@ -286,10 +288,18 @@ def start_session(args, session=None, state: dict | None = None):
         checker = Checker(lambda node, cmd: consoles.run(node, cmd), _with_test_addresses(
             profile, profile.model(), lambda _m: None), profile)
         checker.skip_stale_leases = True
-        before = checker.baseline()
-        session.write_json("baseline_before.json", [r.as_dict() for r in before])
-        failing = [r for r in before if not r.ok and not r.optional]
-        log(f"session baseline: {len(before) - len(failing)}/{len(before)} pass (the failures are the symptoms)")
+        try:
+            before = checker.baseline()
+        except cml_api.CmlError as exc:
+            # The lab is up and broken as designed; only the collateral reference is
+            # missing. Hand the session over anyway (grade reports collateral as
+            # not checked) instead of leaving a running lab the GUI calls unstarted.
+            log(f"baseline not recorded: {exc}")
+            log("the session starts without it: grading will report collateral as not checked")
+        else:
+            session.write_json("baseline_before.json", [r.as_dict() for r in before])
+            failing = [r for r in before if not r.ok and not r.optional]
+            log(f"session baseline: {len(before) - len(failing)}/{len(before)} pass (the failures are the symptoms)")
         session.update(started=datetime.now().isoformat(timespec="seconds"), lab_id=lab.id)
     except BaseException:
         consoles.close()
@@ -297,7 +307,8 @@ def start_session(args, session=None, state: dict | None = None):
     if keep_open:
         return lab, consoles
     consoles.close()
-    log(f"session {session.incident} ready in {(time.monotonic() - t0) / 60:.1f} min. The clock is running.")
+    log(f"session {session.incident} ready in {(time.monotonic() - t0) / 60:.1f} min. The clock is running; "
+        "the consoles are yours.")
     print(f"Ticket: {session.path.relative_to(TOOL_ROOT)}/ticket.md")
     return 0
 
@@ -351,11 +362,14 @@ def grade_session(session, lab, consoles, log, save: bool = True, collateral_che
         log(f"grading fault {inst['index']}")
         records.append(grader.grade_fault(inst))
     after, lost = [], []
+    collateral_checked = False
     if collateral_check:  # selftest skips it: only each fault's grade matters there
         log("rerunning the lab baseline for collateral")
         checker.fresh()
         after = checker.baseline()
-        lost = collateral(session.read_json("baseline_before.json") or [], after)
+        before = session.read_json("baseline_before.json")
+        collateral_checked = bool(before)
+        lost = collateral(before or [], after)
     hints = session.hints_taken()
     for rec in records:
         rec["hints"] = hints.get(rec["index"], 0)
@@ -366,7 +380,8 @@ def grade_session(session, lab, consoles, log, save: bool = True, collateral_che
     if started:
         minutes = round((datetime.now() - datetime.fromisoformat(started)).total_seconds() / 60, 1)
     report = {"session": session.path.name, "incident": session.incident, "graded": stamp(),
-              "minutes_since_start": minutes, "score": total, "collateral": lost, "faults": records,
+              "minutes_since_start": minutes, "score": total, "collateral": lost,
+              "collateral_checked": collateral_checked, "faults": records,
               "baseline_after": [r.as_dict() for r in after]}
     if save:
         session.write_json("grade.json", report)

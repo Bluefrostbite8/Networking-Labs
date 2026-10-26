@@ -4,11 +4,11 @@
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![pyATS](https://img.shields.io/badge/Automation-pyATS%20%2B%20Genie%2025.x-005073)
 ![API](https://img.shields.io/badge/API-virl2--client%202.10.1-0b7285)
-![Status](https://img.shields.io/badge/Status-Build%20step%206%20of%208-b45309)
+![Status](https://img.shields.io/badge/Status-Build%20step%207%20of%208-b45309)
 
 ## Objective
 
-A tool that breaks a working lab from this repo, boots it in CML, grades the fix live through pyATS, and writes a debrief that teaches the troubleshooting method: where to look, which show and debug commands, and the output line that gives the fault away. Grading reads live device state only, never config text, so any valid fix counts.
+A tool that breaks a working lab from this repo, boots it in CML, grades the fix live through pyATS, and writes a debrief that teaches the troubleshooting method: where to look, which show and debug commands, and the output line that gives the fault away. Whether a fault is fixed is judged from live device state, never from config text, so any valid fix counts. Config text is only compared to check that the fix was saved (running against startup) and to show what changed in the debrief.
 
 ## Status
 
@@ -19,9 +19,31 @@ A tool that breaks a working lab from this repo, boots it in CML, grades the fix
 | 3 | Six lab profiles, each baseline passing on a healthy import | done, all six pass (table below) |
 | 4 | `checks.py`, `grading.py`, first five faults on lab 03 | done, all five pass selftest on lab 03 |
 | 5 | `report.py`: ticket and debrief, first published session | done 2026-10-12, session `03-t2-s1984` published |
-| 6 | Local web console (`python -m breaker gui`) over the same commands | built 2026-10-12; first live session pending |
-| 7 | Full library of 60 faults, each through `selftest` | |
+| 6 | Local web console (`python -m breaker gui`) over the same commands | done; live sessions started and graded through it since 2026-10-12 |
+| 7 | Full library of 60 faults, each through `selftest` | in progress: 13 of 60, all 13 pass selftest on lab 03 (table below) |
 | 8 | T4 combos and the methods pages | |
+
+## Fault Library
+
+Each fault counts once its selftest passes on a lab: the broken lab grades Open, the reference fix grades Exact and the workaround grades Temporary. `break` only draws a fault on the labs listed here.
+
+| Category | Fault | What breaks | Tier | Proven on |
+|----------|-------|-------------|------|-----------|
+| l1 | `l1-shutdown` | Host-facing switch port administratively down | 1 | 03 |
+| l1 | `l1-svi-down` | Gateway SVI administratively down on the active router | 1 | 03, 04 |
+| l2 | `l2-access-vlan` | Host port in the wrong access VLAN | 1 | 03 |
+| stp | `stp-root-moved` | A non-root switch claims the spanning-tree root | 2 | 01, 03 |
+| fhrp | `fhrp-priority-flip` | HSRP active on the wrong switch | 2 | 03, 04 |
+| l3 | `l3-wrong-subnet` | Routed interface moved off its link subnet | 2 | 03 |
+| ospf | `ospf-area-mismatch` | OSPF area mismatch on one end of a link | 2 | 03 |
+| ospf | `ospf-passive` | OSPF passive on a neighbor-facing interface | 2 | 03 |
+| ospf | `ospf-timers` | OSPF hello and dead timers differ on one end of a link | 3 | 03 |
+| ospf | `ospf-mtu` | IP MTU mismatch holds OSPF in EXSTART | 3 | 03 |
+| services | `svc-helper-wrong` | DHCP relays point at an address nobody answers | 2 | 02, 03 |
+| services | `svc-pool-gateway` | DHCP pool hands out the wrong default gateway | 2 | 02, 03 |
+| security | `sec-portsec-mac` | Port security locked to an address no host owns | 2 | 03 |
+
+The OSPF faults are written as lost redundancy ("users haven't noticed"), so they only target links with another OSPF path around them. Lab 02's backbone is a chain with no such link (its README lists backbone redundancy as an open item), so it draws no OSPF fault until outage variants exist. Lab 06 has no fault yet: EIGRP faults are still to come.
 
 ## Setup
 
@@ -56,7 +78,7 @@ Credentials come only from `VIRL2_URL`, `VIRL2_USER`, `VIRL2_PASS` and `CML_CA_B
 | `python -m breaker selftest <fault> [<fault> ...] --lab 03` or `--all` | Acceptance test, all faults in one import: inject, symptoms, reference fixes grade Exact, workarounds grade Temporary, then clean up |
 | `python -m breaker clean [--id <id>] [--remove]` | Stop and wipe incident labs only (optionally delete them) |
 | `python -m breaker batch --lab 03 --mark [--hours 9]` | Overnight: selftest every unproven fault that fits the lab, one import each, in a time budget; writes `runs/batch-*.md` and marks passing faults proven. Also on the GUI's Fault library page |
-| `python -m breaker gui [--port 5050]` | Local web console: open `http://localhost:5050` in the Windows browser. Sessions, ticket and debrief, Start/Hint/Grade/Debrief/Clean buttons with a live log, the fault library with selftest |
+| `python -m breaker gui [--port 5050]` | Local web console: open `http://localhost:5050` in the Windows browser. Each session shows one next-step card (start, a live start progress bar, Ready, grade, debrief, publish), the ticket and debrief, hints, notes and a live log. A CML panel shows running nodes against `node_cap` and every lab on the server, with one-click delete for incident labs; Discard moves an unwanted session to `runs/discarded-sessions/`. Also the fault library with selftest and batch |
 
 ## Healthy Baselines
 
@@ -81,6 +103,10 @@ Each lab imported unbroken, rebuilt and checked live. Evidence for every check i
 | New VLANs leave ports in listening/learning; SVIs, HSRP and DHCP wait on them | IOSvL2 (PVST, MST) | Waits for `show spanning-tree summary` to show nothing in transition before checks |
 | An SVI whose VLAN was auto-created at boot stays down/down after the VLAN is active | IOSvL2 | Bounces only those SVIs after spanning tree settles, and logs each one |
 | No `clear port-security sticky` exec command | IOSvL2 15.2 | Removes the saved MAC under the interface instead |
+| The first `no switchport port-security mac-address <mac>` is accepted without an error but leaves the address in place; the second removes it | IOSvL2 15.2 | `sec-portsec-mac` sends the removal twice, and its debrief says to verify with `show running-config` |
+| `show ip ospf interface` prints `Interface ID 3, Area 0` with no comma after the area | IOL-XE | The area check reads Genie first, and its regex fallback matches the area number, not a trailing comma |
+| An interface's `no cdp enable` reads back as `no cdp tlv app` from the first boot (global `no cdp run`) | IOSvL2, lab 04 | The original-config compare treats the two as the same line |
+| The console line is shared: a console left in config mode, or someone typing on it, makes IOS reject a show command | CML console server | A rejected command is retried once after `end`; if the starting baseline still can't be recorded, `start` hands the session over anyway and the grade reports collateral as not checked |
 
 ## Safety
 

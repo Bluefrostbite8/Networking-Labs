@@ -1,41 +1,117 @@
 {% extends "base.html" %}
-{% from "_macros.html" import stepper, grade_chip, console with context %}
+{% from "_macros.html" import stepper, grade_chip, console, progress_bar with context %}
 {% block title %}{{ s.incident }}{% endblock %}
 {% block main %}
+{% set running_here = job and job.status == 'running' %}
+{% if running_here and job.command == 'start' %}{% set phase = 'starting' %}
+{% elif running_here and job.command == 'grade' %}{% set phase = 'grading' %}
+{% elif running_here and job.command == 'clean' %}{% set phase = 'cleaning' %}
+{% elif s.state == 'created' and orphan_lab %}{% set phase = 'orphan' %}
+{% elif s.state == 'created' %}{% set phase = 'start' %}
+{% elif s.state == 'started' %}{% set phase = 'ready' %}
+{% elif s.state == 'graded' %}{% set phase = 'graded' %}
+{% else %}{% set phase = 'debriefed' %}{% endif %}
+{% set busy_elsewhere = running and running.target != s.incident %}
+
+{% macro act(action, label, cls='btn-quiet', confirm='', cml=true) -%}
+  <form method="post" action="{{ url_for('session_action', name=s.name, action=action) }}" {% if confirm %}data-confirm="{{ confirm }}"{% endif %}>
+    <input type="hidden" name="token" value="{{ token }}">
+    <button class="btn {{ cls }}" {{ 'disabled' if cml and running }}>{{ label }}</button>
+  </form>
+{%- endmacro %}
+{% set delete_confirm = 'Stop, wipe and delete the CML lab for ' ~ s.incident ~ '? Only this incident lab is touched. Your session files stay.' %}
+
 <header class="session-head">
   <div>
+    <p class="crumb"><a href="{{ url_for('index') }}">Sessions</a> / {{ s.lab[:2] }} {{ s.lab_name }}</p>
     <h1 class="incident">{{ s.incident }}</h1>
-    <p class="hero-sub">{{ s.lab[:2] }} {{ s.lab_name }}, {{ s.tier_name }}, {{ s.faults }} fault{{ 's' if s.faults != 1 }}, seed {{ s.seed }}</p>
+    <p class="hero-sub">{{ s.tier_name }} · {{ s.faults }} fault{{ 's' if s.faults != 1 }} · seed {{ s.seed }} · created {{ s.created|since }}</p>
   </div>
-  {{ stepper(s) }}
+  {{ stepper(s, phase) }}
 </header>
 
-{% if running %}
-  <p class="busy-line"><span class="led led-amber led-blink"></span>{% if running.target == s.incident %}{{ running.title }} is running; its output is below. CML buttons unlock when it finishes.{% else %}CML is busy with <a href="{{ url_for('job_page', job_id=running.id) }}">{{ running.title }}</a>; CML buttons unlock when it finishes.{% endif %}</p>
-{% endif %}
-<div class="actions">
-  {% macro act(action, label, cls='btn-quiet', confirm='', cml=true) -%}
-    <form method="post" action="{{ url_for('session_action', name=s.name, action=action) }}" {% if confirm %}data-confirm="{{ confirm }}"{% endif %}>
-      <input type="hidden" name="token" value="{{ token }}">
-      <button class="btn {{ cls }}" {{ 'disabled' if cml and running }}>{{ label }}</button>
-    </form>
-  {%- endmacro %}
-  {% if s.state == 'created' %}
-    {{ act('start', 'Start incident', 'btn-primary') }}
-    <p class="hint-text">Imports and boots the broken lab, about 15 to 20 minutes. The clock starts when it is ready.</p>
-  {% elif s.state == 'started' %}
-    {{ act('grade', 'Grade now', 'btn-primary') }}
-    <p class="hint-text">Save your fixes with <code>write memory</code> first. You can grade as often as you like.</p>
-  {% elif s.state == 'graded' %}
-    {{ act('debrief', 'Write debrief', 'btn-primary', 'This reveals the answers and locks hints. Finish first?', false) }}
-    {{ act('grade', 'Grade again') }}
+<section class="next next-{{ phase }}" aria-live="polite">
+  {% if phase == 'start' %}
+    <p class="next-kicker">Next step</p>
+    <h2 class="next-title">Start the incident</h2>
+    <p class="next-body">Imports the broken lab into CML and boots it, about 15 to 20 minutes. The clock starts when this card says <strong>Ready</strong>. Keep the lab's consoles closed until then: the tool is still typing on them.</p>
+    {% if failure %}
+      <div class="next-fail">
+        <p><strong>The last start failed:</strong> <code>{{ failure }}</code></p>
+        {% if 'licence headroom' in failure %}<p>Free nodes first: delete a leftover lab in the CML panel, then start again.</p>
+        {% elif 'already exists' in failure %}<p>A lab for this incident is already on the server. Delete it in the CML panel, then start again.</p>{% endif %}
+      </div>
+    {% endif %}
+    <div class="next-actions">
+      {{ act('start', 'Start incident', 'btn-primary') }}
+      {{ act('discard', 'Discard session', 'btn-quiet', 'Discard ' ~ s.incident ~ '? Its folder moves to runs/discarded-sessions/ (gitignored), so you can restore it by moving it back.', false) }}
+    </div>
+
+  {% elif phase == 'starting' %}
+    <p class="next-kicker next-kicker-amber"><span class="led led-amber led-blink"></span>Starting</p>
+    <h2 class="next-title">Hands off the consoles for now</h2>
+    <p class="next-body">The tool is booting the lab and typing on its consoles. Opening them in CML now can break the start. This card turns into <strong>Ready</strong> when the lab is yours.</p>
+    {{ progress_bar(job.id, progress) }}
+
+  {% elif phase == 'orphan' %}
+    <p class="next-kicker next-kicker-amber"><span class="led led-amber"></span>Needs attention</p>
+    <h2 class="next-title">The lab is up, but start didn't finish</h2>
+    <p class="next-body">The last start imported this lab, then failed before it marked the session started{% if failure %}: <code>{{ failure }}</code>{% endif %}. The lab may still be running in CML with your work on it. Grade it, or delete the incident lab and start again.</p>
+    <div class="next-actions">
+      {{ act('grade', 'Grade now', 'btn-primary') }}
+      {{ act('clean', 'Delete incident lab', 'btn-danger', delete_confirm) }}
+    </div>
+
+  {% elif phase == 'ready' %}
+    <p class="next-kicker next-kicker-green"><span class="led led-green"></span>Ready</p>
+    <h2 class="next-title">The consoles are yours</h2>
+    <ol class="next-steps">
+      <li>Work the ticket below from the lab's consoles in CML. Hints are in the side panel and cost points.</li>
+      <li>Save every fix with <code>write memory</code>. An unsaved fix grades Temporary.</li>
+      <li>Grade when you're done. You can grade more than once.</li>
+    </ol>
+    {% if failure %}<div class="next-fail"><p><strong>The last job failed:</strong> <code>{{ failure }}</code></p></div>{% endif %}
+    <div class="next-actions">
+      {{ act('grade', 'Grade now', 'btn-primary') }}
+      {% if s.started %}<span class="next-clock">Clock <span class="clock" data-since="{{ s.started }}"></span></span>{% endif %}
+    </div>
+
+  {% elif phase == 'grading' %}
+    <p class="next-kicker next-kicker-amber"><span class="led led-amber led-blink"></span>Grading</p>
+    <h2 class="next-title">Grading your fixes</h2>
+    <p class="next-body">The grader reads live state on every device, restarts the affected hosts so they ask DHCP again, then reruns the baseline for collateral. About 2 to 3 minutes. Leave the consoles alone until it finishes.</p>
+    <div class="bar bar-indeterminate" role="progressbar" aria-label="Grading"><span></span></div>
+
+  {% elif phase == 'cleaning' %}
+    <p class="next-kicker next-kicker-amber"><span class="led led-amber led-blink"></span>Deleting the lab</p>
+    <h2 class="next-title">Stopping, wiping and deleting the incident lab</h2>
+    <p class="next-body">Only this incident's lab is touched. Your session files stay.</p>
+    <div class="bar bar-indeterminate" role="progressbar" aria-label="Deleting the lab"><span></span></div>
+
+  {% elif phase == 'graded' %}
+    <p class="next-kicker">Graded {{ s.grade.graded|since }}</p>
+    <h2 class="next-title">Score {{ s.score }}{% for g in s.grades %} {{ grade_chip(g) }}{% endfor %}</h2>
+    <p class="next-body">Fixed something else since? Save it and grade again. Finished? Write the debrief: it reveals the answers and locks the hints, so do it last.</p>
+    {% if failure %}<div class="next-fail"><p><strong>The last job failed:</strong> <code>{{ failure }}</code></p></div>{% endif %}
+    <div class="next-actions">
+      {{ act('debrief', 'Write debrief', 'btn-primary', 'This reveals the answers and locks hints. Finished troubleshooting?', false) }}
+      {{ act('grade', 'Grade again') }}
+    </div>
+
   {% else %}
-    {{ act('debrief', 'Rebuild debrief', 'btn-quiet', '', false) }}
+    <p class="next-kicker next-kicker-green"><span class="led led-green"></span>Debriefed</p>
+    <h2 class="next-title">Review the debrief, then publish</h2>
+    <p class="next-body">Read the debrief below, add your notes in the side panel (rebuild the debrief to include them), then publish with the commands there. Delete the incident lab once you're done with it, to free its nodes.</p>
+    <div class="next-actions">
+      {{ act('clean', 'Delete incident lab', 'btn-danger', delete_confirm) }}
+      {{ act('debrief', 'Rebuild debrief', 'btn-quiet', '', false) }}
+    </div>
   {% endif %}
-  {% if s.state != 'created' %}
-    {{ act('clean', 'Delete incident lab', 'btn-danger', 'Stop, wipe and delete the CML lab for ' ~ s.incident ~ '? Only this incident lab is touched.') }}
+
+  {% if busy_elsewhere %}
+    <p class="next-note"><span class="led led-amber led-blink"></span>CML is busy with <a href="{{ url_for('job_page', job_id=running.id) }}">{{ running.title }}</a>; CML buttons unlock when it finishes.</p>
   {% endif %}
-</div>
+</section>
 
 <div class="session-grid">
   <article class="doc">
@@ -53,19 +129,20 @@
       <section class="panel">
         <h2>Clock</h2>
         <p class="clock big" data-since="{{ s.started }}"></p>
-        <p class="muted small">Since <code>start</code> finished at {{ s.started|since }}. Recorded, not scored.</p>
+        <p class="muted small">Since the lab was handed over at {{ s.started|since }}. Recorded, not scored.</p>
       </section>
     {% endif %}
 
     {% if s.state in ('started', 'graded') %}
       <section class="panel">
         <h2>Hints</h2>
+        <p class="muted small">Each level costs more: 10, then 20, then 35 points.</p>
         {% for h in s.hints %}
           <div class="hint-row">
-            <p class="hint-fault">Fault {{ h.fault }}</p>
+            <p class="hint-fault">Complaint {{ h.fault }}</p>
             {% for t in h.taken %}<p class="hint-taken"><span class="mono">{{ t.level }}</span> {{ t.text }}</p>{% endfor %}
             {% if h.next %}
-              <form method="post" action="{{ url_for('session_action', name=s.name, action='hint') }}" data-confirm="Take hint h{{ h.next }} for fault {{ h.fault }}? It costs {{ h.cost }} points.">
+              <form method="post" action="{{ url_for('session_action', name=s.name, action='hint') }}" data-confirm="Take hint h{{ h.next }} for complaint {{ h.fault }}? It costs {{ h.cost }} points.">
                 <input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="fault" value="{{ h.fault }}">
                 <button class="btn btn-quiet btn-small">Take h{{ h.next }} (minus {{ h.cost }})</button>
               </form>
@@ -81,22 +158,23 @@
         <p><span class="score">{{ s.grade.score }}</span> <span class="muted">graded {{ s.grade.graded|since }}{% if s.grade.minutes_since_start is not none %}, {{ s.grade.minutes_since_start }} min after start{% endif %}</span></p>
         {% for f in s.grade.faults %}
           <div class="grade-row">
-            <p>Fault {{ f.index }} {{ grade_chip(f.grade) }} <span class="num">{{ f.score }}</span></p>
+            <p>Complaint {{ f.index }} {{ grade_chip(f.grade) }} <span class="num">{{ f.score }}</span></p>
             <ul class="leds">{% for st in f.steps %}<li><span class="led {{ 'led-green' if st.ok else 'led-magenta' }}"></span>{{ st.question|replace('_', ' ') }}</li>{% endfor %}</ul>
           </div>
         {% endfor %}
-        {% if s.grade.collateral %}<p class="warn small">Collateral: {{ s.grade.collateral|join('; ') }}</p>{% endif %}
+        {% if s.grade.collateral %}<p class="warn small">Collateral: {{ s.grade.collateral|join('; ') }}</p>
+        {% elif s.grade.collateral_checked is sameas false %}<p class="warn small">Collateral not checked: no starting baseline was recorded.</p>{% endif %}
       </section>
     {% endif %}
 
     {% if s.state != 'created' %}
       <section class="panel" id="notes">
         <h2>Your notes</h2>
-        <p class="muted small">How you found it, in your own words. They appear in the debrief.</p>
-        <form method="post" action="{{ url_for('session_action', name=s.name, action='notes') }}">
+        <p class="muted small">How you found it, in your own words. They appear in the debrief as "In my own words".</p>
+        <form method="post" action="{{ url_for('session_action', name=s.name, action='notes') }}" data-draft="notes-{{ s.name }}">
           <input type="hidden" name="token" value="{{ token }}">
           <textarea name="notes" rows="8" aria-label="Notes">{{ s.notes }}</textarea>
-          <button class="btn btn-quiet btn-small">Save notes</button>
+          <div class="row-between"><button class="btn btn-quiet btn-small">Save notes</button><span class="muted small" data-role="draft-state"></span></div>
         </form>
       </section>
     {% endif %}
@@ -104,7 +182,7 @@
     {% if s.state == 'debriefed' %}
       <section class="panel">
         <h2>Publish</h2>
-        <p class="muted small">In PowerShell, from the repo folder:</p>
+        <p class="muted small">In PowerShell, from the repo folder. Check that <code>git status</code> lists only this session and the README.</p>
         <pre class="cmd" data-copy>git add {{ where }} troubleshooting/README.md
 git status
 git commit -m "Publish break-fix session {{ s.incident }}"
@@ -112,11 +190,21 @@ git push</pre>
         <button type="button" class="btn btn-quiet btn-small" data-role="copy">Copy commands</button>
       </section>
     {% endif %}
+
+    {% if s.state in ('started', 'graded') %}
+      <section class="panel panel-quiet">
+        <h2>Session</h2>
+        <div class="stack">
+          {{ act('clean', 'Delete incident lab', 'btn-danger btn-small', delete_confirm) }}
+          {{ act('discard', 'Discard session', 'btn-quiet btn-small', 'Discard ' ~ s.incident ~ '? Its folder moves to runs/discarded-sessions/ (gitignored) and can be moved back. Delete its CML lab first if it is still running.', false) }}
+        </div>
+      </section>
+    {% endif %}
   </aside>
 </div>
 
 {% if job %}
-  <h2 class="console-label">Latest job</h2>
+  <h2 class="console-label">Latest job <span class="muted small">python -m breaker {{ job.args|join(' ') }}</span></h2>
   {{ console(job) }}
 {% endif %}
 {% endblock %}

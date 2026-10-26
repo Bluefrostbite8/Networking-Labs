@@ -1,67 +1,84 @@
 {% extends "base.html" %}
-{% from "_macros.html" import stepper, grade_chip with context %}
+{% from "_macros.html" import stepper, grade_chip, cml_panel with context %}
 {% block title %}Sessions{% endblock %}
 {% block main %}
 {% set open = sessions|selectattr('state', 'ne', 'debriefed')|list %}
-<section class="hero">
-  {% if open %}
-    {% set s = open[0] %}
-    <p class="hero-kicker">Open incident</p>
-    <h1 class="incident"><a href="{{ url_for('session', name=s.name) }}">{{ s.incident }}</a></h1>
-    <p class="hero-sub">{{ s.lab_name }}, {{ s.tier_name }}, {{ s.faults }} fault{{ 's' if s.faults != 1 }}</p>
-    {{ stepper(s) }}
-    {% if s.started and s.state in ('started', 'graded') %}
-      <p class="clock-line">Clock running <span class="clock" data-since="{{ s.started }}"></span></p>
+{% set published = sessions|selectattr('state', 'eq', 'debriefed')|list %}
+
+<div class="home">
+  <section class="home-open">
+    <div class="block-head">
+      <h1 class="page-title">{{ 'Open incidents' if open else 'No open incident' }}</h1>
+      <a class="btn {{ 'btn-quiet' if open else 'btn-primary' }}" href="{{ url_for('new') }}">New incident</a>
+    </div>
+    {% if not open %}
+      <p class="lede">Break a lab to get a ticket. Faults are drawn only from those that passed selftest on that lab, and nothing touches CML until you start the incident.</p>
     {% endif %}
-  {% else %}
-    <h1 class="incident">No open incident</h1>
-    <p class="hero-sub">Break a lab to get a ticket. Faults are drawn only from those that passed selftest on that lab.</p>
-    <a class="btn btn-primary" href="{{ url_for('new') }}">New incident</a>
-  {% endif %}
-</section>
+    {% for s in open %}
+      {% set j = s.job %}
+      {% set live = j and j.status == 'running' %}
+      {% if live and j.command == 'start' %}{% set what, tone, todo = 'Starting: hands off the consoles', 'amber', 'Watch progress' %}
+      {% elif live and j.command == 'grade' %}{% set what, tone, todo = 'Grading', 'amber', 'Watch progress' %}
+      {% elif j and j.status == 'failed' and s.state == 'created' %}{% set what, tone, todo = 'Last ' ~ j.command ~ ' failed', 'magenta', 'See why' %}
+      {% elif s.state == 'created' %}{% set what, tone, todo = 'Not started', 'muted', 'Start it' %}
+      {% elif s.state == 'started' %}{% set what, tone, todo = 'Ready: the consoles are yours', 'green', 'Continue' %}
+      {% else %}{% set what, tone, todo = 'Graded ' ~ s.score ~ ', debrief next', 'cyan', 'Write debrief' %}{% endif %}
+      <a class="card" href="{{ url_for('session', name=s.name) }}">
+        <div class="card-main">
+          <p class="card-title mono">{{ s.incident }}</p>
+          <p class="card-sub">{{ s.lab[:2] }} {{ s.lab_name }} · {{ s.tier_name }} · {{ s.faults }} fault{{ 's' if s.faults != 1 }}</p>
+          <p class="card-state tone-{{ tone }}"><span class="led led-{{ tone }} {{ 'led-blink' if live }}"></span>{{ what }}
+            {% if s.state in ('started', 'graded') and s.started %}<span class="muted"> · clock <span class="clock" data-since="{{ s.started }}"></span></span>{% endif %}</p>
+        </div>
+        <span class="card-go">{{ todo }} →</span>
+      </a>
+    {% endfor %}
+  </section>
+
+  {{ cml_panel(true) }}
+</div>
 
 <section class="block">
-  <h2>Sessions</h2>
-  {% if sessions %}
+  <div class="block-head"><h2>Published sessions</h2><span class="muted small">{{ published|length }} with a debrief</span></div>
+  {% if published %}
   <table class="grid">
-    <thead><tr><th>Incident</th><th>Lab</th><th>Tier</th><th>State</th><th>Score</th><th>Grades</th><th>Created</th></tr></thead>
+    <thead><tr><th>Incident</th><th>Lab</th><th>Tier</th><th class="num-h">Score</th><th>Grades</th><th>Created</th></tr></thead>
     <tbody>
-    {% for s in sessions %}
+    {% for s in published %}
       <tr>
         <td><a href="{{ url_for('session', name=s.name) }}" class="mono">{{ s.incident }}</a></td>
         <td>{{ s.lab[:2] }} {{ s.lab_name }}</td>
         <td>{{ s.tier_name }}</td>
-        <td><span class="state state-{{ s.state }}">{{ s.state|capitalize }}</span></td>
         <td class="num">{{ s.score if s.score is not none else '' }}</td>
-        <td>{% if s.state == 'debriefed' %}{% for g in s.grades %}{{ grade_chip(g) }} {% endfor %}{% elif s.grades %}<span class="muted">graded</span>{% endif %}</td>
+        <td>{% for g in s.grades %}{{ grade_chip(g) }} {% endfor %}</td>
         <td class="muted">{{ s.created|since }}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
   {% else %}
-    <p class="empty">No sessions yet. <a href="{{ url_for('new') }}">Break a lab</a> to create the first one.</p>
+    <p class="empty">Nothing published yet. A session lands here once you write its debrief.</p>
   {% endif %}
 </section>
 
 <section class="block">
   <div class="block-head">
     <h2>Labs</h2>
-    <form method="post" action="{{ url_for('doctor') }}"><input type="hidden" name="token" value="{{ token }}"><button class="btn btn-quiet" {{ 'disabled' if running }}>Check CML (doctor)</button></form>
+    <form method="post" action="{{ url_for('doctor') }}"><input type="hidden" name="token" value="{{ token }}"><button class="btn btn-quiet btn-small" {{ 'disabled' if running }} title="Credentials, TLS, login and running nodes">Check CML (doctor)</button></form>
   </div>
   <table class="grid">
-    <thead><tr><th>Lab</th><th>Nodes</th><th>Faults proven</th><th>Healthy baseline</th><th></th></tr></thead>
+    <thead><tr><th>Lab</th><th class="num-h">Nodes</th><th>Faults proven</th><th>Healthy baseline</th><th></th></tr></thead>
     <tbody>
     {% for lab in labs %}
       <tr>
         <td><a href="/files/{{ lab.lab }}/README.md">{{ lab.number }} {{ lab.name }}</a></td>
         <td class="num">{{ lab.licensed if lab.profile else '' }}</td>
         <td>{% if lab.profile %}<span class="num">{{ lab.proven|length }}</span> <span class="muted">of {{ lab.fit|length }} that fit</span>{% else %}<span class="muted">no profile</span>{% endif %}</td>
-        <td>{% if lab.healthy %}<span class="led led-green"></span> {{ lab.healthy.passed }}/{{ lab.healthy.total }} <span class="muted">{{ lab.healthy.when }}</span>
-            {% elif lab.profile %}<span class="led led-magenta"></span> <span class="muted">none passing yet</span>{% endif %}</td>
+        <td>{% if lab.healthy %}<span class="led led-green"></span>{{ lab.healthy.passed }}/{{ lab.healthy.total }} <span class="muted">{{ lab.healthy.when }}</span>
+            {% elif lab.profile %}<span class="led led-magenta"></span><span class="muted">none passing yet</span>{% endif %}</td>
         <td class="right">{% if lab.profile %}
           <form method="post" action="{{ url_for('healthy', lab=lab.lab) }}"><input type="hidden" name="token" value="{{ token }}">
-            <button class="btn btn-quiet" {{ 'disabled' if running }} title="Import, boot, rebuild, baseline, then delete the lab">Healthy run</button></form>
+            <button class="btn btn-quiet btn-small" {{ 'disabled' if running }} title="Import, boot, rebuild, baseline, then delete the lab">Healthy run</button></form>
         {% endif %}</td>
       </tr>
     {% endfor %}
@@ -71,11 +88,11 @@
 
 {% if recent %}
 <section class="block">
-  <h2>Recent jobs</h2>
+  <div class="block-head"><h2>Recent jobs</h2><a class="small" href="{{ url_for('jobs_page') }}">All jobs</a></div>
   <ul class="joblist">
     {% for j in recent %}
-      <li><span class="led {{ 'led-amber led-blink' if j.status == 'running' else 'led-green' if j.status == 'done' else 'led-magenta' }}"></span>
-        <a href="{{ url_for('job_page', job_id=j.id) }}">{{ j.title }}</a> <span class="muted">{{ j.started|since }}, {{ j.status }}</span></li>
+      <li><span class="led {{ 'led-amber led-blink' if j.status == 'running' else 'led-green' if j.status == 'done' else 'led-muted' if j.status == 'ended' else 'led-magenta' }}"></span>
+        <a href="{{ url_for('job_page', job_id=j.id) }}">{{ j.title }}</a> <span class="muted">{{ j.started|since }} · {{ j.status }}</span></li>
     {% endfor %}
   </ul>
 </section>

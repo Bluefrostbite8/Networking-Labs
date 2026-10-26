@@ -52,6 +52,22 @@ def genie_parse(command: str, output: str) -> dict | None:
     return None
 
 
+def _ospf_area_from_genie(parsed: dict | None, iface: str) -> str | None:
+    """The area holding ``iface`` in Genie's 'show ip ospf interface' structure
+    (vrf > address_family > instance > areas > interfaces), or None."""
+    if not parsed:
+        return None
+    want = canonical_ifname(iface)
+    for vrf in (parsed.get("vrf") or {}).values():
+        for af in (vrf.get("address_family") or {}).values():
+            for inst in (af.get("instance") or {}).values():
+                for area, body in (inst.get("areas") or {}).items():
+                    for name in (body.get("interfaces") or {}):
+                        if canonical_ifname(name) == want:
+                            return str(area)
+    return None
+
+
 # --------------------------------------------------------------------------- the checker
 
 
@@ -697,8 +713,13 @@ class Checker:
         iface = canonical_ifname(spec["interface"])
         cmd = f"show ip ospf interface {iface}"
         raw = self.show(node, cmd)
-        m = re.search(r"Area (\S+?),", raw)
-        area = m.group(1) if m else None
+        area = _ospf_area_from_genie(genie_parse(cmd, raw), iface)
+        if area is None:
+            # Regex fallback. IOS prints "Internet Address 10.1.1.1/24, Area 0, Attached via ...";
+            # IOS-XE (IOL) prints "Internet Address 10.3.10.1/24, Interface ID 3, Area 0" with no
+            # comma after the area (lab 02 batch, 2026-10-16), so match the number, not the comma.
+            m = re.search(r"\bArea (\d+(?:\.\d+){3}|\d+)\b", raw)
+            area = m.group(1) if m else None
 
         def norm(a) -> str:
             a = str(a)
