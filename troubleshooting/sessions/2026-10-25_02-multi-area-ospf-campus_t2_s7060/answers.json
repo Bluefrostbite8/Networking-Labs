@@ -1,0 +1,196 @@
+[
+  {
+    "index": 1,
+    "id": "svc-helper-wrong",
+    "title": "DHCP relays point at an address nobody answers",
+    "category": "services",
+    "state_only": false,
+    "tier": 2,
+    "node": "DC-S1",
+    "vars": {
+      "server": "DHCP ",
+      "pool": "AREA2V10",
+      "pool_header": "ip dhcp pool AREA2V10",
+      "network": "10.2.10.0",
+      "mask": "255.255.255.0",
+      "subnet": "10.2.10.0/24",
+      "gateway": "10.2.10.1",
+      "hosts": [
+        "U-D3"
+      ],
+      "host": "U-D3",
+      "vlan": 10,
+      "server_ip": "10.3.10.2",
+      "gateway_node": "DC-S3",
+      "svi": "Vlan10",
+      "relays": [
+        "DC-S1",
+        "DC-S3"
+      ],
+      "relay_a": "DC-S1",
+      "relay_b": "DC-S3",
+      "helper_a": "10.4.10.2",
+      "helper_b": "10.3.10.2",
+      "server_ips_regex": "10\\.3\\.10\\.2|10\\.4\\.10\\.2",
+      "bad_helper": "10.2.10.10",
+      "n": 1
+    },
+    "touched": [
+      [
+        "DC-S1",
+        "interface Vlan10"
+      ],
+      [
+        "DC-S3",
+        "interface Vlan10"
+      ]
+    ],
+    "changes": [
+      {
+        "node": "DC-S1",
+        "section": "interface Vlan10",
+        "before": [
+          " ip address 10.1.10.1 255.255.255.0",
+          " ip helper-address 10.4.10.2"
+        ],
+        "after": [
+          " ip address 10.1.10.1 255.255.255.0",
+          " ip helper-address 10.2.10.10"
+        ]
+      },
+      {
+        "node": "DC-S3",
+        "section": "interface Vlan10",
+        "before": [
+          " ip address 10.2.10.1 255.255.255.0",
+          " ip helper-address 10.3.10.2"
+        ],
+        "after": [
+          " ip address 10.2.10.1 255.255.255.0",
+          " ip helper-address 10.2.10.10"
+        ]
+      }
+    ],
+    "original_sections": {
+      "DC-S1": {
+        "interface Vlan10": [
+          " ip address 10.1.10.1 255.255.255.0",
+          " ip helper-address 10.4.10.2"
+        ]
+      },
+      "DC-S3": {
+        "interface Vlan10": [
+          " ip address 10.2.10.1 255.255.255.0",
+          " ip helper-address 10.3.10.2"
+        ]
+      }
+    },
+    "ticket": "Nobody on the VLAN 10 floor can get on the network this morning.",
+    "hints": [
+      "The hosts never get an address, so follow the DHCP request: who forwards it off the VLAN?",
+      "Check the DHCP relay on the VLAN 10 gateways, DC-S1 and DC-S3.",
+      "Run 'show ip interface Vlan10' on DC-S1 and DC-S3 and read the Helper address line."
+    ],
+    "checks": {
+      "refresh": [
+        "U-D3"
+      ],
+      "functional": [
+        {
+          "host_lease": {
+            "on": "U-D3",
+            "subnet": "10.2.10.0/24",
+            "wait_s": 90
+          }
+        },
+        {
+          "ping": {
+            "from": "U-D3",
+            "to": [
+              "10.3.10.2"
+            ]
+          }
+        }
+      ],
+      "root_cause": [
+        {
+          "cli_match": {
+            "on": [
+              "DC-S1",
+              "DC-S3"
+            ],
+            "command": "show ip interface Vlan10",
+            "pattern": "Helper address is (10\\.3\\.10\\.2|10\\.4\\.10\\.2)\\s*$",
+            "label": "DHCP relay on Vlan10"
+          }
+        }
+      ],
+      "intent": [],
+      "workaround_signatures": [
+        {
+          "unsaved_fix": true
+        }
+      ]
+    },
+    "reference_fix": {
+      "DC-S1": [
+        "interface Vlan10",
+        " no ip helper-address 10.2.10.10",
+        " ip helper-address 10.4.10.2"
+      ],
+      "DC-S3": [
+        "interface Vlan10",
+        " no ip helper-address 10.2.10.10",
+        " ip helper-address 10.3.10.2"
+      ]
+    },
+    "selftest": {
+      "reinject": {
+        "DC-S1": [
+          "interface Vlan10",
+          " no ip helper-address 10.4.10.2",
+          " ip helper-address 10.2.10.10"
+        ],
+        "DC-S3": [
+          "interface Vlan10",
+          " no ip helper-address 10.3.10.2",
+          " ip helper-address 10.2.10.10"
+        ]
+      },
+      "workaround": {
+        "DC-S1": [
+          "interface Vlan10",
+          " no ip helper-address 10.2.10.10",
+          " ip helper-address 10.4.10.2"
+        ],
+        "DC-S3": [
+          "interface Vlan10",
+          " no ip helper-address 10.2.10.10",
+          " ip helper-address 10.3.10.2"
+        ]
+      },
+      "workaround_saved": false
+    },
+    "debrief": {
+      "scope": "Every host in VLAN 10: no address at all, other VLANs fine",
+      "methods": [
+        "follow_the_path",
+        "compare_known_good"
+      ],
+      "reasoning": "Only one VLAN is affected and its hosts get no address at all, so DHCP never completes. The server sits on another subnet, so each DISCOVER depends on the VLAN's gateways relaying it. Both relays point at 10.2.10.10, an address inside the VLAN that no device owns, so the requests go nowhere. Compare with a VLAN that works: its helper is the server's address.\n",
+      "commands": {
+        "show": [
+          "show ip interface Vlan10",
+          "show running-config interface Vlan10",
+          "show ip interface brief",
+          "show standby brief"
+        ],
+        "debug": [
+          "debug ip dhcp server packet (on DHCP : no DISCOVER arrives from VLAN 10)"
+        ]
+      },
+      "key_clue": "show ip interface Vlan10 on DC-S1: 'Helper address is 10.2.10.10' where the server is 10.4.10.2",
+      "better_fix_if_temporary": "Point both relays back at the DHCP server and save with 'write memory' on DC-S1 and DC-S3."
+    }
+  }
+]

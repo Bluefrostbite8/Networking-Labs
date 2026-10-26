@@ -1,0 +1,13 @@
+# ping from U-D3: PASS (1/1 reachable)
+
+## U-D3# ping -c 5 10.3.10.2
+PING 10.3.10.2 (10.3.10.2): 56 data bytes
+64 bytes from 10.3.10.2: seq=0 ttl=42 time=5.906 ms
+64 bytes from 10.3.10.2: seq=1 ttl=42 time=3.217 ms
+64 bytes from 10.3.10.2: seq=2 ttl=42 time=2.932 ms
+64 bytes from 10.3.10.2: seq=3 ttl=42 time=3.143 ms
+64 bytes from 10.3.10.2: seq=4 ttl=42 time=2.947 ms
+
+--- 10.3.10.2 ping statistics ---
+5 packets transmitted, 5 packets received, 0% packet loss
+round-trip min/avg/max = 2.932/3.629/5.906 ms

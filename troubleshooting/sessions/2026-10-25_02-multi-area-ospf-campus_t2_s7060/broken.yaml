@@ -1,0 +1,2073 @@
+annotations:
+  - border_color: '#808080FF'
+    border_style: ''
+    color: '#990101FF'
+    rotation: 0
+    thickness: 1
+    type: ellipse
+    x1: -240.0
+    y1: 220.0
+    x2: 200.0
+    y2: 300.0
+    z_index: 0
+  - border_color: '#808080FF'
+    border_style: ''
+    color: '#012F99FF'
+    rotation: 0
+    thickness: 1
+    type: ellipse
+    x1: 240.0
+    y1: 220.0
+    x2: 200.0
+    y2: 300.0
+    z_index: 0
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: Area 1
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: -320.0
+    y1: -40.0
+    z_index: 2
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: Area 2
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: 280.0
+    y1: -40.0
+    z_index: 3
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: Area 0
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: 80.0
+    y1: -200.0
+    z_index: 24
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: 'VLAN: [10,20]'
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: 240.0
+    y1: 0.0
+    z_index: 5
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: 'VLAN: [10,20]'
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: -360.0
+    y1: 0.0
+    z_index: 6
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: Office
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: -280.0
+    y1: -120.0
+    z_index: 7
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: Warehouse
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: 240.0
+    y1: -120.0
+    z_index: 8
+  - border_color: '#808080FF'
+    border_style: ''
+    color: '#42C037FF'
+    rotation: 0
+    thickness: 1
+    type: ellipse
+    x1: 0.0
+    y1: -80.0
+    x2: 200.0
+    y2: 160.0
+    z_index: 9
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: |-
+      Network:
+      VLAN 10: 10.1.10.0/24
+      VLAN 20: 10.1.20.0/24
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: -600.0
+    y1: 0.0
+    z_index: 25
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: |-
+      Network:
+      VLAN 10: 10.2.10.0/24
+      VLAN 20: 10.2.20.0/24
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: 440.0
+    y1: 0.0
+    z_index: 26
+  - border_color: '#00000000'
+    border_style: ''
+    color: '#FFFFFF'
+    rotation: 0
+    text_bold: false
+    text_content: 'Network: 10.3.10.0/24'
+    text_font: monospace
+    text_italic: false
+    text_size: 12
+    text_unit: pt
+    thickness: 1
+    type: text
+    x1: 160.0
+    y1: -240.0
+    z_index: 27
+smart_annotations: []
+nodes:
+  - boot_disk_size: null
+    configuration:
+      - name: default
+        content: System Bridge
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n0
+    image_definition: null
+    label: Internet
+    node_definition: external_connector
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 0
+    y: -320
+    interfaces:
+      - id: i0
+        label: port
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3589 bytes
+          !
+          ! Last configuration change at 00:46:36 UTC Thu Sep 10 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname DC-S1
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          no process cpu extended history
+          no process cpu autoprofile hog
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode pvst
+          spanning-tree extend system-id
+          !
+          no cdp run
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           no switchport
+           ip address 10.1.100.1 255.255.255.0
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/2
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/3
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface Vlan10
+           ip address 10.1.10.1 255.255.255.0
+           ip helper-address 10.2.10.10
+          !
+          router ospf 1
+           network 10.1.10.0 0.0.0.255 area 1
+           network 10.1.100.0 0.0.0.255 area 1
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip route 0.0.0.0 0.0.0.0 10.1.100.2
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          no service-routing capabilities-manager
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n1
+    image_definition: null
+    label: DC-S1
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -320
+    y: 120
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3589 bytes
+          !
+          ! Last configuration change at 00:46:35 UTC Thu Sep 10 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname DC-S2
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          no process cpu extended history
+          no process cpu autoprofile hog
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode pvst
+          spanning-tree extend system-id
+          !
+          no cdp run
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           no switchport
+           ip address 10.1.200.1 255.255.255.0
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/2
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/3
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+           no cdp enable
+          !
+          interface Vlan20
+           ip address 10.1.20.1 255.255.255.0
+           ip helper-address 10.4.10.2
+          !
+          router ospf 1
+           network 10.1.20.0 0.0.0.255 area 1
+           network 10.1.200.0 0.0.0.255 area 1
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip route 0.0.0.0 0.0.0.0 10.1.200.2
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          no service-routing capabilities-manager
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n2
+    image_definition: null
+    label: DC-S2
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -160
+    y: 120
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3481 bytes
+          !
+          ! Last configuration change at 00:46:35 UTC Thu Sep 10 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname DC-S3
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          no process cpu extended history
+          no process cpu autoprofile hog
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode pvst
+          spanning-tree extend system-id
+          !
+          no cdp run
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           no switchport
+           ip address 10.2.100.1 255.255.255.0
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/2
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+           no cdp enable
+          !
+          interface GigabitEthernet0/3
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+           no cdp enable
+          !
+          interface Vlan10
+           ip address 10.2.10.1 255.255.255.0
+           ip helper-address 10.2.10.10
+          !
+          router ospf 1
+           network 10.2.10.0 0.0.0.255 area 2
+           network 10.2.100.0 0.0.0.255 area 2
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          no service-routing capabilities-manager
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n3
+    image_definition: null
+    label: DC-S3
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 160
+    y: 120
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3307 bytes
+          !
+          ! Last configuration change at 00:46:35 UTC Thu Sep 10 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname DC-S4
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode pvst
+          spanning-tree extend system-id
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           no switchport
+           ip address 10.2.200.1 255.255.255.0
+           negotiation auto
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+          !
+          interface GigabitEthernet0/2
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+          !
+          interface GigabitEthernet0/3
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+          !
+          interface Vlan20
+           ip address 10.2.20.1 255.255.255.0
+           ip helper-address 10.3.10.2
+          !
+          router ospf 1
+           network 10.2.20.0 0.0.0.255 area 2
+           network 10.2.200.0 0.0.0.255 area 2
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n4
+    image_definition: null
+    label: DC-S4
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 320
+    y: 120
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3106 bytes
+          !
+          ! Last configuration change at 00:46:36 UTC Thu Sep 10 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname A-S1
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode pvst
+          spanning-tree extend system-id
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+          !
+          interface GigabitEthernet0/2
+           switchport access vlan 10
+           switchport mode access
+           negotiation auto
+           spanning-tree portfast edge
+           spanning-tree bpduguard enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n5
+    image_definition: null
+    label: A-S1
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -320
+    y: 280
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3106 bytes
+          !
+          ! Last configuration change at 00:46:36 UTC Thu Sep 10 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname A-S2
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode pvst
+          spanning-tree extend system-id
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           switchport nonegotiate
+           negotiation auto
+          !
+          interface GigabitEthernet0/2
+           switchport access vlan 20
+           switchport mode access
+           negotiation auto
+           spanning-tree portfast edge
+           spanning-tree bpduguard enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n6
+    image_definition: null
+    label: A-S2
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -160
+    y: 280
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3058 bytes
+          !
+          ! Last configuration change at 00:46:36 UTC Thu Sep 10 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname A-S3
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode pvst
+          spanning-tree extend system-id
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+          !
+          interface GigabitEthernet0/2
+           switchport access vlan 10
+           switchport mode access
+           negotiation auto
+           spanning-tree portfast edge
+           spanning-tree bpduguard enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n7
+    image_definition: null
+    label: A-S3
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 160
+    y: 280
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: |-
+          Building configuration...
+
+          Current configuration : 3058 bytes
+          !
+          ! Last configuration change at 00:46:36 UTC Thu Sep 10 2026
+          !
+          version 15.2
+          service timestamps debug datetime msec
+          service timestamps log datetime msec
+          no service password-encryption
+          service compress-config
+          !
+          hostname A-S4
+          !
+          boot-start-marker
+          boot-end-marker
+          !
+          !
+          no logging console
+          !
+          no aaa new-model
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          ip cef
+          no ipv6 cef
+          !
+          !
+          !
+          spanning-tree mode pvst
+          spanning-tree extend system-id
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          !
+          interface GigabitEthernet0/0
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+          !
+          interface GigabitEthernet0/1
+           switchport trunk allowed vlan 10,20,99
+           switchport trunk encapsulation dot1q
+           switchport trunk native vlan 99
+           switchport mode trunk
+           negotiation auto
+          !
+          interface GigabitEthernet0/2
+           switchport access vlan 20
+           switchport mode access
+           negotiation auto
+           spanning-tree portfast edge
+           spanning-tree bpduguard enable
+          !
+          interface GigabitEthernet0/3
+           negotiation auto
+          !
+          ip forward-protocol nd
+          !
+          ip http server
+          ip http secure-server
+          !
+          ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+          !
+          !
+          !
+          !
+          !
+          !
+          control-plane
+          !
+          !
+          line con 0
+           exec-timeout 0 0
+          line aux 0
+          line vty 0 4
+           exec-timeout 0 0
+           login
+          !
+          !
+          end
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n8
+    image_definition: null
+    label: A-S4
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 320
+    y: 280
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n9
+    image_definition: null
+    label: HR-D4
+    node_definition: desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 320
+    y: 440
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n10
+    image_definition: null
+    label: U-D1
+    node_definition: desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -320
+    y: 440
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n11
+    image_definition: null
+    label: HR-D2
+    node_definition: desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -160
+    y: 440
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n12
+    image_definition: null
+    label: U-D3
+    node_definition: desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 160
+    y: 440
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n13
+    image_definition: null
+    label: Redundant
+    node_definition: unmanaged_switch
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 0
+    y: -160
+    interfaces:
+      - id: i0
+        label: port0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i1
+        label: port1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i2
+        label: port2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i3
+        label: port3
+        mac_address: null
+        type: physical
+        slot: 3
+      - id: i4
+        label: port4
+        mac_address: null
+        type: physical
+        slot: 4
+      - id: i5
+        label: port5
+        mac_address: null
+        type: physical
+        slot: 5
+      - id: i6
+        label: port6
+        mac_address: null
+        type: physical
+        slot: 6
+      - id: i7
+        label: port7
+        mac_address: null
+        type: physical
+        slot: 7
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3674 bytes\n!\n! Last configuration change at 00:46:35 UTC Thu Sep 10 2026\n!\nversion 17.18\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname ASBR1\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ncrypto pki trustpoint TP-self-signed-2039816\n enrollment selfsigned\n subject-name cn=IOS-Self-Signed-Certificate-2039816\n revocation-check none\n rsakeypair TP-self-signed-2039816\n hash sha512\n!\n!\ncrypto pki certificate chain TP-self-signed-2039816\n certificate self-signed 01\n  3082032A 30820212 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967 6E65642D 43657274\n  69666963 6174652D 32303339 38313630 1E170D32 36303930 39323235 3030395A\n  170D3336 30393038 32323530 30395A30 2E312C30 2A060355 04030C23 494F532D\n  53656C66 2D536967 6E65642D 43657274 69666963 6174652D 32303339 38313630\n  82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02 82010100\n  AAA92A02 59046549 D604BCD7 C4D77481 F9964A41 0768D462 0B3E6DE1 80725197\n  0BDB49EB CB0D437A E5300AE1 B9FB44BF B31FE801 FF0BF7E7 45501983 1C3D5D08\n  9836092E BDE57791 7BC43210 B8C8B455 2B08909E E70D47C2 7E272E45 62E9AC9D\n  1C4ACCF9 C7B4B11F 8CAC89FA EAAB467C 014BC9A8 C842CB44 DB6FB4F0 DC87F36E\n  D157C18E DCFBF52D 25F90263 B847B0D0 F0E747E4 CE0C09A2 4B5B2452 B5FF1A59\n  7C22C650 F46FF212 B15AE03F D762D542 9EE6EFA7 B4B68F26 8137A831 6207C8B4\n  52F9722B 9EC6EEAF AECA3989 3A7488CA 462EBD86 7B4D89EF BF2E6291 85E324A7\n  204369C0 95A87E16 5D46CD34 29F6EF8D D35DDB3F 088E8A3A 7EC5B8E8 ED721C75\n  02030100 01A35330 51301D06 03551D0E 04160414 1356A51A 8A2E6C66 11BB8D4F\n  EF8B39A6 AE7A0B45 301F0603 551D2304 18301680 141356A5 1A8A2E6C 6611BB8D\n  4FEF8B39 A6AE7A0B 45300F06 03551D13 0101FF04 05300301 01FF300D 06092A86\n  4886F70D 01010D05 00038201 010010C7 58106DF7 21378DDC FFB412EE 91D1654C\n  6AB08819 3CDB21D4 FEEDD5F3 E9A690EC 38EF9750 89B98E5B A2991639 D3F88F4B\n  2E17C2FD 94B5CDEC A7076883 9B63C55A AFF85780 C1075C3C 078BF552 98B5C881\n  C810D313 8D9CB1DD 670E31CC B93502FF E4CEA4D6 A07A4100 C9A1B635 475AE8DB\n  E1F5C519 CF965F6D A2C28C65 F09EEB0A 5A4AB99C 905D6603 D4D027C4 4DB94401\n  B4EE4E5D 75885C1D 3AECEA72 0EFBB00E 864F9B09 AA9A1278 C2373E68 6C3006D6\n  CA851BFB FE55840D 96F256B3 A48674A4 3876B069 A62CF8E2 3D12E7D4 58482B1F\n  A7C171B7 6347D965 A7883963 E06449E1 C62B8454 1D8B1F7C 0BFEABC1 6B778D53\n  007F0444 92531DB9 CFD17483 3D2F\n  \tquit\n!\n!\nmemory free low-watermark processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Ethernet0/0\n ip address 10.1.1.1 255.255.255.0\n ip nat inside\n!\ninterface Ethernet0/1\n ip address 10.4.10.1 255.255.255.0\n ip nat inside\n!\ninterface Ethernet0/2\n ip address dhcp\n ip nat outside\n!\ninterface Ethernet0/3\n no ip address\n shutdown\n!\nrouter ospf 1\n router-id 1.1.1.1\n network 10.1.1.0 0.0.0.255 area 0\n network 10.4.10.0 0.0.0.255 area 0\n default-information originate\n!\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\nip nat inside source list 10 interface Ethernet0/2 overload\nip route 0.0.0.0 0.0.0.0 192.168.8.186\nip route 0.0.0.0 0.0.0.0 Ethernet0/2\nip ssh bulk-mode 131072\nno logging btrace\nip access-list standard 10\n 10 permit 10.1.0.0 0.0.255.255\n 20 permit 10.4.10.0 0.0.0.255\n 30 permit 10.2.0.0 0.0.255.255\n 40 permit 10.3.10.0 0.0.0.255\n!\n!\n!\ncontrol-plane\n!\n!\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout 0 0\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n!\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n14
+    image_definition: null
+    label: ASBR1
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -120
+    y: -80
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3567 bytes\n!\n! Last configuration change at 00:46:35 UTC Thu Sep 10 2026\n!\nversion 17.18\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname ASBR2\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ncrypto pki trustpoint TP-self-signed-2039817\n enrollment selfsigned\n subject-name cn=IOS-Self-Signed-Certificate-2039817\n revocation-check none\n rsakeypair TP-self-signed-2039817\n hash sha512\n!\n!\ncrypto pki certificate chain TP-self-signed-2039817\n certificate self-signed 01\n  3082032A 30820212 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967 6E65642D 43657274\n  69666963 6174652D 32303339 38313730 1E170D32 36303930 39323235 3031335A\n  170D3336 30393038 32323530 31335A30 2E312C30 2A060355 04030C23 494F532D\n  53656C66 2D536967 6E65642D 43657274 69666963 6174652D 32303339 38313730\n  82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02 82010100\n  9E58CCAF 99A8E316 924E5944 CA3BB7C4 0F4B11CD FF8ED395 EC325F49 9D1427CC\n  B72A91AA 7F8C7AEE 50657009 0CF08F48 06CCFC3B DB3F8FB5 CBE83E8A 219AB8DD\n  509D3604 078C2EEE 47600826 61B919E1 254E0DE4 888D8065 7F754663 5F4F9192\n  8385D3AB AA02DBF4 69894C50 E220120E D9EF7526 A25B5BDD 78BF6B97 62CA44F9\n  063D8F64 DF16915E DFEFD5F4 C3710EDD EE1484FE 9605228E A7C1C6CA 639402B4\n  EF4E8B73 431EB482 4445FA6B 0CB90834 F50FE182 EEDB3A46 48DA14E3 EEE50B7B\n  89A2E3B6 F64E8672 A7860BCC F7C1312D 8E4080AD 14CCEB0E 0B9C1B0C EC9E4155\n  0053BB55 EFC374C5 5DC7DAF1 7FBC0837 67965A36 4A531A5D 787ACD49 444186CB\n  02030100 01A35330 51301D06 03551D0E 04160414 D513EBE0 B648C249 541E6B8B\n  39D5F704 4ED70650 301F0603 551D2304 18301680 14D513EB E0B648C2 49541E6B\n  8B39D5F7 044ED706 50300F06 03551D13 0101FF04 05300301 01FF300D 06092A86\n  4886F70D 01010D05 00038201 01002A8B 4026CA8E 3E87B36A 9345FD2B B0EA57A2\n  0A56CC48 84EFF7BD 3B7132BE D65D80D2 E5132A41 81F6A09E 3043A6C2 320E4500\n  D2949EC9 E6E41A1D FB183954 D9A9B986 1CF560BF 7B5555F4 41AB2137 F280AA2C\n  50070199 DF1B1456 87612A3E FB09AA5D 99B52ED2 69D6C6B2 F26CDDD1 FC07E6BF\n  CB165E14 26E68EC5 FC869644 2C4A9A08 5A06D695 697EF2A7 0B582453 9A1362C8\n  0E95F7F2 9D96068F 7B5CEF43 675430CD 630907FE 2F76D832 688128FC 2C5AAE21\n  32F91758 B84D26B3 6EB100FF 512C586D 4C4B4DF8 F5A0D7D9 37B3DF33 22D2CE70\n  79C1C98B A3B6D46D 93C4D044 48022A7B 3117E041 60280007 D3FFC8B7 ED84020F\n  A4AC95B0 91878CC3 AD5856AE 3189\n  \tquit\n!\n!\nmemory free low-watermark processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Ethernet0/0\n ip address 10.2.1.1 255.255.255.0\n ip nat inside\n!\ninterface Ethernet0/1\n ip address 10.3.10.1 255.255.255.0\n ip nat inside\n!\ninterface Ethernet0/2\n ip address dhcp\n ip nat outside\n!\ninterface Ethernet0/3\n no ip address\n shutdown\n!\nrouter ospf 1\n router-id 3.3.3.3\n network 10.2.1.0 0.0.0.255 area 0\n network 10.3.10.0 0.0.0.255 area 0\n!\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\nip nat inside source list 10 interface Ethernet0/2 overload\nip ssh bulk-mode 131072\nno logging btrace\nip access-list standard 10\n 10 permit 10.2.0.0 0.0.255.255\n 20 permit 10.3.10.0 0.0.0.255\n 30 permit 10.1.0.0 0.0.255.255\n 40 permit 10.4.10.0 0.0.0.255\n!\n!\n!\ncontrol-plane\n!\n!\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout 0 0\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n!\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n15
+    image_definition: null
+    label: ASBR2
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 120
+    y: -80
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3347 bytes\n!\n! Last configuration change at 00:46:35 UTC Thu Sep 10 2026\n!\nversion 17.18\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname ABR2\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ncrypto pki trustpoint TP-self-signed-2039815\n enrollment selfsigned\n subject-name cn=IOS-Self-Signed-Certificate-2039815\n revocation-check none\n rsakeypair TP-self-signed-2039815\n hash sha512\n!\n!\ncrypto pki certificate chain TP-self-signed-2039815\n certificate self-signed 01\n  3082032A 30820212 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967 6E65642D 43657274\n  69666963 6174652D 32303339 38313530 1E170D32 36303930 39323235 3030345A\n  170D3336 30393038 32323530 30345A30 2E312C30 2A060355 04030C23 494F532D\n  53656C66 2D536967 6E65642D 43657274 69666963 6174652D 32303339 38313530\n  82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02 82010100\n  C0740230 4D98F86C F66894EC 1AEBA4FC 03EFAB75 0FC0FF2D ECE5D954 154380DC\n  36CA8370 0DA8C3FE E35F5B64 624C57FC 470AFA53 76C9FCDE 97BD24B9 104936DB\n  5E2AF068 AAFDC1B2 39AE1F37 6638DC2F 3B7EB60F 4AABE5FD BE992E55 D78C5271\n  196A6B86 CA9355F8 D78A2DC7 84DB3D5F 3A80CFE6 FCBD1F6D A02E9029 166727E6\n  7761891C F47CD4F2 9DBAA250 BD9EEB9F 7AD4FE0B 21D99552 164BB027 B2B2C71C\n  8CB8CEE4 98E610DA 3F480CFD 6181798D 4600CA94 F1EFC7C5 4E702B7E 8A51CFB7\n  A98C2D4A F9766F24 E5EC7F01 B5858980 03B0A897 E8C2B337 63888B32 93C5194E\n  C5196056 0BC6C04E 17BCC5B9 8EC5CDA4 BF17C7A6 8580C8C8 5ABF9D4D 5EE985D3\n  02030100 01A35330 51301D06 03551D0E 04160414 6E5A8C84 C79A447F D0AA08CD\n  3146A116 C2E281FA 301F0603 551D2304 18301680 146E5A8C 84C79A44 7FD0AA08\n  CD3146A1 16C2E281 FA300F06 03551D13 0101FF04 05300301 01FF300D 06092A86\n  4886F70D 01010D05 00038201 01008A57 2F3089C1 594F939E 69D82B79 DC38B886\n  F00C4732 72143F83 FF59A10A 0F56DCCB 7A41930C C964AC71 FDDB3589 8351355A\n  BD07B48F A66B7F96 F25FD028 DBC32210 04483385 003697E7 FDCB661A A04F5B56\n  615A60F8 6ABAF7D7 670B1AB0 5C9EB30B DB1881B8 53383742 377F22CD 25485FC6\n  ECAAD9E6 055C324F 2D0B304B 8A132510 9B9C1EBE 47D32963 551540B3 84C2A90B\n  6D0439F5 115DB856 6E07D43A EA5295A1 F2E5AED9 3800FF6A 578557EE 3E8939EF\n  333CA9ED 60F2864B D52B35E8 FAE677DF 03C0CB4D 8D28982B 8860EFE1 FFFCF55B\n  7A6C6902 B81BFDFB 967608ED 976E39A3 E1486045 F4A485E5 FF0F23E9 AB3A60A2\n  230AC7FA A5EA015A 5C5BEEDC E6C4\n  \tquit\n!\n!\nmemory free low-watermark processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Ethernet0/0\n ip address 10.2.100.2 255.255.255.0\n!\ninterface Ethernet0/1\n ip address 10.2.200.2 255.255.255.0\n!\ninterface Ethernet0/2\n ip address 10.2.1.2 255.255.255.0\n!\ninterface Ethernet0/3\n no ip address\n shutdown\n!\nrouter ospf 1\n network 10.2.1.0 0.0.0.255 area 0\n network 10.2.100.0 0.0.0.255 area 2\n network 10.2.200.0 0.0.0.255 area 2\n!\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\nip ssh bulk-mode 131072\nno logging btrace\n!\n!\n!\ncontrol-plane\n!\n!\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout 0 0\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n!\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n16
+    image_definition: null
+    label: ABR2
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 240
+    y: 40
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3366 bytes\n!\n! Last configuration change at 00:46:35 UTC Thu Sep 10 2026\n!\nversion 17.18\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname ABR1\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ncrypto pki trustpoint TP-self-signed-2039818\n enrollment selfsigned\n subject-name cn=IOS-Self-Signed-Certificate-2039818\n revocation-check none\n rsakeypair TP-self-signed-2039818\n hash sha512\n!\n!\ncrypto pki certificate chain TP-self-signed-2039818\n certificate self-signed 01\n  3082032A 30820212 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967 6E65642D 43657274\n  69666963 6174652D 32303339 38313830 1E170D32 36303930 39323235 3030365A\n  170D3336 30393038 32323530 30365A30 2E312C30 2A060355 04030C23 494F532D\n  53656C66 2D536967 6E65642D 43657274 69666963 6174652D 32303339 38313830\n  82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02 82010100\n  A6295652 F91CE526 6E5F9704 D4B0455F CF1DC141 88CCBD6E 89A32703 B0295F09\n  7B3926D2 B8C0E012 81305F2D 717AB5EB C1728873 BC91C077 7D39F3B5 FAE06DA9\n  ADF234BE 45C4F9CD CA1040E0 4F0FC484 2349785B 0D2861DB CFA04805 70BBA8BF\n  B2D3FE5A C9CFFB5F 3E5553FC 6CAD1972 723493C0 79444F50 D917813F 30C41E4E\n  50D97348 35B013FC 13B45B7C 464BDAB9 30F125ED 67515B66 01193089 CF179997\n  600AADEA CD5A7682 F52E6939 8CF457B6 CBFF6BCC 0CE3DE95 6371A724 AF66B150\n  210E4E6D F7E6415F 4E07B5F8 EEA197BE 6A7C50D7 D56CF278 12069CD0 A4BBB5A2\n  C9A80F28 9224FA53 DEE7A2CB 957CEA28 8A51AEE2 FF760953 8212125B 7679818F\n  02030100 01A35330 51301D06 03551D0E 04160414 CFE2E223 89A60414 C6DAE230\n  AADB265A 02A8F96B 301F0603 551D2304 18301680 14CFE2E2 2389A604 14C6DAE2\n  30AADB26 5A02A8F9 6B300F06 03551D13 0101FF04 05300301 01FF300D 06092A86\n  4886F70D 01010D05 00038201 01009B08 945F1525 19CC9FCD F37514DC 4CCD04C8\n  06A4FDF2 F7215B46 4DA984C9 8BF1B461 F09F4736 5ADC68F2 298D6C0D 0EC0E26D\n  6F054DCF CDF408D8 B4DC0BE6 B7BBB337 BD8FE588 9052FDAD 9C200E5B A4A1C291\n  5566F5B2 B07C5783 D014C8CC 124DE7BF F7F72F3B 2C301CEC A6379645 B7A4142C\n  E89A5DB3 47CAB7D3 0712ECD1 FDF10FEB C4F193AA 8A17CC53 FFE46E00 50309000\n  038DB83A 9C9D5A2B 137AA434 3654B7C8 B661466A 304A40F8 779AB007 446AAFA9\n  0F222A60 0793FB67 3A46B795 D2E91266 406125B8 DDF2590C B69FC6BF 0868D3AF\n  AC723F96 6119A057 D11578C2 B6BC148F E7206109 41BF5603 886AD61F CDE36D32\n  CFD492A2 AACAF1CD 2ECCC63C F872\n  \tquit\n!\n!\nmemory free low-watermark processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Ethernet0/0\n ip address 10.1.100.2 255.255.255.0\n!\ninterface Ethernet0/1\n ip address 10.1.200.2 255.255.255.0\n!\ninterface Ethernet0/2\n ip address 10.1.1.2 255.255.255.0\n!\ninterface Ethernet0/3\n no ip address\n shutdown\n!\nrouter ospf 1\n router-id 4.4.4.4\n network 10.1.1.0 0.0.0.255 area 0\n network 10.1.100.0 0.0.0.255 area 1\n network 10.1.200.0 0.0.0.255 area 1\n!\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\nip ssh bulk-mode 131072\nno logging btrace\n!\n!\n!\ncontrol-plane\n!\n!\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout 0 0\n activation-character 13\n login\n transport input ssh\n!\n!\n!\n!\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n17
+    image_definition: null
+    label: ABR1
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -240
+    y: 40
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration:
+      - name: ios_config.txt
+        content: "Building configuration...\n\nCurrent configuration : 3932 bytes\n!\n! Last configuration change at 00:46:35 UTC Thu Sep 10 2026\n!\nversion 17.18\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname DHCP\n!\nboot-start-marker\nboot-end-marker\n!\n!\nno logging console\nno aaa new-model\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip dhcp excluded-address 10.1.10.1 10.1.10.10\nip dhcp excluded-address 10.1.20.1 10.1.20.10\nip dhcp excluded-address 10.2.10.1 10.2.10.10\nip dhcp excluded-address 10.2.20.1 10.2.20.10\n!\nip dhcp pool AREA1V10\n network 10.1.10.0 255.255.255.0\n default-router 10.1.10.1\n!\nip dhcp pool AREA10V2\n network 10.1.20.0 255.255.255.0\n default-router 10.1.20.1\n!\nip dhcp pool AREA2V10\n network 10.2.10.0 255.255.255.0\n default-router 10.2.10.1\n!\nip dhcp pool AREA2V20\n network 10.2.20.0 255.255.255.0\n default-router 10.2.20.1\n!\n!\n!\nip cef\nlogin on-success log\nno ipv6 cef\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ncrypto pki trustpoint TP-self-signed-2039819\n enrollment selfsigned\n subject-name cn=IOS-Self-Signed-Certificate-2039819\n revocation-check none\n rsakeypair TP-self-signed-2039819\n hash sha512\n!\n!\ncrypto pki certificate chain TP-self-signed-2039819\n certificate self-signed 01\n  3082032A 30820212 A0030201 02020101 300D0609 2A864886 F70D0101 0D050030\n  2E312C30 2A060355 04030C23 494F532D 53656C66 2D536967 6E65642D 43657274\n  69666963 6174652D 32303339 38313930 1E170D32 36303930 39323235 3133335A\n  170D3336 30393038 32323531 33335A30 2E312C30 2A060355 04030C23 494F532D\n  53656C66 2D536967 6E65642D 43657274 69666963 6174652D 32303339 38313930\n  82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02 82010100\n  95EACF38 7F586DA3 55CB5E7F 2411AF61 CD7618EA E54B386A D21DB318 1F753863\n  F1653ED9 6E3E205D 9678B0CA B38B00E7 80614753 F59AB7BE 2D1325BC BD06CD0C\n  D0DA2A8F 5C74A527 228B33E0 4E686F30 C4D47CEA 2D14CF47 BD22D75F 23B69F2E\n  247C3CF5 51046D99 4EF6AC1F 8A1276A4 4E44D722 A3A9D5D4 E86ECC27 07805528\n  B188A979 4DE4709D BC12A2CD 0E0B0590 6BABDC15 3FC78510 991DE759 A0F7E9FF\n  5022BA89 AA594F0A 828367C2 896FA01A BE8FB6BC D7EBA638 79DC21C2 647D4372\n  8EFAA8D3 43F51100 7E3D93A3 C4BE6069 79D733B6 F3864D7A 2423F9A7 063C3849\n  CA6BDEB3 10C65F39 8625C3D1 E781A8F3 3379B172 C8B81325 C89A2078 641B588B\n  02030100 01A35330 51301D06 03551D0E 04160414 3914178E BFAB06E0 0D2306C9\n  335FCEDD 0ED4A8C2 301F0603 551D2304 18301680 14391417 8EBFAB06 E00D2306\n  C9335FCE DD0ED4A8 C2300F06 03551D13 0101FF04 05300301 01FF300D 06092A86\n  4886F70D 01010D05 00038201 01006862 3035C904 376F0062 0F2DACFD 87087A38\n  4ED3D3AD B41D26E8 64EC3C32 45A540AC 9B135BF5 A9CBD685 0D234F61 9C6AC850\n  558EAF45 1C60139E 092FFB9C A4276E2C EA894CE0 48850B1F 4BE589E8 80873DBD\n  48135055 FD616662 5D917579 5B3617F0 F1E483BD 73858025 83F532AA CB589653\n  67B90D3F 0EA50D4B 98F6C8EA 15B75201 CF0EC310 BB9565D7 9359B436 F2437F4B\n  69560305 E215C53C 78BC7382 6304D063 4D43A7A1 94C1D54F 4754B120 7EAF10DB\n  687C5F77 85947857 DE6FA28D 97BFCE41 ADEA9FA1 8D8293F3 D2C7E0AF 18A944C5\n  42FD84B3 570179AA A01C4641 5DDC52A5 8C952AD2 0FC8E833 ADA08311 B01A0EE6\n  7EF92B9A 8C4431B3 5DCD12F8 2E3A\n  \tquit\n!\n!\nmemory free low-watermark processor 79866\n!\n!\nspanning-tree mode rapid-pvst\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\ninterface Ethernet0/0\n ip address 10.3.10.2 255.255.255.0\n!\ninterface Ethernet0/1\n ip address 10.4.10.2 255.255.255.0\n!\ninterface Ethernet0/2\n no ip address\n shutdown\n!\ninterface Ethernet0/3\n no ip address\n shutdown\n!\nrouter ospf 1\n router-id 2.2.2.2\n passive-interface default\n no passive-interface Ethernet0/0\n no passive-interface Ethernet0/1\n network 10.3.10.0 0.0.0.255 area 0\n network 10.4.10.0 0.0.0.255 area 0\n!\nip forward-protocol nd\n!\n!\nip http server\nip http secure-server\nip ssh bulk-mode 131072\nno logging btrace\n!\n!\n!\ncontrol-plane\n!\n!\n!\nline con 0\n exec-timeout 0 0\n activation-character 13\n logging synchronous\nline aux 0\n activation-character 13\nline vty 0 4\n exec-timeout 0 0\n activation-character\
+          \ 13\n login\n transport input ssh\n!\n!\n!\n!\nend"
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n18
+    image_definition: null
+    label: 'DHCP '
+    node_definition: iol-xe
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 0
+    y: 40
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: Ethernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: Ethernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: Ethernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: Ethernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+links:
+  - id: l0
+    n1: n1
+    n2: n2
+    i1: i2
+    i2: i2
+    conditioning: {}
+    label: iosvl2-0-GigabitEthernet0/1<->iosvl2-1-GigabitEthernet0/1
+  - id: l1
+    n1: n1
+    n2: n5
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: iosvl2-0-GigabitEthernet0/2<->iosvl2-4-GigabitEthernet0/0
+  - id: l2
+    n1: n2
+    n2: n6
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: iosvl2-1-GigabitEthernet0/2<->iosvl2-5-GigabitEthernet0/0
+  - id: l3
+    n1: n1
+    n2: n6
+    i1: i4
+    i2: i2
+    conditioning: {}
+    label: iosvl2-0-GigabitEthernet0/3<->iosvl2-5-GigabitEthernet0/1
+  - id: l4
+    n1: n2
+    n2: n5
+    i1: i4
+    i2: i2
+    conditioning: {}
+    label: iosvl2-1-GigabitEthernet0/3<->iosvl2-4-GigabitEthernet0/1
+  - id: l5
+    n1: n6
+    n2: n11
+    i1: i3
+    i2: i0
+    conditioning: {}
+    label: iosvl2-5-GigabitEthernet0/2<->desktop-2-eth0
+  - id: l6
+    n1: n5
+    n2: n10
+    i1: i3
+    i2: i0
+    conditioning: {}
+    label: iosvl2-4-GigabitEthernet0/2<->desktop-1-eth0
+  - id: l7
+    n1: n3
+    n2: n4
+    i1: i2
+    i2: i2
+    conditioning: {}
+    label: iosvl2-2-GigabitEthernet0/1<->iosvl2-3-GigabitEthernet0/1
+  - id: l8
+    n1: n3
+    n2: n7
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: iosvl2-2-GigabitEthernet0/2<->iosvl2-6-GigabitEthernet0/0
+  - id: l9
+    n1: n4
+    n2: n8
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: iosvl2-3-GigabitEthernet0/2<->iosvl2-7-GigabitEthernet0/0
+  - id: l10
+    n1: n3
+    n2: n8
+    i1: i4
+    i2: i2
+    conditioning: {}
+    label: iosvl2-2-GigabitEthernet0/3<->iosvl2-7-GigabitEthernet0/1
+  - id: l11
+    n1: n4
+    n2: n7
+    i1: i4
+    i2: i2
+    conditioning: {}
+    label: iosvl2-3-GigabitEthernet0/3<->iosvl2-6-GigabitEthernet0/1
+  - id: l12
+    n1: n7
+    n2: n12
+    i1: i3
+    i2: i0
+    conditioning: {}
+    label: iosvl2-6-GigabitEthernet0/2<->desktop-3-eth0
+  - id: l13
+    n1: n8
+    n2: n9
+    i1: i3
+    i2: i0
+    conditioning: {}
+    label: iosvl2-7-GigabitEthernet0/2<->desktop-0-eth0
+  - id: l14
+    n1: n13
+    n2: n0
+    i1: i2
+    i2: i0
+    conditioning: {}
+    label: Redundant-port2<->Internet-port
+  - id: l15
+    n1: n16
+    n2: n3
+    i1: i1
+    i2: i1
+    conditioning: {}
+    label: iol-2-Ethernet0/0<->DC-S3-GigabitEthernet0/0
+  - id: l16
+    n1: n16
+    n2: n4
+    i1: i2
+    i2: i1
+    conditioning: {}
+    label: iol-2-Ethernet0/1<->DC-S4-GigabitEthernet0/0
+  - id: l17
+    n1: n17
+    n2: n1
+    i1: i1
+    i2: i1
+    conditioning: {}
+    label: iol-3-Ethernet0/0<->DC-S1-GigabitEthernet0/0
+  - id: l18
+    n1: n17
+    n2: n2
+    i1: i2
+    i2: i1
+    conditioning: {}
+    label: iol-3-Ethernet0/1<->DC-S2-GigabitEthernet0/0
+  - id: l19
+    n1: n17
+    n2: n14
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: iol-3-Ethernet0/2<->iol-0-Ethernet0/0
+  - id: l20
+    n1: n15
+    n2: n16
+    i1: i1
+    i2: i3
+    conditioning: {}
+    label: iol-1-Ethernet0/0<->iol-2-Ethernet0/2
+  - id: l21
+    n1: n14
+    n2: n13
+    i1: i3
+    i2: i0
+    conditioning: {}
+    label: iol-0-Ethernet0/2<->Redundant-port0
+  - id: l22
+    n1: n15
+    n2: n13
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: iol-1-Ethernet0/2<->Redundant-port1
+  - id: l23
+    n1: n15
+    n2: n17
+    i1: i4
+    i2: i4
+    conditioning: {}
+    label: iol-1-Ethernet0/3<->iol-3-Ethernet0/3
+  - id: l24
+    n1: n14
+    n2: n16
+    i1: i4
+    i2: i4
+    conditioning: {}
+    label: iol-0-Ethernet0/3<->iol-2-Ethernet0/3
+  - id: l25
+    n1: n15
+    n2: n18
+    i1: i2
+    i2: i1
+    conditioning: {}
+    label: ASBR2-Ethernet0/1<->DHCP -Ethernet0/0
+  - id: l26
+    n1: n14
+    n2: n18
+    i1: i2
+    i2: i2
+    conditioning: {}
+    label: ASBR1-Ethernet0/1<->DHCP -Ethernet0/1
+lab:
+  description: |
+    Layer 3 configs
+  notes: ''
+  title: L3 Lab
+  node_staging:
+    enabled: false
+    start_remaining: true
+    abort_on_failure: false
+  version: 0.3.1

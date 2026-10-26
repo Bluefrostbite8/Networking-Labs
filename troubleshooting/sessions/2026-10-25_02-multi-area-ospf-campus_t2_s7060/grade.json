@@ -1,0 +1,548 @@
+{
+  "session": "2026-10-25_02-multi-area-ospf-campus_t2_s7060",
+  "incident": "02-t2-s7060",
+  "graded": "2026-10-25T23:02:23",
+  "minutes_since_start": 43.0,
+  "score": 100,
+  "collateral": [],
+  "collateral_checked": true,
+  "faults": [
+    {
+      "index": 1,
+      "id": "svc-helper-wrong",
+      "title": "DHCP relays point at an address nobody answers",
+      "steps": [
+        {
+          "question": "functional",
+          "ok": true,
+          "detail": "2/2 pass"
+        },
+        {
+          "question": "root_cause",
+          "ok": true,
+          "detail": "DC-S1: 'Helper address is 10.4.10.2'; DC-S3: 'Helper address is 10.3.10.2'"
+        },
+        {
+          "question": "saved",
+          "ok": true,
+          "detail": "running matches startup"
+        },
+        {
+          "question": "intent",
+          "ok": true,
+          "detail": "intact"
+        },
+        {
+          "question": "original",
+          "ok": true,
+          "detail": "matches the original"
+        }
+      ],
+      "functional": [
+        {
+          "name": "host_lease U-D3",
+          "ok": true,
+          "detail": "U-D3 has 10.2.10.11",
+          "optional": false,
+          "evidence": [
+            {
+              "node": "U-D3",
+              "command": "ip -4 addr show dev eth0",
+              "output": "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000\r\n    inet 10.2.10.11/24 scope global eth0\r\n       valid_lft forever preferred_lft forever"
+            }
+          ]
+        },
+        {
+          "name": "ping from U-D3",
+          "ok": true,
+          "detail": "1/1 reachable",
+          "optional": false,
+          "evidence": [
+            {
+              "node": "U-D3",
+              "command": "ping -c 5 10.3.10.2",
+              "output": "PING 10.3.10.2 (10.3.10.2): 56 data bytes\r\n64 bytes from 10.3.10.2: seq=0 ttl=42 time=5.906 ms\r\n64 bytes from 10.3.10.2: seq=1 ttl=42 time=3.217 ms\r\n64 bytes from 10.3.10.2: seq=2 ttl=42 time=2.932 ms\r\n64 bytes from 10.3.10.2: seq=3 ttl=42 time=3.143 ms\r\n64 bytes from 10.3.10.2: seq=4 ttl=42 time=2.947 ms\r\n\r\n--- 10.3.10.2 ping statistics ---\r\n5 packets transmitted, 5 packets received, 0% packet loss\r\nround-trip min/avg/max = 2.932/3.629/5.906 ms"
+            }
+          ]
+        }
+      ],
+      "root_cause": [
+        {
+          "name": "DHCP relay on Vlan10 DC-S1",
+          "ok": true,
+          "detail": "DC-S1: 'Helper address is 10.4.10.2'",
+          "optional": false,
+          "evidence": [
+            {
+              "node": "DC-S1",
+              "command": "show ip interface Vlan10",
+              "output": "Vlan10 is up, line protocol is up\r\n  Internet address is 10.1.10.1/24\r\r\n  Broadcast address is 255.255.255.255\r\n  Address determined by configuration file\r\n  MTU is 1500 bytes\r\n  Helper address is 10.4.10.2\r\n  Directed broadcast forwarding is disabled\r\n  Multicast reserved groups joined: 224.0.0.5 224.0.0.6\r\n  Outgoing access list is not set\r\n  Inbound  access list is not set\r\n  Proxy ARP is enabled\r\n  Local Proxy ARP is disabled\r\n  Security level is default\r\n  Split horizon is enabled\r\n  ICMP redirects are always sent\r\n  ICMP unreachables are always sent\r\n  ICMP mask replies are never sent\r\n  IP fast switching is enabled\r\n  IP Flow switching is disabled\r\n  IP CEF switching is enabled\r\n  IP CEF switching turbo vector\r\n  IP Null turbo vector\r\n  IP multicast fast switching is enabled\r\n  IP multicast distributed fast switching is disabled\r\n  IP route-cache flags are Fast, CEF\r\n  Router Discovery is disabled\r\n  IP output packet accounting is disabled\r\n  IP access violation accounting is disabled\r\n  TCP/IP header compression is disabled\r\n  RTP/IP header compression is disabled\r\n  Probe proxy name replies are disabled\r\n  Policy routing is disabled\r\n  Network address translation is disabled\r\n  BGP Policy Mapping is disabled\r\n  Input features: MCI Check\r\n  IPv4 WCCP Redirect outbound is disabled\r\n  IPv4 WCCP Redirect inbound is disabled\r\n  IPv4 WCCP Redirect exclude is disabled"
+            }
+          ]
+        },
+        {
+          "name": "DHCP relay on Vlan10 DC-S3",
+          "ok": true,
+          "detail": "DC-S3: 'Helper address is 10.3.10.2'",
+          "optional": false,
+          "evidence": [
+            {
+              "node": "DC-S3",
+              "command": "show ip interface Vlan10",
+              "output": "Vlan10 is up, line protocol is up\r\n  Internet address is 10.2.10.1/24\r\n  Broadcast address is 255.255.255.255\r\n  Address determined by configuration file\r\n  MTU is 1500 bytes\r\n  Helper address is 10.3.10.2\r\n  Directed broadcast forwarding is disabled\r\n  Multicast reserved groups joined: 224.0.0.5 224.0.0.6\r\n  Outgoing access list is not set\r\n  Inbound  access list is not set\r\n  Proxy ARP is enabled\r\n  Local Proxy ARP is disabled\r\n  Security level is default\r\n  Split horizon is enabled\r\n  ICMP redirects are always sent\r\n  ICMP unreachables are always sent\r\n  ICMP mask replies are never sent\r\n  IP fast switching is enabled\r\n  IP Flow switching is disabled\r\n  IP CEF switching is enabled\r\n  IP CEF switching turbo vector\r\r\n  IP Null turbo vector\r\n  IP multicast fast switching is enabled\r\n  IP multicast distributed fast switching is disabled\r\n  IP route-cache flags are Fast, CEF\r\n  Router Discovery is disabled\r\n  IP output packet accounting is disabled\r\n  IP access violation accounting is disabled\r\n  TCP/IP header compression is disabled\r\n  RTP/IP header compression is disabled\r\n  Probe proxy name replies are disabled\r\n  Policy routing is disabled\r\n  Network address translation is disabled\r\n  BGP Policy Mapping is disabled\r\n  Input features: MCI Check\r\n  IPv4 WCCP Redirect outbound is disabled\r\n  IPv4 WCCP Redirect inbound is disabled\r\r\n  IPv4 WCCP Redirect exclude is disabled"
+            }
+          ]
+        }
+      ],
+      "intent": [],
+      "original_diff": [],
+      "grade": "Exact",
+      "weight": 1.0,
+      "config_now": [
+        {
+          "node": "DC-S1",
+          "section": "interface Vlan10",
+          "vs_broken": {
+            "added": [
+              "ip helper-address 10.4.10.2"
+            ],
+            "removed": [
+              "ip helper-address 10.2.10.10"
+            ]
+          },
+          "vs_original": {
+            "added": [],
+            "removed": []
+          }
+        },
+        {
+          "node": "DC-S3",
+          "section": "interface Vlan10",
+          "vs_broken": {
+            "added": [
+              "ip helper-address 10.3.10.2"
+            ],
+            "removed": [
+              "ip helper-address 10.2.10.10"
+            ]
+          },
+          "vs_original": {
+            "added": [],
+            "removed": []
+          }
+        }
+      ],
+      "hints": 0,
+      "score": 100
+    }
+  ],
+  "baseline_after": [
+    {
+      "name": "ospf_neighbors DHCP ",
+      "ok": true,
+      "detail": "2 FULL of 2 (expected 2)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DHCP ",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n1.1.1.1           1   FULL/DR         00:00:37    10.4.10.1       Ethernet0/1\r\n3.3.3.3           1   FULL/DR         00:00:33    10.3.10.1       Ethernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors ASBR1",
+      "ok": true,
+      "detail": "2 FULL of 2 (expected 2)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "ASBR1",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n2.2.2.2           1   FULL/BDR        00:00:32    10.4.10.2       Ethernet0/1\r\n4.4.4.4           1   FULL/DR         00:00:32    10.1.1.2        Ethernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors ASBR2",
+      "ok": true,
+      "detail": "2 FULL of 2 (expected 2)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "ASBR2",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n2.2.2.2           1   FULL/BDR        00:00:31    10.3.10.2       Ethernet0/1\r\n10.2.200.2        1   FULL/DR         00:00:38    10.2.1.2        Ethernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors ABR1",
+      "ok": true,
+      "detail": "3 FULL of 3 (expected 3)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "ABR1",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n1.1.1.1           1   FULL/BDR        00:00:33    10.1.1.1        Ethernet0/2\r\n10.1.200.1        1   FULL/DR         00:00:33    10.1.200.1      Ethernet0/1\r\n10.1.100.1        1   FULL/DR         00:00:34    10.1.100.1      Ethernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors ABR2",
+      "ok": true,
+      "detail": "3 FULL of 3 (expected 3)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "ABR2",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n3.3.3.3           1   FULL/BDR        00:00:37    10.2.1.1        Ethernet0/2\r\n10.2.200.1        1   FULL/BDR        00:00:39    10.2.200.1      Ethernet0/1\r\n10.2.100.1        1   FULL/BDR        00:00:37    10.2.100.1      Ethernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors DC-S1",
+      "ok": true,
+      "detail": "1 FULL of 1 (expected 1)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S1",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n4.4.4.4           1   FULL/BDR        00:00:37    10.1.100.2      GigabitEthernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors DC-S2",
+      "ok": true,
+      "detail": "1 FULL of 1 (expected 1)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S2",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n4.4.4.4           1   FULL/BDR        00:00:38    10.1.200.2      GigabitEthernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors DC-S3",
+      "ok": true,
+      "detail": "1 FULL of 1 (expected 1)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S3",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n10.2.200.2        1   FULL/DR         00:00:32    10.2.100.2      GigabitEthernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "ospf_neighbors DC-S4",
+      "ok": true,
+      "detail": "1 FULL of 1 (expected 1)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S4",
+          "command": "show ip ospf neighbor",
+          "output": "\r\nNeighbor ID     Pri   State           Dead Time   Address         Interface\r\n10.2.200.2        1   FULL/DR         00:00:38    10.2.200.2      GigabitEthernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "route_via DHCP  0.0.0.0",
+      "ok": true,
+      "detail": "via 10.4.10.1 AD 110",
+      "optional": true,
+      "evidence": [
+        {
+          "node": "DHCP ",
+          "command": "show ip route 0.0.0.0",
+          "output": "Routing entry for 0.0.0.0/0, supernet\r\n  Known via \"ospf 1\", distance 110, metric 1, candidate default path\r\n  Tag 1, type extern 2, forward metric 10\r\n  Last update from 10.4.10.1 on Ethernet0/1, 00:54:16 ago\r\n  Routing Descriptor Blocks:\r\n  * 10.4.10.1, from 1.1.1.1, 00:54:16 ago, via Ethernet0/1\r\n      Route metric is 1, traffic share count is 1\r\n      Route tag 1"
+        }
+      ]
+    },
+    {
+      "name": "vlans DC-S1",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S1",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    \r\n10   USERS                            active    \r\n20   HR                               active    \r\n99   NATIVE                           active    \r\n1002 fddi-default                     act/unsup \r\n1003 token-ring-default               act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trnet-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 tr    101003     1500  -      -      -        -    -        0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trnet 101005     1500  -      -      -        ibm  -        0      0   \r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans DC-S2",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S2",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    \r\n10   USERS                            active    \r\n20   HR                               active    \r\n99   NATIVE                           active    \r\n1002 fddi-default                     act/unsup \r\n1003 token-ring-default               act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trnet-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 tr    101003     1500  -      -      -        -    -        0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trnet 101005     1500  -      -      -        ibm  -        0      0   \r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans DC-S3",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S3",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    \r\n10   USERS                            active    \r\n20   HR                               active    \r\n99   NATIVE                           active    \r\n1002 fddi-default                     act/unsup \r\n1003 token-ring-default               act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trnet-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 tr    101003     1500  -      -      -        -    -        0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trnet 101005     1500  -      -      -        ibm  -        0      0   \r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans DC-S4",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S4",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    \r\n10   USERS                            active    \r\n20   HR                               active    \r\n99   NATIVE                           active    \r\n1002 fddi-default                     act/unsup \r\n1003 token-ring-default               act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trnet-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 tr    101003     1500  -      -      -        -    -        0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trnet 101005     1500  -      -      -        ibm  -        0      0   \r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans A-S1",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A-S1",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    Gi0/3\r\n10   USERS                            active    Gi0/2\r\n20   HR                               active    \r\n99   NATIVE                           active    \r\n1002 fddi-default                     act/unsup \r\n1003 token-ring-default               act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trnet-default                    act/unsup \r\n\r\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 tr    101003     1500  -      -      -        -    -        0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trnet 101005     1500  -      -      -        ibm  -        0      0   \r\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans A-S2",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A-S2",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    Gi0/3\r\n10   USERS                            active    \r\n20   HR                               active    Gi0/2\r\n99   NATIVE                           active    \r\n1002 fddi-default                     act/unsup \r\n1003 token-ring-default               act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trnet-default                    act/unsup \r\n\r\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 tr    101003     1500  -      -      -        -    -        0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trnet 101005     1500  -      -      -        ibm  -        0      0   \r\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans A-S3",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A-S3",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    Gi0/3\r\n10   USERS                            active    Gi0/2\r\n20   HR                               active    \r\n99   NATIVE                           active    \r\n1002 fddi-default                     act/unsup \r\n1003 token-ring-default               act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trnet-default                    act/unsup \r\n\r\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 tr    101003     1500  -      -      -        -    -        0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trnet 101005     1500  -      -      -        ibm  -        0      0   \r\r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "vlans A-S4",
+      "ok": true,
+      "detail": "all active",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A-S4",
+          "command": "show vlan",
+          "output": "\r\nVLAN Name                             Status    Ports\r\n---- -------------------------------- --------- -------------------------------\r\n1    default                          active    Gi0/3\r\n10   USERS                            active    \r\n20   HR                               active    Gi0/2\r\n99   NATIVE                           active    \r\n1002 fddi-default                     act/unsup \r\n1003 token-ring-default               act/unsup \r\n1004 fddinet-default                  act/unsup \r\n1005 trnet-default                    act/unsup \r\n\r\nVLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2\r\n---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------\r\n1    enet  100001     1500  -      -      -        -    -        0      0   \r\n10   enet  100010     1500  -      -      -        -    -        0      0   \r\n20   enet  100020     1500  -      -      -        -    -        0      0   \r\n99   enet  100099     1500  -      -      -        -    -        0      0   \r\n1002 fddi  101002     1500  -      -      -        -    -        0      0   \r\n1003 tr    101003     1500  -      -      -        -    -        0      0   \r\n1004 fdnet 101004     1500  -      -      -        ieee -        0      0   \r\n1005 trnet 101005     1500  -      -      -        ibm  -        0      0   \r\n\r\nRemote SPAN VLANs\r\n------------------------------------------------------------------------------\r\n\r\n\r\nPrimary Secondary Type              Ports\r\n------- --------- ----------------- ------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "trunks DC-S1",
+      "ok": true,
+      "detail": "3 trunks as configured",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S1",
+          "command": "show interfaces trunk",
+          "output": "\r\nPort        Mode             Encapsulation  Status        Native vlan\r\nGi0/1       on               802.1q         trunking      99\r\nGi0/2       on               802.1q         trunking      99\r\nGi0/3       on               802.1q         trunking      99\r\n\r\nPort        Vlans allowed on trunk\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99\r\n\r\nPort        Vlans allowed and active in management domain\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99\r\n\r\nPort        Vlans in spanning tree forwarding state and not pruned\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99"
+        }
+      ]
+    },
+    {
+      "name": "trunks DC-S2",
+      "ok": true,
+      "detail": "3 trunks as configured",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S2",
+          "command": "show interfaces trunk",
+          "output": "\r\nPort        Mode             Encapsulation  Status        Native vlan\r\nGi0/1       on               802.1q         trunking      99\r\nGi0/2       on               802.1q         trunking      99\r\nGi0/3       on               802.1q         trunking      99\r\n\r\nPort        Vlans allowed on trunk\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99\r\n\r\nPort        Vlans allowed and active in management domain\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99\r\n\r\nPort        Vlans in spanning tree forwarding state and not pruned\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99"
+        }
+      ]
+    },
+    {
+      "name": "trunks DC-S3",
+      "ok": true,
+      "detail": "3 trunks as configured",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S3",
+          "command": "show interfaces trunk",
+          "output": "\r\nPort        Mode             Encapsulation  Status        Native vlan\r\nGi0/1       on               802.1q         trunking      99\r\nGi0/2       on               802.1q         trunking      99\r\nGi0/3       on               802.1q         trunking      99\r\n\r\nPort        Vlans allowed on trunk\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99\r\n\r\nPort        Vlans allowed and active in management domain\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99\r\r\n\r\nPort        Vlans in spanning tree forwarding state and not pruned\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99"
+        }
+      ]
+    },
+    {
+      "name": "trunks DC-S4",
+      "ok": true,
+      "detail": "3 trunks as configured",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DC-S4",
+          "command": "show interfaces trunk",
+          "output": "\r\nPort        Mode             Encapsulation  Status        Native vlan\r\nGi0/1       on               802.1q         trunking      99\r\nGi0/2       on               802.1q         trunking      99\r\nGi0/3       on               802.1q         trunking      99\r\n\r\nPort        Vlans allowed on trunk\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99\r\n\r\nPort        Vlans allowed and active in management domain\r\nGi0/1       10,20,99\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99\r\n\r\nPort        Vlans in spanning tree forwarding state and not pruned\r\nGi0/1       none\r\nGi0/2       10,20,99\r\nGi0/3       10,20,99"
+        }
+      ]
+    },
+    {
+      "name": "trunks A-S1",
+      "ok": true,
+      "detail": "2 trunks as configured",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A-S1",
+          "command": "show interfaces trunk",
+          "output": "\r\nPort        Mode             Encapsulation  Status        Native vlan\r\nGi0/0       on               802.1q         trunking      99\r\nGi0/1       on               802.1q         trunking      99\r\n\r\nPort        Vlans allowed on trunk\r\nGi0/0       10,20,99\r\nGi0/1       10,20,99\r\n\r\nPort        Vlans allowed and active in management domain\r\nGi0/0       10,20,99\r\nGi0/1       10,20,99\r\n\r\nPort        Vlans in spanning tree forwarding state and not pruned\r\nGi0/0       none\r\nGi0/1       10,20,99"
+        }
+      ]
+    },
+    {
+      "name": "trunks A-S2",
+      "ok": true,
+      "detail": "2 trunks as configured",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A-S2",
+          "command": "show interfaces trunk",
+          "output": "\r\nPort        Mode             Encapsulation  Status        Native vlan\r\nGi0/0       on               802.1q         trunking      99\r\nGi0/1       on               802.1q         trunking      99\r\n\r\nPort        Vlans allowed on trunk\r\nGi0/0       10,20,99\r\nGi0/1       10,20,99\r\n\r\nPort        Vlans allowed and active in management domain\r\nGi0/0       10,20,99\r\nGi0/1       10,20,99\r\n\r\nPort        Vlans in spanning tree forwarding state and not pruned\r\nGi0/0       10,20,99\r\nGi0/1       none"
+        }
+      ]
+    },
+    {
+      "name": "trunks A-S3",
+      "ok": true,
+      "detail": "2 trunks as configured",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A-S3",
+          "command": "show interfaces trunk",
+          "output": "\r\nPort        Mode             Encapsulation  Status        Native vlan\r\nGi0/0       on               802.1q         trunking      99\r\nGi0/1       on               802.1q         trunking      99\r\n\r\nPort        Vlans allowed on trunk\r\nGi0/0       10,20,99\r\nGi0/1       10,20,99\r\n\r\nPort        Vlans allowed and active in management domain\r\nGi0/0       10,20,99\r\nGi0/1       10,20,99\r\n\r\nPort        Vlans in spanning tree forwarding state and not pruned\r\nGi0/0       10,20,99\r\nGi0/1       none"
+        }
+      ]
+    },
+    {
+      "name": "trunks A-S4",
+      "ok": true,
+      "detail": "2 trunks as configured",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "A-S4",
+          "command": "show interfaces trunk",
+          "output": "\r\nPort        Mode             Encapsulation  Status        Native vlan\r\nGi0/0       on               802.1q         trunking      99\r\nGi0/1       on               802.1q         trunking      99\r\n\r\nPort        Vlans allowed on trunk\r\nGi0/0       10,20,99\r\nGi0/1       10,20,99\r\n\r\nPort        Vlans allowed and active in management domain\r\nGi0/0       10,20,99\r\nGi0/1       10,20,99\r\n\r\nPort        Vlans in spanning tree forwarding state and not pruned\r\nGi0/0       10,20,99\r\nGi0/1       10,20,99"
+        }
+      ]
+    },
+    {
+      "name": "dhcp_bindings DHCP ",
+      "ok": true,
+      "detail": "4 bindings (need 4)",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "DHCP ",
+          "command": "show ip dhcp binding",
+          "output": "Bindings from all pools not associated with VRF:\r\nIP address      Client-ID/ \t\tLease expiration \tType       State      Interface\r\n\t\tHardware address/\r\n\t\tUser name\r\n10.1.10.11      0152.5400.e2a8.78       Oct 27 2026 03:56 AM    Automatic  Active     Ethernet0/1\r\n10.1.20.11      0152.5400.9fa5.87       Oct 27 2026 03:15 AM    Automatic  Active     Ethernet0/1\r\n10.2.10.11      0152.5400.0f84.ae       Oct 27 2026 04:00 AM    Automatic  Active     Ethernet0/0\r\n10.2.20.11      0152.5400.bebd.c9       Oct 27 2026 03:16 AM    Automatic  Active     Ethernet0/0"
+        }
+      ]
+    },
+    {
+      "name": "ping from ABR1",
+      "ok": true,
+      "detail": "4/4 reachable",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "ABR1",
+          "command": "ping 10.1.10.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.1.10.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 3/3/4 ms"
+        },
+        {
+          "node": "ABR1",
+          "command": "ping 10.1.20.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.1.20.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 2/2/3 ms"
+        },
+        {
+          "node": "ABR1",
+          "command": "ping 10.2.10.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.2.10.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 3/3/5 ms"
+        },
+        {
+          "node": "ABR1",
+          "command": "ping 10.2.20.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.2.20.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 3/3/5 ms"
+        }
+      ]
+    },
+    {
+      "name": "ping from ABR2",
+      "ok": true,
+      "detail": "4/4 reachable",
+      "optional": false,
+      "evidence": [
+        {
+          "node": "ABR2",
+          "command": "ping 10.1.10.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.1.10.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 4/4/5 ms"
+        },
+        {
+          "node": "ABR2",
+          "command": "ping 10.1.20.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.1.20.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 3/3/4 ms"
+        },
+        {
+          "node": "ABR2",
+          "command": "ping 10.2.10.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.2.10.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 2/2/3 ms"
+        },
+        {
+          "node": "ABR2",
+          "command": "ping 10.2.20.11",
+          "output": "Type escape sequence to abort.\r\nSending 5, 100-byte ICMP Echos to 10.2.20.11, timeout is 2 seconds:\r\n!!!!!\r\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 2/2/3 ms"
+        }
+      ]
+    }
+  ]
+}

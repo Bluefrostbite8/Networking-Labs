@@ -1,0 +1,14 @@
+{
+  "session": "2026-10-25_02-multi-area-ospf-campus_t2_s7060",
+  "lab": "02-multi-area-ospf-campus",
+  "tier": 2,
+  "seed": 7060,
+  "incident": "02-t2-s7060",
+  "faults": 1,
+  "hint_levels": 3,
+  "created": "2026-10-25T21:58:20",
+  "healthy_baseline": "02-healthy-2028",
+  "started": "2026-10-25T22:19:22",
+  "lab_id": "9558518a-67ce-4b3f-8e49-d15734687a7b",
+  "debriefed": "2026-10-25T23:06:40"
+}

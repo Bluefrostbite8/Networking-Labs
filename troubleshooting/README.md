@@ -142,6 +142,7 @@ Published break-fix sessions, newest first. Each links to its debrief.
 
 | Date | Session | Lab | Tier | Faults | Score | Grades |
 |------|---------|-----|------|--------|-------|--------|
+| 2026-10-25 | [02-t2-s7060](sessions/2026-10-25_02-multi-area-ospf-campus_t2_s7060/debrief.md) | 02 Multi-Area OSPF Enterprise Campus | T2 | 1 | 100 | Exact |
 | 2026-10-18 | [03-t2-s6466](sessions/2026-10-18_03-switching-redundancy_t2_s6466/debrief.md) | 03 Redundant Campus Access Layer | T2 | 1 | 100 | Exact |
 | 2026-10-18 | [03-t2-s6224](sessions/2026-10-18_03-switching-redundancy_t2_s6224/debrief.md) | 03 Redundant Campus Access Layer | T2 | 2 | 70 | Temporary, Exact |
 | 2026-10-12 | [03-t2-s7566](sessions/2026-10-12_03-switching-redundancy_t2_s7566/debrief.md) | 03 Redundant Campus Access Layer | T2 | 1 | 100 | Exact |
